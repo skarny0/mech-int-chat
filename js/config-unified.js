@@ -24,7 +24,14 @@ async function makeAPIRequest(requestData) {
     // Check if we're running on Vercel (production) or locally
     const isVercel = window.location.hostname.includes('vercel.app') || 
                      window.location.hostname.includes('vercel.com') ||
+                     window.location.hostname.includes('vercel') ||
                      window.location.hostname === 'localhost' && window.location.port === '3000';
+    
+    console.log('Vercel detection:', {
+        hostname: window.location.hostname,
+        isVercel: isVercel,
+        apiEndpoint: API_CONFIG.apiEndpoint
+    });
     
     if (isVercel) {
         // Use Vercel serverless function (no API key needed on frontend)
