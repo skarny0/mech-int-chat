@@ -11,12 +11,6 @@ $(document).ready(function() {
     const typingIndicator = $('#typingIndicator');
     const attachBtn = $('#attachBtn');
     const imageBtn = $('#imageBtn');
-    const settingsBtn = $('#settingsBtn');
-    const settingsModal = $('#settingsModal');
-    const closeSettingsBtn = $('#closeSettingsBtn');
-    const apiKeyInput = $('#apiKeyInput');
-    const saveApiKeyBtn = $('#saveApiKeyBtn');
-    const clearApiKeyBtn = $('#clearApiKeyBtn');
 
     // Enable/disable send button based on input
     messageInput.on('input', function() {
@@ -53,21 +47,9 @@ $(document).ready(function() {
         callClaudeAPI(message);
     }
 
-    // Function to call Claude API (unified for both local and Vercel deployment)
+    // Function to call Claude API (Vercel serverless deployment)
     async function callClaudeAPI(userMessage) {
         try {
-            // Check if we're on Vercel (no API key needed) or local development
-            const isVercel = window.location.hostname.includes('vercel.app') || 
-                             window.location.hostname.includes('vercel.com') ||
-                             window.location.hostname === 'localhost' && window.location.port === '3000';
-            
-            if (!isVercel) {
-                // For local development, check if API key is available
-                const apiKey = getAPIKey();
-                if (!apiKey) {
-                    throw new Error('API key not found. Please enter your Anthropic API key to continue.');
-                }
-            }
 
             const requestData = {
                 model: API_CONFIG.model,
@@ -182,50 +164,6 @@ $(document).ready(function() {
         alert('Image sending feature would be implemented here');
     });
 
-    // Settings modal functionality
-    settingsBtn.on('click', function() {
-        // Load current API key if available
-        const currentKey = getAPIKey();
-        if (currentKey) {
-            apiKeyInput.val(currentKey);
-        }
-        settingsModal.show();
-    });
-
-    closeSettingsBtn.on('click', function() {
-        settingsModal.hide();
-    });
-
-    // Close modal when clicking outside
-    settingsModal.on('click', function(e) {
-        if (e.target === this) {
-            settingsModal.hide();
-        }
-    });
-
-    // Save API key
-    saveApiKeyBtn.on('click', function() {
-        const apiKey = apiKeyInput.val().trim();
-        if (apiKey) {
-            if (setAPIKey(apiKey)) {
-                alert('API key saved successfully!');
-                settingsModal.hide();
-            } else {
-                alert('Failed to save API key. Please try again.');
-            }
-        } else {
-            alert('Please enter a valid API key.');
-        }
-    });
-
-    // Clear API key
-    clearApiKeyBtn.on('click', function() {
-        if (confirm('Are you sure you want to clear your API key?')) {
-            localStorage.removeItem('anthropic_api_key');
-            apiKeyInput.val('');
-            alert('API key cleared.');
-        }
-    });
 
     // Add clear conversation function
     window.clearConversation = function() {
