@@ -208,6 +208,12 @@ $(document).ready(function (){
         // Hide Consent
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);
+        
+        // Show chat interface directly
+        if (typeof window.showChatInterface === 'function') {
+            window.showChatInterface();
+        }
+        
         // Show Instructions
         
 

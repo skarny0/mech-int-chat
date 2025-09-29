@@ -816,6 +816,7 @@
                     // Debug mode - show task content directly
                     $("#task-header").attr("hidden", false);
                     $("#task-main-content").attr("hidden", false);
+                    $("#consent-main-content").attr("hidden", true);
  
                     // Load Main Experiment - works with Vercel and local development
                     $('#task-main-content').load('html/chat-content.html'); 
@@ -835,6 +836,14 @@
                     // // // // // Load Main Experiment
                     // $('#task-main-content').load('html/game-main-exp.html'); 
                 }
+
+                // Function to hide consent and show chat interface
+                window.showChatInterface = function() {
+                    $("#consent-main-content").attr("hidden", true);
+                    $("#task-header").attr("hidden", false);
+                    $("#task-main-content").attr("hidden", false);
+                    $('#task-main-content').load('html/chat-content.html');
+                };
             });
         </script>
 
