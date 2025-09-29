@@ -35,6 +35,7 @@ export default async function handler(req, res) {
 
     // Prepare the request for Modal API (matching ChatRequest format)
     const requestData = {
+      model: model || 'gemma-2-2b-it',
       max_tokens: max_tokens,
       messages: messages,
       system: system
