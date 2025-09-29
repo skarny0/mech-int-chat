@@ -51,8 +51,26 @@ async function makeAPIRequest(requestData) {
             throw error;
         }
     } else {
-        // This should not happen in production - Vercel detection should work
-        throw new Error('Unable to determine deployment environment. Please ensure you are using Vercel deployment.');
+        // Local development - use direct API calls
+        try {
+            const response = await fetch(config.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (response.ok) {
+                return await response.json();
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `API request failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Local API error:', error);
+            throw error;
+        }
     }
 }
 
