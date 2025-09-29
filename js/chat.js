@@ -22,7 +22,7 @@ function initializeDynamicInterface() {
 
     // System prompt configuration elements
     const assistantName = $('#assistantName');
-    const assistantPersonality = $('#assistantPersonality');
+    const assistantPersonality = $('input[name="assistantPersonality"]');
     const customPersonalityGroup = $('#customPersonalityGroup');
     const customPersonality = $('#customPersonality');
     const assistantDescription = $('#assistantDescription');
@@ -62,7 +62,7 @@ function initializeDynamicInterface() {
         // Reset configuration
         resetConfig.on('click', function() {
             assistantName.val('');
-            assistantPersonality.val('professional');
+            assistantPersonality.filter('[value="professional"]').prop('checked', true);
             customPersonalityGroup.hide();
             customPersonality.val('');
             assistantDescription.val('');
@@ -255,7 +255,7 @@ function initializeDynamicInterface() {
     // Generate system prompt preview
     function updatePreview() {
         const name = assistantName.val() || 'AI Assistant';
-        const personality = assistantPersonality.val();
+        const personality = assistantPersonality.filter(':checked').val();
         const customPersonalityText = customPersonality.val();
         const description = assistantDescription.val();
 

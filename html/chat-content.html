@@ -15,15 +15,33 @@
             </div>
 
             <div class="form-group">
-                <label for="assistantPersonality" class="form-label">Personality & Tone</label>
-                <select class="form-control" id="assistantPersonality">
-                    <option value="professional">Professional & Formal</option>
-                    <option value="friendly">Friendly & Conversational</option>
-                    <option value="expert">Expert & Technical</option>
-                    <option value="creative">Creative & Imaginative</option>
-                    <option value="analytical">Analytical & Methodical</option>
-                    <option value="custom">Custom (specify below)</option>
-                </select>
+                <label class="form-label">Personality & Tone</label>
+                <div class="personality-options">
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="professional" checked>
+                        <span>Professional & Formal</span>
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="friendly">
+                        <span>Friendly & Conversational</span>
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="expert">
+                        <span>Expert & Technical</span>
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="creative">
+                        <span>Creative & Imaginative</span>
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="analytical">
+                        <span>Analytical & Methodical</span>
+                    </label>
+                    <label class="style-option">
+                        <input type="radio" name="assistantPersonality" value="custom">
+                        <span>Custom</span>
+                    </label>
+                </div>
             </div>
 
             <div class="form-group" id="customPersonalityGroup" style="display: none;">

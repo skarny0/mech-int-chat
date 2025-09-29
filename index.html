@@ -693,8 +693,15 @@
             }
 
             .response-style-options {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .personality-options {
+                display: flex;
+                flex-wrap: wrap;
                 gap: 0.5rem;
                 margin-top: 0.5rem;
             }
