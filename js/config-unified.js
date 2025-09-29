@@ -1,15 +1,19 @@
 // Unified Configuration for Local Development and Vercel Deployment
 // Automatically detects environment and uses appropriate API configuration
 
-// Configuration for Vercel serverless deployment
+// Claude API Configuration (uncomment to use Claude)
 const API_CONFIG = {
-    // Claude API Configuration
     model: 'claude-3-5-sonnet-20241022',
     maxTokens: 1000,
-    
-    // Vercel API endpoint (serverless function)
     apiEndpoint: '/api/claude'
 };
+
+// Modal AI Configuration (uncomment to use Modal, comment out Claude config above)
+// const API_CONFIG = {
+//     model: 'modal-model', // Replace with your actual Modal model name
+//     maxTokens: 1000,
+//     apiEndpoint: '/api/modal'
+// };
 
 // Function to make API request using Vercel serverless function or CORS proxy fallback
 async function makeAPIRequest(requestData) {
@@ -19,7 +23,7 @@ async function makeAPIRequest(requestData) {
                      window.location.hostname.includes('vercel') ||
                      window.location.hostname === 'localhost' && window.location.port === '3000';
     
-    console.log('Vercel detection:', {
+    console.log('API Request:', {
         hostname: window.location.hostname,
         isVercel: isVercel,
         apiEndpoint: API_CONFIG.apiEndpoint
@@ -43,7 +47,7 @@ async function makeAPIRequest(requestData) {
                 throw new Error(errorData.error || `API request failed with status: ${response.status}`);
             }
         } catch (error) {
-            console.error('Vercel API error:', error);
+            console.error('API error:', error);
             throw error;
         }
     } else {
@@ -55,5 +59,8 @@ async function makeAPIRequest(requestData) {
 
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { API_CONFIG, getAPIUrl, makeAPIRequest };
+    module.exports = { 
+        API_CONFIG, 
+        makeAPIRequest 
+    };
 }

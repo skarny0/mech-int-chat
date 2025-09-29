@@ -43,14 +43,13 @@ $(document).ready(function() {
         // Show typing indicator
         typingIndicator.show();
 
-        // Call Claude API for response
-        callClaudeAPI(message);
+        // Call AI API for response
+        callAIAPI(message);
     }
 
-    // Function to call Claude API (Vercel serverless deployment)
-    async function callClaudeAPI(userMessage) {
+    // Function to call AI API (generalized for both Claude and Modal)
+    async function callAIAPI(userMessage) {
         try {
-
             const requestData = {
                 model: API_CONFIG.model,
                 max_tokens: API_CONFIG.maxTokens,
@@ -76,21 +75,21 @@ $(document).ready(function() {
             addMessage(assistantMessage, 'assistant');
 
         } catch (error) {
-            console.error('Error calling Claude API:', error);
+            console.error('Error calling AI API:', error);
             
             // Hide typing indicator
             typingIndicator.hide();
             
             // Show appropriate error message based on error type
             let errorMessage;
-            if (error.message.includes('API key not found')) {
-                errorMessage = `Please enter your Anthropic API key to continue. Click the settings button to add your API key.`;
+            if (error.message.includes('API key not found') || error.message.includes('not configured')) {
+                errorMessage = `API configuration error: ${error.message}. Please check your API settings.`;
             } else if (error.message.includes('CORS')) {
                 errorMessage = `CORS Error: ${error.message}. This might be due to network restrictions. Please try again or contact the study administrator.`;
             } else if (error.message.includes('Rate limit exceeded')) {
                 errorMessage = `Rate limit exceeded. Please wait a moment and try again.`;
-            } else if (error.message.includes('Invalid API key')) {
-                errorMessage = `Invalid API key. Please check your Anthropic API key and try again.`;
+            } else if (error.message.includes('Invalid API key') || error.message.includes('Invalid')) {
+                errorMessage = `Invalid configuration: ${error.message}. Please check your API settings and try again.`;
             } else {
                 errorMessage = `Error: ${error.message}. Please try again or contact the study administrator.`;
             }
@@ -193,6 +192,13 @@ $(document).ready(function() {
         messagesContainer.append(welcomeMessage);
         messageIdCounter = 2;
     };
+
+    // Add function to get current provider info
+    window.getCurrentProvider = function() {
+        return {
+            config: API_CONFIG
+        };
+    };
 });
 
 // Global functions for message actions
@@ -224,7 +230,7 @@ async function regenerateMessage(messageId) {
             conversationHistory.pop();
         }
         
-        // Call Claude API for a new response
+        // Call AI API for a new response
         const requestData = {
             model: API_CONFIG.model,
             max_tokens: API_CONFIG.maxTokens,
