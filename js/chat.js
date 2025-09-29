@@ -1,10 +1,11 @@
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
-let messageIdCounter = window.messageIdCounter || 2; // Start from 2 since we have initial message with ID 1
-let conversationHistory = window.conversationHistory || []; // Store conversation history for API calls
-
-// Store in window to prevent redeclaration errors
-window.messageIdCounter = messageIdCounter;
-window.conversationHistory = conversationHistory;
+// Initialize global variables if they don't exist
+if (typeof window.messageIdCounter === 'undefined') {
+    window.messageIdCounter = 2; // Start from 2 since we have initial message with ID 1
+}
+if (typeof window.conversationHistory === 'undefined') {
+    window.conversationHistory = []; // Store conversation history for API calls
+}
 
 // Note: API configuration is loaded from config-unified.js file
 
