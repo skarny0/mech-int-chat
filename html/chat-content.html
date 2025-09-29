@@ -1,61 +1,127 @@
-<!-- Enhanced Chat Interface Content for Main Experiment -->
-<div class="chat-interface">
-    <!-- Messages Area -->
-    <div class="messages-container" id="messagesContainer">
-        <div class="message assistant-message" data-message-id="1">
-            <div class="message-avatar">
-                <i class="fas fa-robot"></i>
+<!-- Dynamic Chat Interface with System Prompt Configuration -->
+<div class="dynamic-chat-container">
+    <!-- System Prompt Configuration Interface -->
+    <div class="system-prompt-interface" id="systemPromptInterface">
+        <div class="config-header">
+            <h3>Configure Your AI Assistant</h3>
+            <p class="config-description">Customize how your AI assistant behaves by setting up a system prompt. This will define the assistant's personality, expertise, and response style.</p>
+        </div>
+
+        <div class="config-form">
+            <div class="form-group">
+                <label for="assistantName" class="form-label">Assistant Name</label>
+                <input type="text" class="form-control" id="assistantName" placeholder="e.g., Research Assistant, Coding Expert, Creative Writer">
+                <div class="form-text">Give your assistant a name or role</div>
             </div>
-            <div class="message-content">
-                <div class="message-text">
-                    Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
+
+            <div class="form-group">
+                <label for="assistantPersonality" class="form-label">Personality & Tone</label>
+                <select class="form-control" id="assistantPersonality">
+                    <option value="professional">Professional & Formal</option>
+                    <option value="friendly">Friendly & Conversational</option>
+                    <option value="expert">Expert & Technical</option>
+                    <option value="creative">Creative & Imaginative</option>
+                    <option value="analytical">Analytical & Methodical</option>
+                    <option value="custom">Custom (specify below)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="customPersonalityGroup" style="display: none;">
+                <label for="customPersonality" class="form-label">Custom Personality</label>
+                <input type="text" class="form-control" id="customPersonality" placeholder="Describe the personality and tone you want">
+            </div>
+
+            <div class="form-group">
+                <label for="assistantDescription" class="form-label">Assistant Description</label>
+                <textarea class="form-control" id="assistantDescription" rows="6" placeholder="Describe what your assistant should do, how it should behave, what topics it should focus on, and any specific instructions..."></textarea>
+                <div class="form-text">Be specific about the assistant's role, expertise, and how you want it to respond</div>
+            </div>
+
+            <div class="preview-section">
+                <h4>System Prompt Preview</h4>
+                <div class="preview-box" id="systemPromptPreview">
+                    <p class="preview-text">Your system prompt will appear here as you configure the assistant...</p>
                 </div>
-                <div class="message-actions">
-                    <button class="action-btn" onclick="copyMessage(1)" title="Copy message">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="action-btn" onclick="regenerateMessage(1)" title="Regenerate">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                </div>
+            </div>
+
+            <div class="config-actions">
+                <button type="button" class="btn btn-secondary" id="resetConfig">Reset to Default</button>
+                <button type="button" class="btn btn-primary" id="startChatBtn">Start Chat</button>
             </div>
         </div>
     </div>
 
-    <!-- Input Area -->
-    <div class="input-container">
-        <div class="input-wrapper">
-            <div class="input-actions">
-                <button class="action-btn" id="attachBtn" title="Attach file">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <button class="action-btn" id="imageBtn" title="Send image">
-                    <i class="fas fa-image"></i>
-                </button>
-            </div>
-            <div class="input-field-container">
-                <textarea 
-                    class="message-input" 
-                    id="messageInput" 
-                    placeholder="Type your message here..."
-                    rows="1"
-                ></textarea>
-                <button class="send-button" id="sendBtn" disabled>
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+    <!-- Chat Interface -->
+    <div class="chat-interface" id="chatInterface" style="display: none;">
+        <!-- Interface Controls -->
+        <div class="interface-controls">
+            <button class="btn btn-secondary" id="backToConfigBtn">
+                <i class="fas fa-cog"></i> Back to Configuration
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="message assistant-message" data-message-id="1">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">
+                        Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
+                    </div>
+                    <div class="system-prompt-info" id="systemPromptInfo" style="display: none;">
+                        <small class="text-muted">
+                            <i class="fas fa-cog"></i> Using custom system prompt
+                        </small>
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn" onclick="copyMessage(1)" title="Copy message">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="action-btn" onclick="regenerateMessage(1)" title="Regenerate">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="input-footer">
-            <div class="typing-indicator" id="typingIndicator" style="display: none;">
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="input-actions">
+                    <button class="action-btn" id="attachBtn" title="Attach file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="action-btn" id="imageBtn" title="Send image">
+                        <i class="fas fa-image"></i>
+                    </button>
                 </div>
-                <span>Assistant is typing...</span>
+                <div class="input-field-container">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message here..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" id="sendBtn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
-            <div class="input-hints">
-                <span>Press Enter to send, Shift+Enter for new line</span>
+            <div class="input-footer">
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>Assistant is typing...</span>
+                </div>
+                <div class="input-hints">
+                    <span>Press Enter to send, Shift+Enter for new line</span>
+                </div>
             </div>
         </div>
     </div>

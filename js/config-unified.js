@@ -53,7 +53,7 @@ async function makeAPIRequest(requestData) {
     } else {
         // Local development - use direct API calls
         try {
-            const response = await fetch(config.apiEndpoint, {
+            const response = await fetch(API_CONFIG.apiEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -634,6 +634,131 @@
                 margin-top: 0.25rem;
             }
 
+            /* System Prompt Configuration Styles */
+            .system-prompt-interface {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem;
+            }
+
+            .config-header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+
+            .config-header h3 {
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }
+
+            .config-description {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+
+            .config-form {
+                background-color: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-lg);
+                padding: 2rem;
+            }
+
+            .expertise-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .expertise-tag {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                background-color: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                cursor: pointer;
+                transition: all 0.2s;
+                font-size: 0.875rem;
+            }
+
+            .expertise-tag:hover {
+                background-color: var(--border-color);
+            }
+
+            .expertise-tag input[type="checkbox"] {
+                margin: 0;
+            }
+
+            .response-style-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+            }
+
+            .style-option {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem;
+                background-color: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .style-option:hover {
+                background-color: var(--border-color);
+            }
+
+            .style-option input[type="radio"] {
+                margin: 0;
+            }
+
+            .preview-section {
+                margin-top: 2rem;
+                padding-top: 2rem;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .preview-section h4 {
+                color: var(--text-primary);
+                margin-bottom: 1rem;
+            }
+
+            .preview-box {
+                background-color: var(--bg-primary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 1rem;
+                min-height: 100px;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+
+            .preview-text {
+                color: var(--text-secondary);
+                line-height: 1.5;
+                margin: 0;
+                font-style: italic;
+            }
+
+            .config-actions {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 2rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .dynamic-chat-container {
+                min-height: 60vh;
+            }
+
             /* Responsive Design */
             @media (max-width: 768px) {
                 .main-container {
@@ -676,8 +801,9 @@
         -->
         <script>
             $(document).ready(function(){
-                // Check if DEBUG is defined, if not, default to false
-                const debugMode = typeof DEBUG !== 'undefined' ? DEBUG : false;
+                // Check for debug flag in URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const debugMode = urlParams.get('debug') === 'true';
                 
                 if (debugMode){
                     // Debug mode - show task content directly

@@ -1,27 +1,134 @@
-// Enhanced Chat Interface JavaScript with Claude API Integration
+// Enhanced Chat Interface JavaScript with System Prompt Configuration
 let messageIdCounter = 2; // Start from 2 since we have initial message with ID 1
 let conversationHistory = []; // Store conversation history for API calls
 
 // Note: API configuration is loaded from config-unified.js file
 
 $(document).ready(function() {
+    // Initialize the dynamic interface
+    initializeDynamicInterface();
+});
+
+function initializeDynamicInterface() {
+    const systemPromptInterface = $('#systemPromptInterface');
+    const chatInterface = $('#chatInterface');
     const messagesContainer = $('#messagesContainer');
     const messageInput = $('#messageInput');
     const sendBtn = $('#sendBtn');
     const typingIndicator = $('#typingIndicator');
     const attachBtn = $('#attachBtn');
     const imageBtn = $('#imageBtn');
+    const systemPromptInfo = $('#systemPromptInfo');
 
-    // Enable/disable send button based on input
-    messageInput.on('input', function() {
-        sendBtn.prop('disabled', messageInput.val().trim() === '');
-    });
+    // System prompt configuration elements
+    const assistantName = $('#assistantName');
+    const assistantPersonality = $('#assistantPersonality');
+    const customPersonalityGroup = $('#customPersonalityGroup');
+    const customPersonality = $('#customPersonality');
+    const assistantDescription = $('#assistantDescription');
+    const systemPromptPreview = $('#systemPromptPreview');
+    const resetConfig = $('#resetConfig');
+    const startChatBtn = $('#startChatBtn');
+    const backToConfigBtn = $('#backToConfigBtn');
 
-    // Auto-resize textarea
-    messageInput.on('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
+    // Check if custom system prompt is being used
+    const customSystemPrompt = localStorage.getItem('customSystemPrompt');
+    if (customSystemPrompt) {
+        systemPromptInfo.show();
+    }
+
+    // Initialize system prompt configuration
+    initializeSystemPromptConfig();
+    
+    // Initialize chat functionality
+    initializeChatFunctionality();
+
+    function initializeSystemPromptConfig() {
+        // Show/hide custom personality field
+        assistantPersonality.on('change', function() {
+            if ($(this).val() === 'custom') {
+                customPersonalityGroup.show();
+            } else {
+                customPersonalityGroup.hide();
+            }
+            updatePreview();
+        });
+
+        // Update preview when any field changes
+        [assistantName, assistantPersonality, customPersonality, assistantDescription].forEach(element => {
+            element.on('input change', updatePreview);
+        });
+
+        // Reset configuration
+        resetConfig.on('click', function() {
+            assistantName.val('');
+            assistantPersonality.val('professional');
+            customPersonalityGroup.hide();
+            customPersonality.val('');
+            assistantDescription.val('');
+            updatePreview();
+        });
+
+        // Start chat
+        startChatBtn.on('click', function() {
+            const systemPrompt = systemPromptPreview.find('.preview-text').text();
+            
+            // Store system prompt in localStorage for the chat interface
+            localStorage.setItem('customSystemPrompt', systemPrompt);
+            
+            // Switch to chat interface
+            switchToChat();
+        });
+
+        // Back to configuration
+        backToConfigBtn.on('click', function() {
+            switchToSystemPromptConfig();
+        });
+
+        // Initialize preview
+        updatePreview();
+    }
+
+    function initializeChatFunctionality() {
+        // Check if custom system prompt is being used
+        const customSystemPrompt = localStorage.getItem('customSystemPrompt');
+        if (customSystemPrompt) {
+            systemPromptInfo.show();
+        }
+
+        // Enable/disable send button based on input
+        messageInput.on('input', function() {
+            sendBtn.prop('disabled', messageInput.val().trim() === '');
+        });
+
+        // Auto-resize textarea
+        messageInput.on('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Event listeners
+        sendBtn.on('click', sendMessage);
+        
+        messageInput.on('keypress', function(e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Attach button functionality
+        attachBtn.on('click', function() {
+            // Placeholder for file attachment
+            alert('File attachment feature would be implemented here');
+        });
+
+        // Image button functionality
+        imageBtn.on('click', function() {
+            // Placeholder for image sending
+            alert('Image sending feature would be implemented here');
+        });
+    }
 
     // Send message function
     function sendMessage() {
@@ -50,11 +157,15 @@ $(document).ready(function() {
     // Function to call AI API (generalized for both Claude and Modal)
     async function callAIAPI(userMessage) {
         try {
+            // Get custom system prompt from localStorage, fallback to default
+            const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
+                "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+
             const requestData = {
                 model: API_CONFIG.model,
                 max_tokens: API_CONFIG.maxTokens,
                 messages: conversationHistory,
-                system: "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone."
+                system: customSystemPrompt
             };
 
             const data = await makeAPIRequest(requestData);
@@ -141,28 +252,50 @@ $(document).ready(function() {
         return messageId;
     }
 
-    // Event listeners
-    sendBtn.on('click', sendMessage);
-    
-    messageInput.on('keypress', function(e) {
-        if (e.which === 13 && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+    // Generate system prompt preview
+    function updatePreview() {
+        const name = assistantName.val() || 'AI Assistant';
+        const personality = assistantPersonality.val();
+        const customPersonalityText = customPersonality.val();
+        const description = assistantDescription.val();
+
+        let systemPrompt = `You are ${name}. `;
+
+        // Add personality
+        if (personality === 'custom' && customPersonalityText) {
+            systemPrompt += customPersonalityText + ' ';
+        } else {
+            const personalityMap = {
+                'professional': 'You maintain a professional and formal tone in all interactions.',
+                'friendly': 'You are friendly, approachable, and conversational in your responses.',
+                'expert': 'You speak as a knowledgeable expert with authority and precision.',
+                'creative': 'You are imaginative, creative, and think outside the box.',
+                'analytical': 'You approach problems methodically and provide detailed analysis.'
+            };
+            systemPrompt += personalityMap[personality] + ' ';
         }
-    });
 
-    // Attach button functionality
-    attachBtn.on('click', function() {
-        // Placeholder for file attachment
-        alert('File attachment feature would be implemented here');
-    });
+        // Add description
+        if (description) {
+            systemPrompt += description + ' ';
+        }
 
-    // Image button functionality
-    imageBtn.on('click', function() {
-        // Placeholder for image sending
-        alert('Image sending feature would be implemented here');
-    });
+        systemPrompt += 'Always be helpful, accurate, and respectful.';
 
+        systemPromptPreview.html(`<p class="preview-text">${systemPrompt}</p>`);
+    }
+
+    // Interface switching functions
+    function switchToChat() {
+        systemPromptInterface.hide();
+        chatInterface.show();
+        systemPromptInfo.show();
+    }
+
+    function switchToSystemPromptConfig() {
+        chatInterface.hide();
+        systemPromptInterface.show();
+    }
 
     // Add clear conversation function
     window.clearConversation = function() {
@@ -199,7 +332,7 @@ $(document).ready(function() {
             config: API_CONFIG
         };
     };
-});
+}
 
 // Global functions for message actions
 function copyMessage(messageId) {
@@ -231,11 +364,14 @@ async function regenerateMessage(messageId) {
         }
         
         // Call AI API for a new response
+        const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
+            "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+
         const requestData = {
             model: API_CONFIG.model,
             max_tokens: API_CONFIG.maxTokens,
             messages: conversationHistory,
-            system: "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone."
+            system: customSystemPrompt
         };
 
         const data = await makeAPIRequest(requestData);
