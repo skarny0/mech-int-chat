@@ -2,18 +2,18 @@
 // Automatically detects environment and uses appropriate API configuration
 
 // Claude API Configuration (uncomment to use Claude)
-// const API_CONFIG = {
-//     model: 'claude-3-5-sonnet-20241022',
-//     maxTokens: 1000,
-//     apiEndpoint: '/api/claude'
-// };
+const API_CONFIG = {
+    model: 'claude-3-5-sonnet-20241022',
+    maxTokens: 1000,
+    apiEndpoint: '/api/claude'
+};
 
 // Modal AI Configuration (uncomment to use Modal, comment out Claude config above)
-const API_CONFIG = {
-    model: 'gemma-2-2b-it', // Gemma 2B model from your friend's Modal deployment
-    maxTokens: 1000,
-    apiEndpoint: '/api/modal'
-};
+// const API_CONFIG = {
+//     model: 'gemma-2-2b-it', // Gemma 2B model from your friend's Modal deployment
+//     maxTokens: 1000,
+//     apiEndpoint: '/api/modal'
+// };
 
 // Function to make API request using Vercel serverless function or CORS proxy fallback
 async function makeAPIRequest(requestData) {
