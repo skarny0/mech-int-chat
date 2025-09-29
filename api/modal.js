@@ -35,14 +35,13 @@ export default async function handler(req, res) {
 
     // Prepare the request for Modal API (matching ChatRequest format)
     const requestData = {
-      model: model || 'gemma-2-2b-it',
       max_tokens: max_tokens,
       messages: messages,
       system: system
     };
 
     // Call Modal API - using the FastAPI endpoint from your friend's code
-    const response = await fetch('https://your-username--gemma-chat-api-chat-endpoint.modal.run', {
+    const response = await fetch('https://antbaez9--gemma-chat-api-chat-endpoint.modal.run', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
