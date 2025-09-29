@@ -1,6 +1,10 @@
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
-let messageIdCounter = 2; // Start from 2 since we have initial message with ID 1
-let conversationHistory = []; // Store conversation history for API calls
+let messageIdCounter = window.messageIdCounter || 2; // Start from 2 since we have initial message with ID 1
+let conversationHistory = window.conversationHistory || []; // Store conversation history for API calls
+
+// Store in window to prevent redeclaration errors
+window.messageIdCounter = messageIdCounter;
+window.conversationHistory = conversationHistory;
 
 // Note: API configuration is loaded from config-unified.js file
 
@@ -142,7 +146,7 @@ function initializeDynamicInterface() {
         messageInput.css('height', 'auto');
 
         // Add user message to conversation history
-        conversationHistory.push({
+        window.conversationHistory.push({
             role: 'user',
             content: message
         });
@@ -164,7 +168,7 @@ function initializeDynamicInterface() {
             const requestData = {
                 model: API_CONFIG.model,
                 max_tokens: API_CONFIG.maxTokens,
-                messages: conversationHistory,
+                messages: window.conversationHistory,
                 system: customSystemPrompt
             };
 
@@ -177,7 +181,7 @@ function initializeDynamicInterface() {
             const assistantMessage = data.content[0].text;
             
             // Add assistant message to conversation history
-            conversationHistory.push({
+            window.conversationHistory.push({
                 role: 'assistant',
                 content: assistantMessage
             });
@@ -208,7 +212,7 @@ function initializeDynamicInterface() {
             addMessage(errorMessage, 'assistant');
             
             // Add error message to conversation history
-            conversationHistory.push({
+            window.conversationHistory.push({
                 role: 'assistant',
                 content: errorMessage
             });
@@ -217,7 +221,7 @@ function initializeDynamicInterface() {
 
     // Add message to chat with enhanced features
     function addMessage(text, sender) {
-        const messageId = messageIdCounter++;
+        const messageId = window.messageIdCounter++;
         const messageClass = sender === 'user' ? 'user-message' : 'assistant-message';
         const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
         const senderName = sender === 'user' ? 'You' : 'Assistant';
@@ -299,7 +303,7 @@ function initializeDynamicInterface() {
 
     // Add clear conversation function
     window.clearConversation = function() {
-        conversationHistory = [];
+        window.conversationHistory = [];
         messagesContainer.empty();
         // Add welcome message back
         const welcomeMessage = `
@@ -323,7 +327,7 @@ function initializeDynamicInterface() {
             </div>
         `;
         messagesContainer.append(welcomeMessage);
-        messageIdCounter = 2;
+        window.messageIdCounter = 2;
     };
 
     // Add function to get current provider info
@@ -359,8 +363,8 @@ async function regenerateMessage(messageId) {
     
     try {
         // Remove the last assistant message from conversation history
-        if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length - 1].role === 'assistant') {
-            conversationHistory.pop();
+        if (window.conversationHistory.length > 0 && window.conversationHistory[window.conversationHistory.length - 1].role === 'assistant') {
+            window.conversationHistory.pop();
         }
         
         // Call AI API for a new response
@@ -370,7 +374,7 @@ async function regenerateMessage(messageId) {
         const requestData = {
             model: API_CONFIG.model,
             max_tokens: API_CONFIG.maxTokens,
-            messages: conversationHistory,
+            messages: window.conversationHistory,
             system: customSystemPrompt
         };
 
@@ -381,7 +385,7 @@ async function regenerateMessage(messageId) {
         messageText.text(newResponse);
         
         // Add the new response to conversation history
-        conversationHistory.push({
+        window.conversationHistory.push({
             role: 'assistant',
             content: newResponse
         });
