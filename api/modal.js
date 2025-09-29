@@ -33,26 +33,20 @@ export default async function handler(req, res) {
       });
     }
 
-    // Prepare the request for Modal API
+    // Prepare the request for Modal API (matching ChatRequest format)
     const requestData = {
-      messages: messages,
+      model: model || 'gemma-2-2b-it',
       max_tokens: max_tokens,
+      messages: messages,
+      system: system
     };
 
-    // Add optional parameters if provided
-    if (model) {
-      requestData.model = model;
-    }
-    if (system) {
-      requestData.system = system;
-    }
-
-    // Call Modal API
-    const response = await fetch('https://api.modal.com/v1/chat/completions', {
+    // Call Modal API - using the FastAPI endpoint from your friend's code
+    const response = await fetch('https://your-username--gemma-chat-api-chat-endpoint.modal.run', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${modalApiKey}`,
+        'X-API-Key': modalApiKey,
       },
       body: JSON.stringify(requestData)
     });
@@ -68,7 +62,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       content: data.content || [{ text: data.response || data.message || 'No response received' }],
       usage: data.usage || { input_tokens: 0, output_tokens: 0 },
-      model: data.model || 'modal-model',
+      model: data.model || 'gemma-2-2b-it',
       stop_reason: data.stop_reason || 'end_turn'
     });
 

@@ -12,7 +12,7 @@ Add the following environment variable to your Vercel deployment:
 MODAL_API_KEY=your-modal-api-key
 ```
 
-Replace `your-modal-api-key` with your actual Modal API key.
+Replace `your-modal-api-key` with the actual API key from your friend's Modal deployment.
 
 ### 2. Configuration
 
@@ -28,7 +28,7 @@ const API_CONFIG = {
 
 // Modal AI Configuration (uncomment to use Modal, comment out Claude config above)
 // const API_CONFIG = {
-//     model: 'your-modal-model-name', // Replace with your actual Modal model name
+//     model: 'gemma-2-2b-it', // Gemma 2B model from your friend's Modal deployment
 //     maxTokens: 1000,
 //     apiEndpoint: '/api/modal'
 // };
@@ -40,6 +40,10 @@ The Modal.ai integration is handled by `/api/modal.js`, which:
 - Accepts the same request format as the Claude API
 - Forwards requests to your Modal.ai endpoint
 - Returns responses in a format compatible with the chat interface
+
+**Important:** You need to update the Modal endpoint URL in `/api/modal.js`:
+- Replace `https://your-username--gemma-chat-api-chat-endpoint.modal.run` with your actual Modal deployment URL
+- The URL format should be: `https://[username]--gemma-chat-api-chat-endpoint.modal.run`
 
 ## Usage
 
