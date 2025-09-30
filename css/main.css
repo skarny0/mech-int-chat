@@ -407,7 +407,7 @@ body {
     background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0.75rem;
     word-wrap: break-word;
     position: relative;
     min-width: 200px;
@@ -423,7 +423,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     font-size: 0.75rem;
     opacity: 0.7;
 }
@@ -437,7 +437,7 @@ body {
 }
 
 .message-text {
-    line-height: 1.5;
+    line-height: 1.4;
     margin-bottom: 0;
 }
 
@@ -446,7 +446,7 @@ body {
     gap: 0.25rem;
     opacity: 0;
     transition: opacity 0.2s;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 }
 
 .message:hover .message-actions {
