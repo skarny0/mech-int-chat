@@ -8,47 +8,48 @@
         </div>
 
         <div class="config-form">
-            <div class="form-group">
-                <label for="assistantName" class="form-label" style="font-size: 0.875rem;">Assistant Name</label>
-                <input type="text" class="form-control" id="assistantName" placeholder="e.g., Research Assistant" style="padding: 0.5rem;">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" style="font-size: 0.875rem;">Personality & Tone</label>
-                <select id="assistantPersonality" class="personality-select">
-                    <option value="professional" selected>Professional & Formal</option>
-                    <option value="friendly">Friendly & Conversational</option>
-                    <option value="expert">Expert & Technical</option>
-                    <option value="creative">Creative & Imaginative</option>
-                    <option value="analytical">Analytical & Methodical</option>
-                    <option value="custom">Custom</option>
-                </select>
-            </div>
-
-            <div class="form-group full-width" id="customPersonalityGroup" style="display: none;">
-                <label for="customPersonality" class="form-label" style="font-size: 0.875rem;">Custom Personality</label>
-                <input type="text" class="form-control" id="customPersonality" placeholder="Describe the personality and tone you want" style="padding: 0.5rem;">
-            </div>
-
-            <div class="form-group full-width">
-                <label for="assistantDescription" class="form-label" style="font-size: 0.875rem;">Assistant Description</label>
-                <textarea class="form-control" id="assistantDescription" rows="3" placeholder="Describe what your assistant should do and how it should behave..." style="padding: 0.5rem; font-size: 0.875rem;"></textarea>
-            </div>
-
-            <div class="preview-section">
-                <h4>System Prompt Preview</h4>
-                <div class="preview-box" id="systemPromptPreview">
-                    <p class="preview-text" style="font-size: 0.8rem;">Your system prompt will appear here as you configure the assistant...</p>
+            <!-- Left Column: System Prompt Editor -->
+            <div class="system-prompt-editor-column">
+                <div class="form-group">
+                    <label for="systemPromptInput" class="form-label" style="font-size: 0.875rem;">System Prompt</label>
+                    <textarea 
+                        class="form-control system-prompt-textarea" 
+                        id="systemPromptInput" 
+                        rows="20" 
+                        placeholder="Enter your system prompt here..."
+                        style="padding: 0.75rem; font-size: 0.875rem; font-family: 'Courier New', monospace;">You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.</textarea>
                 </div>
             </div>
 
-            <div class="config-actions">
-                <button type="button" class="btn btn-secondary" id="resetConfig">Reset to Default</button>
+            <!-- Right Column: Persona Analysis -->
+            <div class="persona-analysis-column">
+                <div class="persona-section-wrapper">
+                    <div class="persona-visualization" id="personaVisualization" style="display: none;">
+                        <h4>Persona Analysis</h4>
+                        <div id="personaChart" class="persona-chart"></div>
+                    </div>
+                    <div id="personaPlaceholder" class="persona-placeholder">
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p style="margin: 0;">Click "Test Persona" or "Check Persona" to analyze</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="config-actions">
+            <button type="button" class="btn btn-secondary" id="resetConfig">Reset to Default</button>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary" id="testPersonaBtn" title="Test with simulated data">
+                    <i class="fas fa-flask"></i> Test Persona
+                </button>
                 <button type="button" class="btn btn-secondary" id="checkPersonaBtn">
                     <i class="fas fa-user-check"></i> Check Persona
                 </button>
-                <button type="button" class="btn btn-primary" id="startChatBtn">Start Chat</button>
             </div>
+            <button type="button" class="btn btn-primary" id="startChatBtn">Start Chat</button>
         </div>
     </div>
 

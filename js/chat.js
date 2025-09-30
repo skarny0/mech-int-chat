@@ -26,12 +26,6 @@ function initializeDynamicInterface() {
     const systemPromptInfo = $('#systemPromptInfo');
 
     // System prompt configuration elements
-    const assistantName = $('#assistantName');
-    const assistantPersonality = $('#assistantPersonality');
-    const customPersonalityGroup = $('#customPersonalityGroup');
-    const customPersonality = $('#customPersonality');
-    const assistantDescription = $('#assistantDescription');
-    const systemPromptPreview = $('#systemPromptPreview');
     const resetConfig = $('#resetConfig');
     const startChatBtn = $('#startChatBtn');
     const backToConfigBtn = $('#backToConfigBtn');
@@ -49,34 +43,17 @@ function initializeDynamicInterface() {
     initializeChatFunctionality();
 
     function initializeSystemPromptConfig() {
-        // Show/hide custom personality field
-        assistantPersonality.on('change', function() {
-            if (assistantPersonality.val() === 'custom') {
-                customPersonalityGroup.show();
-            } else {
-                customPersonalityGroup.hide();
-            }
-            updatePreview();
-        });
-
-        // Update preview when any field changes
-        [assistantName, assistantPersonality, customPersonality, assistantDescription].forEach(element => {
-            element.on('input change', updatePreview);
-        });
+        // Get the system prompt input
+        const systemPromptInput = $('#systemPromptInput');
 
         // Reset configuration
         resetConfig.on('click', function() {
-            assistantName.val('');
-            assistantPersonality.val('professional');
-            customPersonalityGroup.hide();
-            customPersonality.val('');
-            assistantDescription.val('');
-            updatePreview();
+            systemPromptInput.val('You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.');
         });
 
         // Start chat
         startChatBtn.on('click', function() {
-            const systemPrompt = systemPromptPreview.find('.preview-text').text();
+            const systemPrompt = $('#systemPromptInput').val();
             
             // Store system prompt in localStorage for the chat interface
             localStorage.setItem('customSystemPrompt', systemPrompt);
@@ -87,18 +64,32 @@ function initializeDynamicInterface() {
 
         // Check Persona button
         $('#checkPersonaBtn').on('click', function() {
-            // Get the current system prompt from the preview
-            const systemPrompt = systemPromptPreview.find('.preview-text').text();
+            // Get the current system prompt from the input
+            const systemPrompt = $('#systemPromptInput').val();
             checkPersona(systemPrompt);
         });
+
+        // Test Persona button - simulate with mock data
+        $('#testPersonaBtn').on('click', function() {
+            testPersonaWithMockData();
+        });
+
+        // Helper function to show/hide persona sections
+        window.showPersonaVisualization = function() {
+            $('#personaVisualization').show();
+            $('#personaPlaceholder').hide();
+        };
+
+        window.hidePersonaVisualization = function() {
+            $('#personaVisualization').hide();
+            $('#personaPlaceholder').show();
+        };
 
         // Back to configuration
         backToConfigBtn.on('click', function() {
             switchToSystemPromptConfig();
         });
 
-        // Initialize preview
-        updatePreview();
     }
 
     function initializeChatFunctionality() {
@@ -264,52 +255,6 @@ function initializeDynamicInterface() {
         return messageId;
     }
 
-    // Generate system prompt preview
-    function updatePreview() {
-        const name = assistantName.val();
-        const personality = assistantPersonality.val();
-        const customPersonalityText = customPersonality.val();
-        const description = assistantDescription.val();
-
-        // If all fields are empty/default, show the default prompt
-        const DEFAULT_PROMPT = "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
-        
-        if (!name && personality === 'professional' && !customPersonalityText && !description) {
-            systemPromptPreview.html(`<p class="preview-text" style="font-size: 0.8rem;">${DEFAULT_PROMPT}</p>`);
-            return;
-        }
-
-        // User has started customizing - build only from their inputs
-        let systemPrompt = '';
-
-        // Add name if provided
-        if (name) {
-            systemPrompt += `You are ${name}. `;
-        }
-
-        // Add personality
-        if (personality === 'custom' && customPersonalityText) {
-            systemPrompt += customPersonalityText + ' ';
-        } else if (personality && personality !== 'professional') {
-            // Only add personality text if they changed from default
-            const personalityMap = {
-                'friendly': 'You are friendly, approachable, and conversational in your responses.',
-                'expert': 'You speak as a knowledgeable expert with authority and precision.',
-                'creative': 'You are imaginative, creative, and think outside the box.',
-                'analytical': 'You approach problems methodically and provide detailed analysis.'
-            };
-            systemPrompt += personalityMap[personality] + ' ';
-        }
-
-        // Add description
-        if (description) {
-            systemPrompt += description;
-        }
-
-        // Show custom prompt or empty if nothing entered yet
-        const displayText = systemPrompt.trim() || '<span style="color: #888;">Start typing to create your custom prompt...</span>';
-        systemPromptPreview.html(`<p class="preview-text" style="font-size: 0.8rem;">${displayText}</p>`);
-    }
 
     // Interface switching functions
     function switchToChat() {
@@ -447,6 +392,11 @@ async function checkPersona(systemPrompt) {
 
         console.log('Calling persona-vector endpoint with system prompt:', promptToUse);
 
+        // Show loading state
+        showPersonaVisualization();
+        const personaChart = $('#personaChart');
+        personaChart.html('<div style="text-align: center; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Analyzing persona...</div>');
+
         // Call the persona-vector endpoint
         const response = await fetch('/api/persona-vector', {
             method: 'POST',
@@ -462,15 +412,90 @@ async function checkPersona(systemPrompt) {
             const data = await response.json();
             console.log('Persona Vector Response:', data);
             
-            // Show a visual feedback to the user
-            alert('Persona analysis complete! Check the console for details.');
+            // Render the persona vector bar chart
+            renderPersonaChart(data.content);
         } else {
             const errorData = await response.json();
             console.error('Persona Vector Error:', errorData);
-            alert('Error analyzing persona: ' + errorData.error);
+            personaChart.html(`<div style="text-align: center; color: var(--error-color);">Error: ${errorData.error}</div>`);
         }
     } catch (error) {
         console.error('Error calling persona-vector endpoint:', error);
-        alert('Failed to analyze persona: ' + error.message);
+        const personaChart = $('#personaChart');
+        personaChart.html(`<div style="text-align: center; color: var(--error-color);">Failed to analyze persona: ${error.message}</div>`);
     }
+}
+
+// Render persona vector bar chart
+function renderPersonaChart(personaData) {
+    const personaChart = $('#personaChart');
+    
+    if (!personaData || typeof personaData !== 'object') {
+        personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
+        return;
+    }
+
+    // Create bar chart HTML
+    let chartHtml = '';
+    
+    for (const [key, value] of Object.entries(personaData)) {
+        // Calculate position and width for the bar
+        // Value range is -2 to 2, we need to map this to 0-100%
+        const normalizedValue = ((value + 2) / 4) * 100; // Convert -2 to 2 range to 0-100
+        const barWidth = Math.abs(value) / 2 * 50; // Width from center (0-50%)
+        const barLeft = value < 0 ? (50 - barWidth) : 50; // Start position
+        const barClass = value < 0 ? 'negative' : 'positive';
+        
+        chartHtml += `
+            <div class="persona-bar-item">
+                <div class="persona-bar-label">
+                    <span class="persona-bar-name">${key}</span>
+                    <span class="persona-bar-value">${value.toFixed(3)}</span>
+                </div>
+                <div class="persona-bar-track">
+                    <div class="persona-bar-background"></div>
+                    <div class="persona-bar-center"></div>
+                    <div class="persona-bar-fill ${barClass}" style="left: ${barLeft}%; width: ${barWidth}%;"></div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add axis labels
+    chartHtml += `
+        <div class="persona-axis" style="margin-top: 1rem;">
+            <div class="persona-axis-tick">-2.0</div>
+            <div class="persona-axis-tick">-1.0</div>
+            <div class="persona-axis-tick">0.0</div>
+            <div class="persona-axis-tick">1.0</div>
+            <div class="persona-axis-tick">2.0</div>
+        </div>
+    `;
+    
+    personaChart.html(chartHtml);
+}
+
+// Test persona with mock data - for development/testing without API calls
+function testPersonaWithMockData() {
+    const personaChart = $('#personaChart');
+    
+    // Show loading state
+    showPersonaVisualization();
+    personaChart.html('<div style="text-align: center; color: var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Generating test data...</div>');
+    
+    // Simulate API delay
+    setTimeout(() => {
+        // Generate random mock data in the range of -2 to 2
+        const mockData = {
+            empathy: (Math.random() * 4 - 2), // Random value between -2 and 2
+            sycophancy: (Math.random() * 4 - 2),
+            humor: (Math.random() * 4 - 2),
+            toxicity: (Math.random() * 4 - 2),
+            formality: (Math.random() * 4 - 2),
+            creativity: (Math.random() * 4 - 2)
+        };
+        
+        console.log('Mock Persona Data:', mockData);
+        renderPersonaChart(mockData);
+    }, 800); // Simulate network delay
 }
