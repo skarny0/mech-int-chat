@@ -662,6 +662,13 @@ body {
     overflow-y: auto;
 }
 
+.system-prompt-textarea:focus {
+    background-color: rgba(255, 255, 255, 0.08); /* Lighter shade on focus */
+    color: var(--text-primary); /* Keep text white */
+    border-color: var(--border-color); /* Keep grey border */
+    outline: none;
+}
+
 /* Right column: Persona Analysis */
 .persona-analysis-column {
     display: flex;
