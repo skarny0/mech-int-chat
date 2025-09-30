@@ -636,9 +636,11 @@
 
             /* System Prompt Configuration Styles */
             .system-prompt-interface {
-                max-width: 800px;
+                max-width: 1000px;
                 margin: 0 auto;
-                padding: 2rem;
+                padding: 1rem;
+                max-height: 80vh;
+                overflow-y: auto;
             }
 
             .config-header {
@@ -661,7 +663,18 @@
                 background-color: var(--bg-tertiary);
                 border: 1px solid var(--border-color);
                 border-radius: var(--radius-lg);
-                padding: 2rem;
+                padding: 1.5rem;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .config-form .form-group {
+                margin-bottom: 0.75rem;
+            }
+
+            .config-form .form-group.full-width {
+                grid-column: 1 / -1;
             }
 
             .expertise-tags {
@@ -706,6 +719,23 @@
                 margin-top: 0.5rem;
             }
 
+            .personality-select {
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+                font-size: 0.875rem;
+                cursor: pointer;
+            }
+
+            .personality-select:focus {
+                outline: none;
+                border-color: var(--accent-color);
+                box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+            }
+
             .style-option {
                 display: flex;
                 align-items: center;
@@ -727,24 +757,26 @@
             }
 
             .preview-section {
-                margin-top: 2rem;
-                padding-top: 2rem;
-                border-top: 1px solid var(--border-color);
+                margin-top: 0;
+                padding-top: 0;
+                grid-column: 1 / -1;
             }
 
             .preview-section h4 {
                 color: var(--text-primary);
-                margin-bottom: 1rem;
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
             }
 
             .preview-box {
                 background-color: var(--bg-primary);
                 border: 1px solid var(--border-color);
                 border-radius: var(--radius-md);
-                padding: 1rem;
-                min-height: 100px;
-                max-height: 200px;
+                padding: 0.75rem;
+                min-height: 60px;
+                max-height: 100px;
                 overflow-y: auto;
+                font-size: 0.85rem;
             }
 
             .preview-text {
@@ -757,9 +789,10 @@
             .config-actions {
                 display: flex;
                 justify-content: space-between;
-                margin-top: 2rem;
-                padding-top: 1rem;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
                 border-top: 1px solid var(--border-color);
+                grid-column: 1 / -1;
             }
 
             .dynamic-chat-container {

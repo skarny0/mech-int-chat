@@ -27,7 +27,7 @@ function initializeDynamicInterface() {
 
     // System prompt configuration elements
     const assistantName = $('#assistantName');
-    const assistantPersonality = $('input[name="assistantPersonality"]');
+    const assistantPersonality = $('#assistantPersonality');
     const customPersonalityGroup = $('#customPersonalityGroup');
     const customPersonality = $('#customPersonality');
     const assistantDescription = $('#assistantDescription');
@@ -51,7 +51,7 @@ function initializeDynamicInterface() {
     function initializeSystemPromptConfig() {
         // Show/hide custom personality field
         assistantPersonality.on('change', function() {
-            if ($(this).val() === 'custom') {
+            if (assistantPersonality.val() === 'custom') {
                 customPersonalityGroup.show();
             } else {
                 customPersonalityGroup.hide();
@@ -67,7 +67,7 @@ function initializeDynamicInterface() {
         // Reset configuration
         resetConfig.on('click', function() {
             assistantName.val('');
-            assistantPersonality.filter('[value="professional"]').prop('checked', true);
+            assistantPersonality.val('professional');
             customPersonalityGroup.hide();
             customPersonality.val('');
             assistantDescription.val('');
@@ -266,19 +266,33 @@ function initializeDynamicInterface() {
 
     // Generate system prompt preview
     function updatePreview() {
-        const name = assistantName.val() || 'AI Assistant';
-        const personality = assistantPersonality.filter(':checked').val();
+        const name = assistantName.val();
+        const personality = assistantPersonality.val();
         const customPersonalityText = customPersonality.val();
         const description = assistantDescription.val();
 
-        let systemPrompt = `You are ${name}. `;
+        // If all fields are empty/default, show the default prompt
+        const DEFAULT_PROMPT = "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+        
+        if (!name && personality === 'professional' && !customPersonalityText && !description) {
+            systemPromptPreview.html(`<p class="preview-text" style="font-size: 0.8rem;">${DEFAULT_PROMPT}</p>`);
+            return;
+        }
+
+        // User has started customizing - build only from their inputs
+        let systemPrompt = '';
+
+        // Add name if provided
+        if (name) {
+            systemPrompt += `You are ${name}. `;
+        }
 
         // Add personality
         if (personality === 'custom' && customPersonalityText) {
             systemPrompt += customPersonalityText + ' ';
-        } else {
+        } else if (personality && personality !== 'professional') {
+            // Only add personality text if they changed from default
             const personalityMap = {
-                'professional': 'You maintain a professional and formal tone in all interactions.',
                 'friendly': 'You are friendly, approachable, and conversational in your responses.',
                 'expert': 'You speak as a knowledgeable expert with authority and precision.',
                 'creative': 'You are imaginative, creative, and think outside the box.',
@@ -289,12 +303,12 @@ function initializeDynamicInterface() {
 
         // Add description
         if (description) {
-            systemPrompt += description + ' ';
+            systemPrompt += description;
         }
 
-        systemPrompt += 'Always be helpful, accurate, and respectful.';
-
-        systemPromptPreview.html(`<p class="preview-text">${systemPrompt}</p>`);
+        // Show custom prompt or empty if nothing entered yet
+        const displayText = systemPrompt.trim() || '<span style="color: #888;">Start typing to create your custom prompt...</span>';
+        systemPromptPreview.html(`<p class="preview-text" style="font-size: 0.8rem;">${displayText}</p>`);
     }
 
     // Interface switching functions

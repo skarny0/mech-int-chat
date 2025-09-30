@@ -2,63 +2,43 @@
 <div class="dynamic-chat-container">
     <!-- System Prompt Configuration Interface -->
     <div class="system-prompt-interface" id="systemPromptInterface">
-        <div class="config-header">
-            <h3>Configure Your AI Assistant</h3>
-            <p class="config-description">Customize how your AI assistant behaves by setting up a system prompt. This will define the assistant's personality, expertise, and response style.</p>
+        <div class="config-header" style="margin-bottom: 1rem;">
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Configure Your AI Assistant</h3>
+            <p class="config-description" style="font-size: 0.85rem;">Customize your AI assistant's personality and behavior</p>
         </div>
 
         <div class="config-form">
             <div class="form-group">
-                <label for="assistantName" class="form-label">Assistant Name</label>
-                <input type="text" class="form-control" id="assistantName" placeholder="e.g., Research Assistant, Coding Expert, Creative Writer">
-                <div class="form-text">Give your assistant a name or role</div>
+                <label for="assistantName" class="form-label" style="font-size: 0.875rem;">Assistant Name</label>
+                <input type="text" class="form-control" id="assistantName" placeholder="e.g., Research Assistant" style="padding: 0.5rem;">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Personality & Tone</label>
-                <div class="personality-options">
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="professional" checked>
-                        <span>Professional & Formal</span>
-                    </label>
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="friendly">
-                        <span>Friendly & Conversational</span>
-                    </label>
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="expert">
-                        <span>Expert & Technical</span>
-                    </label>
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="creative">
-                        <span>Creative & Imaginative</span>
-                    </label>
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="analytical">
-                        <span>Analytical & Methodical</span>
-                    </label>
-                    <label class="style-option">
-                        <input type="radio" name="assistantPersonality" value="custom">
-                        <span>Custom</span>
-                    </label>
-                </div>
+                <label class="form-label" style="font-size: 0.875rem;">Personality & Tone</label>
+                <select id="assistantPersonality" class="personality-select">
+                    <option value="professional" selected>Professional & Formal</option>
+                    <option value="friendly">Friendly & Conversational</option>
+                    <option value="expert">Expert & Technical</option>
+                    <option value="creative">Creative & Imaginative</option>
+                    <option value="analytical">Analytical & Methodical</option>
+                    <option value="custom">Custom</option>
+                </select>
             </div>
 
-            <div class="form-group" id="customPersonalityGroup" style="display: none;">
-                <label for="customPersonality" class="form-label">Custom Personality</label>
-                <input type="text" class="form-control" id="customPersonality" placeholder="Describe the personality and tone you want">
+            <div class="form-group full-width" id="customPersonalityGroup" style="display: none;">
+                <label for="customPersonality" class="form-label" style="font-size: 0.875rem;">Custom Personality</label>
+                <input type="text" class="form-control" id="customPersonality" placeholder="Describe the personality and tone you want" style="padding: 0.5rem;">
             </div>
 
-            <div class="form-group">
-                <label for="assistantDescription" class="form-label">Assistant Description</label>
-                <textarea class="form-control" id="assistantDescription" rows="6" placeholder="Describe what your assistant should do, how it should behave, what topics it should focus on, and any specific instructions..."></textarea>
-                <div class="form-text">Be specific about the assistant's role, expertise, and how you want it to respond</div>
+            <div class="form-group full-width">
+                <label for="assistantDescription" class="form-label" style="font-size: 0.875rem;">Assistant Description</label>
+                <textarea class="form-control" id="assistantDescription" rows="3" placeholder="Describe what your assistant should do and how it should behave..." style="padding: 0.5rem; font-size: 0.875rem;"></textarea>
             </div>
 
             <div class="preview-section">
                 <h4>System Prompt Preview</h4>
                 <div class="preview-box" id="systemPromptPreview">
-                    <p class="preview-text">Your system prompt will appear here as you configure the assistant...</p>
+                    <p class="preview-text" style="font-size: 0.8rem;">Your system prompt will appear here as you configure the assistant...</p>
                 </div>
             </div>
 
