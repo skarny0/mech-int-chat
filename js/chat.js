@@ -85,14 +85,16 @@ function initializeDynamicInterface() {
             switchToChat();
         });
 
+        // Check Persona button
+        $('#checkPersonaBtn').on('click', function() {
+            // Get the current system prompt from the preview
+            const systemPrompt = systemPromptPreview.find('.preview-text').text();
+            checkPersona(systemPrompt);
+        });
+
         // Back to configuration
         backToConfigBtn.on('click', function() {
             switchToSystemPromptConfig();
-        });
-
-        // Check Persona button
-        $('#checkPersonaBtn').on('click', function() {
-            checkPersona();
         });
 
         // Initialize preview
@@ -422,13 +424,14 @@ function likeMessage(messageId) {
 }
 
 // Check Persona function - calls persona-vector endpoint
-async function checkPersona() {
+async function checkPersona(systemPrompt) {
     try {
-        // Get custom system prompt from localStorage
-        const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
+        // Use provided system prompt or get from localStorage
+        const promptToUse = systemPrompt || 
+            localStorage.getItem('customSystemPrompt') || 
             "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
 
-        console.log('Calling persona-vector endpoint with system prompt:', customSystemPrompt);
+        console.log('Calling persona-vector endpoint with system prompt:', promptToUse);
 
         // Call the persona-vector endpoint
         const response = await fetch('/api/persona-vector', {
@@ -437,7 +440,7 @@ async function checkPersona() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                system: customSystemPrompt
+                system: promptToUse
             })
         });
 
