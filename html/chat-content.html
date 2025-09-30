@@ -19,6 +19,15 @@
                         placeholder="Enter your system prompt here..."
                         style="padding: 0.75rem; font-size: 0.875rem; font-family: 'Courier New', monospace;">You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.</textarea>
                 </div>
+                <!-- Persona Check Buttons -->
+                <div class="persona-check-buttons" style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-shrink: 0;">
+                    <button type="button" class="btn btn-secondary" id="testPersonaBtn" title="Test with simulated data" style="flex: 1;">
+                        <i class="fas fa-flask"></i> Test Persona
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="checkPersonaBtn" style="flex: 1;">
+                        <i class="fas fa-user-check"></i> Check Persona
+                    </button>
+                </div>
             </div>
 
             <!-- Right Column: Persona Analysis -->
@@ -41,14 +50,6 @@
         <!-- Action Buttons -->
         <div class="config-actions">
             <button type="button" class="btn btn-secondary" id="resetConfig">Reset to Default</button>
-            <div style="display: flex; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary" id="testPersonaBtn" title="Test with simulated data">
-                    <i class="fas fa-flask"></i> Test Persona
-                </button>
-                <button type="button" class="btn btn-secondary" id="checkPersonaBtn">
-                    <i class="fas fa-user-check"></i> Check Persona
-                </button>
-            </div>
             <button type="button" class="btn btn-primary" id="startChatBtn">Start Chat</button>
         </div>
     </div>
