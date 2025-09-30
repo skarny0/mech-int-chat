@@ -23,18 +23,11 @@ function initializeDynamicInterface() {
     const typingIndicator = $('#typingIndicator');
     const attachBtn = $('#attachBtn');
     const imageBtn = $('#imageBtn');
-    const systemPromptInfo = $('#systemPromptInfo');
 
     // System prompt configuration elements
     const resetConfig = $('#resetConfig');
     const startChatBtn = $('#startChatBtn');
     const backToConfigBtn = $('#backToConfigBtn');
-
-    // Check if custom system prompt is being used
-    const customSystemPrompt = localStorage.getItem('customSystemPrompt');
-    if (customSystemPrompt) {
-        systemPromptInfo.show();
-    }
 
     // Initialize system prompt configuration
     initializeSystemPromptConfig();
@@ -93,12 +86,6 @@ function initializeDynamicInterface() {
     }
 
     function initializeChatFunctionality() {
-        // Check if custom system prompt is being used
-        const customSystemPrompt = localStorage.getItem('customSystemPrompt');
-        if (customSystemPrompt) {
-            systemPromptInfo.show();
-        }
-
         // Enable/disable send button based on input
         messageInput.on('input', function() {
             sendBtn.prop('disabled', messageInput.val().trim() === '');
@@ -247,7 +234,6 @@ function initializeDynamicInterface() {
     function switchToChat() {
         systemPromptInterface.hide();
         chatInterface.show();
-        systemPromptInfo.show();
     }
 
     function switchToSystemPromptConfig() {
