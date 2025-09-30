@@ -12,7 +12,7 @@ const firebaseConfig = {
     storageBucket: "mech-chat-fd35c.firebasestorage.app",
     messagingSenderId: "291083358921",
     appId: "1:291083358921:web:34ff10b995b7ffc0f8f318"
-  };
+};
 
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
@@ -104,6 +104,11 @@ function initializeDynamicInterface() {
         // Back to configuration
         backToConfigBtn.on('click', function() {
             switchToSystemPromptConfig();
+        });
+
+        // Check Persona button
+        $('#checkPersonaBtn').on('click', function() {
+            checkPersona();
         });
 
         // Initialize preview
@@ -429,5 +434,42 @@ function likeMessage(messageId) {
         setTimeout(() => {
             likeBtn.find('i').attr('class', 'fas fa-thumbs-up');
         }, 1000);
+    }
+}
+
+// Check Persona function - calls persona-vector endpoint
+async function checkPersona() {
+    try {
+        // Get custom system prompt from localStorage
+        const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
+            "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+
+        console.log('Calling persona-vector endpoint with system prompt:', customSystemPrompt);
+
+        // Call the persona-vector endpoint
+        const response = await fetch('/api/persona-vector', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                system: customSystemPrompt
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Persona Vector Response:', data);
+            
+            // Show a visual feedback to the user
+            alert('Persona analysis complete! Check the console for details.');
+        } else {
+            const errorData = await response.json();
+            console.error('Persona Vector Error:', errorData);
+            alert('Error analyzing persona: ' + errorData.error);
+        }
+    } catch (error) {
+        console.error('Error calling persona-vector endpoint:', error);
+        alert('Failed to analyze persona: ' + error.message);
     }
 }
