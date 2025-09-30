@@ -32,3 +32,6 @@ Thumbs.db
 *.tmp
 *.temp
 test-modal.html
+test-modal-endpoint.js
+test-modal-script.js
+test-persona-vector.js
