@@ -233,19 +233,6 @@ function initializeDynamicInterface() {
                 </div>
                 <div class="message-content">
                     <div class="message-text">${text}</div>
-                    <div class="message-actions">
-                        <button class="action-btn" onclick="copyMessage(${messageId})" title="Copy message">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        ${sender === 'assistant' ? `
-                        <button class="action-btn" onclick="regenerateMessage(${messageId})" title="Regenerate">
-                            <i class="fas fa-redo"></i>
-                        </button>
-                        <button class="action-btn" onclick="likeMessage(${messageId})" title="Like">
-                            <i class="fas fa-thumbs-up"></i>
-                        </button>
-                        ` : ''}
-                    </div>
                 </div>
             </div>
         `;
@@ -281,14 +268,6 @@ function initializeDynamicInterface() {
                 <div class="message-content">
                     <div class="message-text">
                         Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
-                    </div>
-                    <div class="message-actions">
-                        <button class="action-btn" onclick="copyMessage(1)" title="Copy message">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        <button class="action-btn" onclick="regenerateMessage(1)" title="Regenerate">
-                            <i class="fas fa-redo"></i>
-                        </button>
                     </div>
                 </div>
             </div>
