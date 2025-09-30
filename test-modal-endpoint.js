@@ -16,7 +16,7 @@ const testModalEndpoint = async () => {
         console.log('Testing Modal endpoint...');
         console.log('Request data:', JSON.stringify(testData, null, 2));
         
-        const response = await fetch('/api/modal', {
+        const response = await fetch('/api/persona-vector', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

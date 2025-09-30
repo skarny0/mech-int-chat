@@ -1,3 +1,19 @@
+
+// Setup firebase
+import { writeRealtimeDatabase,writeURLParameters,readRealtimeDatabase,
+    blockRandomization,finalizeBlockRandomization,
+    initializeRealtimeDatabase,initializeSecondRealtimeDatabase } from "./firebasepsych1.1.js";
+    
+const firebaseConfig = {
+    apiKey: "AIzaSyCJkf2iNsNuaGoTpkLEyE1aMoLMf9HbOUQ",
+    authDomain: "mech-chat-fd35c.firebaseapp.com",
+    databaseURL: "https://mech-chat-fd35c-default-rtdb.firebaseio.com",
+    projectId: "mech-chat-fd35c",
+    storageBucket: "mech-chat-fd35c.firebasestorage.app",
+    messagingSenderId: "291083358921",
+    appId: "1:291083358921:web:34ff10b995b7ffc0f8f318"
+  };
+
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
 if (typeof window.messageIdCounter === 'undefined') {
