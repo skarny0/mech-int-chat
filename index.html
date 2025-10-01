@@ -63,7 +63,12 @@
                     $("#consent-main-content").attr("hidden", true);
  
                     // Load Main Experiment - works with Vercel and local development
-                    $('#task-main-content').load('html/chat-content.html'); 
+                    $('#task-main-content').load('html/chat-content.html', function() {
+                        // Initialize chat interface after content is loaded
+                        if (typeof window.initializeChatInterface === 'function') {
+                            window.initializeChatInterface();
+                        }
+                    }); 
 
                     // loading an instructional page
                     // $('#comprehension-quiz-main-content').attr("hidden", false);
@@ -86,7 +91,12 @@
                     $("#consent-main-content").attr("hidden", true);
                     $("#task-header").attr("hidden", false);
                     $("#task-main-content").attr("hidden", false);
-                    $('#task-main-content').load('html/chat-content.html');
+                    $('#task-main-content').load('html/chat-content.html', function() {
+                        // Initialize chat interface after content is loaded
+                        if (typeof window.initializeChatInterface === 'function') {
+                            window.initializeChatInterface();
+                        }
+                    });
                 };
             });
         </script>

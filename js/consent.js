@@ -227,7 +227,12 @@ $(document).ready(function (){
             $("#task-main-content").attr("hidden", false);
 
             // Load Chat Interface
-            $('#task-main-content').load('html/chat-content.html');
+            $('#task-main-content').load('html/chat-content.html', function() {
+                // Initialize chat interface after content is loaded
+                if (typeof window.initializeChatInterface === 'function') {
+                    window.initializeChatInterface();
+                }
+            });
 
 
             // Write to Database
@@ -262,7 +267,12 @@ $(document).ready(function (){
             //writeRealtimeDatabase(path, CONSENT_DATA);
 
             // Load Chat Interface (Local Development version)
-            $('#task-main-content').load("html/chat-content.html");
+            $('#task-main-content').load("html/chat-content.html", function() {
+                // Initialize chat interface after content is loaded
+                if (typeof window.initializeChatInterface === 'function') {
+                    window.initializeChatInterface();
+                }
+            });
         }
     };
     /*

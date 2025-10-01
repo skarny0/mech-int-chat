@@ -12,14 +12,15 @@ let interfaceInitialized = false;
 
 // Note: API configuration is loaded from config-unified.js file
 
-$(document).ready(function() {
+// Expose initialization function globally so it can be called after chat-content.html loads
+window.initializeChatInterface = function() {
     // Only initialize once
     if (!interfaceInitialized) {
         interfaceInitialized = true;
         // Initialize the dynamic interface
         initializeDynamicInterface();
     }
-});
+};
 
 function initializeDynamicInterface() {
     const systemPromptInterface = $('#systemPromptInterface');
