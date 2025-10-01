@@ -27,9 +27,6 @@
         
         <!-- Unified Configuration for Local and Vercel Deployment -->
         <script src="js/config-unified.js"></script>
-        
-        <!-- Chat Interface JavaScript -->
-        <script src="js/chat.js"></script>
 
         <!-- Firebase Config -->
         <!-- <script src="js/firebaseconfig.js"></script> -->
@@ -49,9 +46,6 @@
         -->
         <script>
             $(document).ready(function(){
-                // Pre-load models immediately when page loads
-                preloadModels();
-                
                 // Check for debug flag in URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 const debugMode = urlParams.get('debug') === 'true';
@@ -63,12 +57,7 @@
                     $("#consent-main-content").attr("hidden", true);
  
                     // Load Main Experiment - works with Vercel and local development
-                    $('#task-main-content').load('html/chat-content.html', function() {
-                        // Initialize chat interface after content is loaded
-                        if (typeof window.initializeChatInterface === 'function') {
-                            window.initializeChatInterface();
-                        }
-                    }); 
+                    $('#task-main-content').load('html/chat-content.html'); 
 
                     // loading an instructional page
                     // $('#comprehension-quiz-main-content').attr("hidden", false);
@@ -91,12 +80,7 @@
                     $("#consent-main-content").attr("hidden", true);
                     $("#task-header").attr("hidden", false);
                     $("#task-main-content").attr("hidden", false);
-                    $('#task-main-content').load('html/chat-content.html', function() {
-                        // Initialize chat interface after content is loaded
-                        if (typeof window.initializeChatInterface === 'function') {
-                            window.initializeChatInterface();
-                        }
-                    });
+                    $('#task-main-content').load('html/chat-content.html');
                 };
             });
         </script>

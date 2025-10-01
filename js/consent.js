@@ -205,11 +205,6 @@ $(document).ready(function (){
             Hide all consent page content and activate (show) instruction
             page content.
         */
-        // Pre-load Modal.ai models in the background (using function from config-unified.js)
-        if (typeof preloadModels === 'function') {
-            preloadModels();
-        }
-        
         // Hide Consent
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);
@@ -227,12 +222,7 @@ $(document).ready(function (){
             $("#task-main-content").attr("hidden", false);
 
             // Load Chat Interface
-            $('#task-main-content').load('html/chat-content.html', function() {
-                // Initialize chat interface after content is loaded
-                if (typeof window.initializeChatInterface === 'function') {
-                    window.initializeChatInterface();
-                }
-            });
+            $('#task-main-content').load('html/chat-content.html');
 
 
             // Write to Database
@@ -267,12 +257,7 @@ $(document).ready(function (){
             //writeRealtimeDatabase(path, CONSENT_DATA);
 
             // Load Chat Interface (Local Development version)
-            $('#task-main-content').load("html/chat-content.html", function() {
-                // Initialize chat interface after content is loaded
-                if (typeof window.initializeChatInterface === 'function') {
-                    window.initializeChatInterface();
-                }
-            });
+            $('#task-main-content').load("html/chat-content.html");
         }
     };
     /*
