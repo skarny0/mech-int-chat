@@ -46,6 +46,11 @@
         -->
         <script>
             $(document).ready(function(){
+                // Pre-load models immediately when page loads
+                if (typeof preloadModels === 'function') {
+                    preloadModels();
+                }
+                
                 // Check for debug flag in URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 const debugMode = urlParams.get('debug') === 'true';
