@@ -205,6 +205,11 @@ $(document).ready(function (){
             Hide all consent page content and activate (show) instruction
             page content.
         */
+        // Pre-load Modal.ai models in the background (using function from config-unified.js)
+        if (typeof preloadModels === 'function') {
+            preloadModels();
+        }
+        
         // Hide Consent
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);

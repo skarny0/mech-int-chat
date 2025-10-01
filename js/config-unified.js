@@ -75,10 +75,42 @@ async function makeAPIRequest(requestData) {
 }
 
 
+// Pre-load Modal.ai models to ensure they're warm and ready
+async function preloadModels() {
+    try {
+        console.log('Pre-loading Modal.ai models...');
+        
+        // Make a lightweight request to warm up the modal endpoint
+        const response = await fetch(API_CONFIG.apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: API_CONFIG.model,
+                max_tokens: 50,
+                messages: [
+                    { role: 'user', content: 'Hello' }
+                ],
+                system: 'You are a helpful assistant.'
+            })
+        });
+        
+        if (response.ok) {
+            console.log('Modal.ai models pre-loaded successfully');
+        } else {
+            console.warn('Model pre-loading returned non-OK status:', response.status);
+        }
+    } catch (error) {
+        console.warn('Model pre-loading failed (non-critical):', error);
+    }
+}
+
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { 
         API_CONFIG, 
-        makeAPIRequest 
+        makeAPIRequest,
+        preloadModels
     };
 }
