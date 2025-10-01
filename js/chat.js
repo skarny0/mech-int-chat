@@ -7,11 +7,18 @@ if (typeof window.conversationHistory === 'undefined') {
     window.conversationHistory = []; // Store conversation history for API calls
 }
 
+// Track if interface has been initialized to prevent duplicate initialization
+let interfaceInitialized = false;
+
 // Note: API configuration is loaded from config-unified.js file
 
 $(document).ready(function() {
-    // Initialize the dynamic interface
-    initializeDynamicInterface();
+    // Only initialize once
+    if (!interfaceInitialized) {
+        interfaceInitialized = true;
+        // Initialize the dynamic interface
+        initializeDynamicInterface();
+    }
 });
 
 function initializeDynamicInterface() {
@@ -39,13 +46,13 @@ function initializeDynamicInterface() {
         // Get the system prompt input
         const systemPromptInput = $('#systemPromptInput');
 
-        // Reset configuration
-        resetConfig.on('click', function() {
+        // Reset configuration - remove old listeners first
+        resetConfig.off('click').on('click', function() {
             systemPromptInput.val('You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.');
         });
 
         // Start chat
-        startChatBtn.on('click', function() {
+        startChatBtn.off('click').on('click', function() {
             const systemPrompt = $('#systemPromptInput').val();
             
             // Store system prompt in localStorage for the chat interface
@@ -55,15 +62,15 @@ function initializeDynamicInterface() {
             switchToChat();
         });
 
-        // Check Persona button
-        $('#checkPersonaBtn').on('click', function() {
+        // Check Persona button - remove old listeners first to prevent duplicates
+        $('#checkPersonaBtn').off('click').on('click', function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
             checkPersona(systemPrompt);
         });
 
         // Test Persona button - simulate with mock data
-        $('#testPersonaBtn').on('click', function() {
+        $('#testPersonaBtn').off('click').on('click', function() {
             testPersonaWithMockData();
         });
 
@@ -79,7 +86,7 @@ function initializeDynamicInterface() {
         };
 
         // Back to configuration
-        backToConfigBtn.on('click', function() {
+        backToConfigBtn.off('click').on('click', function() {
             switchToSystemPromptConfig();
         });
 
@@ -97,10 +104,10 @@ function initializeDynamicInterface() {
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        // Event listeners
-        sendBtn.on('click', sendMessage);
+        // Event listeners - remove old listeners first to prevent duplicates
+        sendBtn.off('click').on('click', sendMessage);
         
-        messageInput.on('keypress', function(e) {
+        messageInput.off('keypress').on('keypress', function(e) {
             if (e.which === 13 && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
@@ -108,13 +115,13 @@ function initializeDynamicInterface() {
         });
 
         // Attach button functionality
-        attachBtn.on('click', function() {
+        attachBtn.off('click').on('click', function() {
             // Placeholder for file attachment
             alert('File attachment feature would be implemented here');
         });
 
         // Image button functionality
-        imageBtn.on('click', function() {
+        imageBtn.off('click').on('click', function() {
             // Placeholder for image sending
             alert('Image sending feature would be implemented here');
         });
