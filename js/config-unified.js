@@ -77,11 +77,32 @@ async function makeAPIRequest(requestData) {
 
 // Pre-load Modal.ai models to ensure they're warm and ready
 async function preloadModels() {
-    try {
-        console.log('Pre-loading Modal.ai models...');
+    console.log('Pre-loading Modal.ai endpoints...');
+    
+    // Pre-load both endpoints in parallel for maximum efficiency
+    const preloadPromises = [
+        // 1. Pre-load the persona-vector endpoint
+        fetch('/api/persona-vector', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                system: 'You are a helpful assistant.'
+            })
+        }).then(response => {
+            if (response.ok) {
+                console.log('✓ Persona-vector endpoint pre-loaded successfully');
+            } else {
+                console.warn('⚠ Persona-vector pre-loading returned non-OK status:', response.status);
+            }
+            return response;
+        }).catch(error => {
+            console.warn('⚠ Persona-vector pre-loading failed (non-critical):', error.message);
+        }),
         
-        // Make a lightweight request to warm up the modal endpoint
-        const response = await fetch(API_CONFIG.apiEndpoint, {
+        // 2. Pre-load the chat/LLM endpoint
+        fetch(API_CONFIG.apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -94,15 +115,25 @@ async function preloadModels() {
                 ],
                 system: 'You are a helpful assistant.'
             })
-        });
-        
-        if (response.ok) {
-            console.log('Modal.ai models pre-loaded successfully');
-        } else {
-            console.warn('Model pre-loading returned non-OK status:', response.status);
-        }
+        }).then(response => {
+            if (response.ok) {
+                console.log('✓ Chat/LLM endpoint pre-loaded successfully');
+            } else {
+                console.warn('⚠ Chat/LLM pre-loading returned non-OK status:', response.status);
+            }
+            return response;
+        }).catch(error => {
+            console.warn('⚠ Chat/LLM pre-loading failed (non-critical):', error.message);
+        })
+    ];
+    
+    // Wait for both to complete (but don't block if they fail)
+    try {
+        await Promise.all(preloadPromises);
+        console.log('✓ All Modal.ai endpoints pre-loaded');
     } catch (error) {
-        console.warn('Model pre-loading failed (non-critical):', error);
+        // This shouldn't happen since we catch errors above, but just in case
+        console.warn('⚠ Some endpoints failed to pre-load (non-critical)');
     }
 }
 
