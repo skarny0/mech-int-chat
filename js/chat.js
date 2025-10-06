@@ -50,6 +50,7 @@ function initializeDynamicInterface() {
             
             // Store system prompt in localStorage for the chat interface
             localStorage.setItem('customSystemPrompt', systemPrompt);
+            console.log('📝 System prompt saved to localStorage:', systemPrompt.substring(0, 50) + '...');
             
             // Switch to chat interface
             switchToChat();
@@ -150,6 +151,8 @@ function initializeDynamicInterface() {
             // Get custom system prompt from localStorage, fallback to default
             const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
                 "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+
+            console.log('💬 Sending message with system prompt:', customSystemPrompt.substring(0, 50) + '...');
 
             const requestData = {
                 model: API_CONFIG.model,
