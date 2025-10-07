@@ -314,7 +314,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData) {
-    console.log('🔵 [1] Initial API Response:', JSON.parse(JSON.stringify(personaData)));
+    console.log('🟣 [TRANSFORM] Data received in transformToCategories:', JSON.parse(JSON.stringify(personaData)));
     
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
@@ -377,24 +377,22 @@ function transformToCategories(personaData) {
 
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
-        // Scale the value by 1.1
-        const scaledValue = value * 1.1;
-        console.log(`🟡 [2] First Scale (${key}): ${value} * 1.1 = ${scaledValue}`);
+        console.log(`🟡 [2] Processing trait (${key}): API value = ${value}`);
         
         // Get effective trait (handles antonyms for negative values)
-        const effectiveTrait = getEffectiveTrait(key, scaledValue);
+        const effectiveTrait = getEffectiveTrait(key, value);
         console.log(`   ↳ Effective trait: ${effectiveTrait.name}, absValue: ${effectiveTrait.absValue}`);
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
         
         const normalizedValue = normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 });
-        console.log(`🟠 [3] Second Scale (${key}): normalizeValue(${effectiveTrait.absValue}) = ${normalizedValue}`);
+        console.log(`🟠 [3] Normalized value (${key}): normalizeValue(${effectiveTrait.absValue}) = ${normalizedValue}%`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
             value: normalizedValue,
-            rawValue: scaledValue,
+            rawValue: value,
             originalTrait: key
         });
     }
