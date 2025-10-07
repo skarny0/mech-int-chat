@@ -433,6 +433,16 @@ const TRAIT_POLARITY = {
         antonym: 'untrustworthy',
         antonymPositive: false 
     },
+    humor: { 
+        positive: true, 
+        antonym: 'humorless',
+        antonymPositive: false 
+    },
+    warmth: { 
+        positive: true, 
+        antonym: 'cold',
+        antonymPositive: false 
+    },
     
     // Inherently negative traits (having them is bad)
     toxicity: { 
@@ -463,6 +473,16 @@ const TRAIT_POLARITY = {
     deception: { 
         positive: false, 
         antonym: 'non-deceptive',
+        antonymPositive: true 
+    },
+    deceptiveness: { 
+        positive: false, 
+        antonym: 'truthful',
+        antonymPositive: true 
+    },
+    hallucination: { 
+        positive: false, 
+        antonym: 'accurate',
         antonymPositive: true 
     }
 };
