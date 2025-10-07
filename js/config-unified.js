@@ -10,7 +10,7 @@
 
 // Modal AI Configuration (uncomment to use Modal, comment out Claude config above)
 const API_CONFIG = {
-    model: 'gemma-2-2b-it', // Gemma 2B model from your friend's Modal deployment
+    // model: 'gemma-2-2b-it', // Gemma 2B model from your friend's Modal deployment
     maxTokens: 1000,
     apiEndpoint: '/api/modal'
 };
@@ -128,7 +128,7 @@ async function preloadModels() {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: API_CONFIG.model,
+                        // model: API_CONFIG.model,
                         max_tokens: 100,
                         messages: [
                             { role: 'user', content: 'Hi' }

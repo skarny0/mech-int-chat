@@ -1,27 +1,47 @@
-// Importing functions and variables from the FirebasePsych library
-import { 
-    writeRealtimeDatabase, writeURLParameters, readRealtimeDatabase,
-    blockRandomization, finalizeBlockRandomization, firebaseUserId 
-} from "./firebasepsych1.0.js";
+// initialize firebase
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBnlqrGcIfgo59WCzure6azGQitEQaGhZg",
+    authDomain: "mech-chat-ee0c5.firebaseapp.com",
+    databaseURL: "https://mech-chat-ee0c5-default-rtdb.firebaseio.com",
+    projectId: "mech-chat-ee0c5",
+    storageBucket: "mech-chat-ee0c5.firebasestorage.app",
+    messagingSenderId: "1027129084043",
+    appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
+  };
 
-console.log("Firebase UserId=" + firebaseUserId);
+// Import Firebase functions
+import { initializeRealtimeDatabase, writeRealtimeDatabase } from "./firebasepsych1.1.js";
 
-// Write a simple test case to the database
-const studyId = 'chat-study';
-const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
-const testValue = {
-    message: "Hello from chat.js!",
-    timestamp: new Date().toISOString(),
-    value: 42
-};
-
-await writeRealtimeDatabase(testPath, testValue);
-console.log("✅ Test data written to Firebase at path:", testPath);
-
-// Write URL parameters to Firebase
-const urlParamsPath = studyId + '/participantData/' + firebaseUserId + '/urlParameters';
-await writeURLParameters(urlParamsPath);
-console.log("✅ URL parameters saved to Firebase");
+// Initialize Firebase Database
+let db1, firebaseUserId1;
+(async function initFirebase() {
+    try {
+        console.log("🔄 Initializing Firebase with config:", firebaseConfig);
+        [db1, firebaseUserId1] = await initializeRealtimeDatabase(firebaseConfig);
+        console.log("✅ Firebase initialized with user ID:", firebaseUserId1);
+        
+        // Make Firebase accessible globally for other functions
+        window.chatDb = db1;
+        window.chatFirebaseUserId = firebaseUserId1;
+        
+        // Write a simple test case to the database
+        const testPath = 'chat-study/testData/' + firebaseUserId1 + '/testMessage';
+        const testValue = {
+            message: "Hello from chat.js!",
+            timestamp: new Date().toISOString(),
+            value: 42
+        };
+        
+        console.log("🔄 Writing test data to path:", testPath);
+        await writeRealtimeDatabase(db1, testPath, testValue);
+        console.log("✅ Test data written successfully!");
+        console.log("✅ Firebase is ready! Access via window.chatDb and window.chatFirebaseUserId");
+    } catch (error) {
+        console.error("❌ Firebase initialization or write failed:", error);
+        console.error("Error details:", error.message);
+    }
+})();
 
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
@@ -65,72 +85,31 @@ function initializeDynamicInterface() {
         const systemPromptInput = $('#systemPromptInput');
 
         // Reset configuration
-        resetConfig.on('click', async function() {
-            const defaultPrompt = 'You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.';
-            systemPromptInput.val(defaultPrompt);
-            
-            // Log this reset action to Firebase
-            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
-            await writeRealtimeDatabase(promptLogPath, {
-                prompt: defaultPrompt,
-                action: 'reset_to_default',
-                timestamp: new Date().toISOString()
-            });
-            console.log('✅ System prompt reset logged');
+        resetConfig.on('click', function() {
+            systemPromptInput.val('You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.');
         });
 
         // Start chat
-        startChatBtn.on('click', async function() {
+        startChatBtn.on('click', function() {
             const systemPrompt = $('#systemPromptInput').val();
             
             // Store system prompt in localStorage for the chat interface
             localStorage.setItem('customSystemPrompt', systemPrompt);
             console.log('📝 System prompt saved to localStorage:', systemPrompt.substring(0, 50) + '...');
             
-            // Log this system prompt attempt to Firebase
-            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
-            await writeRealtimeDatabase(promptLogPath, {
-                prompt: systemPrompt,
-                action: 'start_chat',
-                timestamp: new Date().toISOString()
-            });
-            console.log('✅ System prompt logged (start chat)');
-            
             // Switch to chat interface
             switchToChat();
         });
 
         // Check Persona button
-        $('#checkPersonaBtn').on('click', async function() {
+        $('#checkPersonaBtn').on('click', function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
-            
-            // Log this system prompt attempt to Firebase
-            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
-            await writeRealtimeDatabase(promptLogPath, {
-                prompt: systemPrompt,
-                action: 'check_persona',
-                timestamp: new Date().toISOString()
-            });
-            console.log('✅ System prompt logged (check persona)');
-            
             checkPersona(systemPrompt);
         });
 
         // Test Persona button - simulate with mock data
-        $('#testPersonaBtn').on('click', async function() {
-            // Get the current system prompt from the input
-            const systemPrompt = $('#systemPromptInput').val();
-            
-            // Log this system prompt attempt to Firebase
-            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
-            await writeRealtimeDatabase(promptLogPath, {
-                prompt: systemPrompt,
-                action: 'test_persona',
-                timestamp: new Date().toISOString()
-            });
-            console.log('✅ System prompt logged (test persona)');
-            
+        $('#testPersonaBtn').on('click', function() {
             testPersonaWithMockData();
         });
 
@@ -188,21 +167,21 @@ function initializeDynamicInterface() {
     }
 
     // Send message function
-    async function sendMessage() {
+    function sendMessage() {
         const message = messageInput.val().trim();
         if (message === '') return;
 
-        // Add user message to conversation history first
+        // Add user message
+        const userMessageId = addMessage(message, 'user');
+        messageInput.val('');
+        sendBtn.prop('disabled', true);
+        messageInput.css('height', 'auto');
+
+        // Add user message to conversation history
         window.conversationHistory.push({
             role: 'user',
             content: message
         });
-
-        // Add user message to UI and save to Firebase
-        const userMessageId = await addMessage(message, 'user');
-        messageInput.val('');
-        sendBtn.prop('disabled', true);
-        messageInput.css('height', 'auto');
 
         // Show typing indicator
         typingIndicator.show();
@@ -241,8 +220,8 @@ function initializeDynamicInterface() {
                 content: assistantMessage
             });
 
-            // Add assistant message to chat and save to Firebase
-            await addMessage(assistantMessage, 'assistant');
+            // Add assistant message to chat
+            addMessage(assistantMessage, 'assistant');
 
         } catch (error) {
             console.error('Error calling AI API:', error);
@@ -264,29 +243,23 @@ function initializeDynamicInterface() {
                 errorMessage = `Error: ${error.message}. Please try again or contact the study administrator.`;
             }
             
+            addMessage(errorMessage, 'assistant');
+            
             // Add error message to conversation history
             window.conversationHistory.push({
                 role: 'assistant',
                 content: errorMessage
             });
-            
-            // Add error message to chat and save to Firebase
-            await addMessage(errorMessage, 'assistant');
         }
     }
 
     // Add message to chat with enhanced features
-    async function addMessage(text, sender) {
+    function addMessage(text, sender) {
         const messageId = window.messageIdCounter++;
         const messageClass = sender === 'user' ? 'user-message' : 'assistant-message';
         const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
         const senderName = sender === 'user' ? 'You' : 'Assistant';
         const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const timestamp = new Date().toISOString();
-        
-        // Get the current system prompt being used
-        const currentSystemPrompt = localStorage.getItem('customSystemPrompt') || 
-            "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
         
         const messageHtml = `
             <div class="message ${messageClass}" data-message-id="${messageId}">
@@ -301,21 +274,6 @@ function initializeDynamicInterface() {
         
         messagesContainer.append(messageHtml);
         messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
-        
-        // Save message to Firebase with system prompt
-        const messagePath = studyId + '/participantData/' + firebaseUserId + '/messages/' + messageId;
-        await writeRealtimeDatabase(messagePath, {
-            messageId: messageId,
-            role: sender,
-            content: text,
-            timestamp: timestamp,
-            systemPrompt: currentSystemPrompt
-        });
-        
-        // Also save the full conversation history after each message
-        const conversationPath = studyId + '/participantData/' + firebaseUserId + '/conversationHistory';
-        await writeRealtimeDatabase(conversationPath, window.conversationHistory);
-        
         return messageId;
     }
 
@@ -466,15 +424,6 @@ async function checkPersona(systemPrompt) {
         if (response.ok) {
             const data = await response.json();
             console.log('📊 Persona Vector API Response:', data.content);
-            
-            // Save persona vector to history log
-            const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
-            await writeRealtimeDatabase(personaLogPath, {
-                personaVector: data.content,
-                systemPrompt: promptToUse,
-                timestamp: new Date().toISOString()
-            });
-            console.log('✅ Persona vector logged to history');
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
