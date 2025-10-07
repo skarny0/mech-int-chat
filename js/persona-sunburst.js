@@ -147,7 +147,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
             
             tooltip.html(`
                 <strong>${category.name}</strong><br/>
-                Average: ${avgValue.toFixed(1)}%<br/>
+                Average: ${avgValue.toFixed(2)}<br/>
                 Items: ${category.items.length}
             `)
                 .style('left', (event.pageX + 10) + 'px')
@@ -204,7 +204,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         category.items.forEach((item, index) => {
             const itemStartAngle = category.startAngle + index * itemAngle;
             const itemEndAngle = itemStartAngle + itemAngle;
-            const extension = (item.value / 100) * (maxOuterRadius - middleRadius);
+            // Use raw values (0-2 range) directly for extension
+            const extension = (item.value / 2) * (maxOuterRadius - middleRadius);
             const outerRadius = middleRadius + extension;
 
             // Item arc
@@ -322,13 +323,11 @@ function transformToCategories(personaData) {
             startAngle: cat.startAngle,
             endAngle: cat.endAngle,
             items: cat.items.map(item => {
-                const firstScale = item.value * 2;
-                const secondScale = normalizeValue(firstScale, cat.scale || { min: -2, max: 2 });
-                
+                // Use raw values directly, no scaling
                 return {
                     name: item.name,
-                    value: secondScale,
-                    rawValue: firstScale
+                    value: Math.abs(item.value), // Just use absolute value of raw data
+                    rawValue: item.value
                 };
             })
         }));
@@ -375,13 +374,11 @@ function transformToCategories(personaData) {
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
         
-        const normalizedValue = normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 });
-        
-        console.log(`  ${effectiveTrait.name}: API=${value.toFixed(3)}, abs=${effectiveTrait.absValue.toFixed(3)} → ${normalizedValue.toFixed(1)}%`);
+        console.log(`  ${effectiveTrait.name}: API=${value.toFixed(3)}`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
-            value: normalizedValue,
+            value: effectiveTrait.absValue, // Use raw absolute value directly
             rawValue: value,
             originalTrait: key
         });
