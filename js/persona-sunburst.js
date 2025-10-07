@@ -36,6 +36,7 @@
 //
 // VISUALIZATION DETAILS:
 // - Inner ring: Colored categories with curved labels (Green=Positive, Red=Negative)
+// - Category sizing: Angular size is proportional to number of traits in each category
 // - Outer ring: Individual traits extending outward based on normalized values (0-100%)
 // - Hover-to-reveal: No static labels - details shown in tooltips on hover
 // - Enhanced hover effects: Segments brighten, enlarge, and show detailed tooltips
@@ -317,17 +318,34 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 function transformToCategories(personaData) {
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
-        return personaData.categories.map((cat, idx) => ({
+        const categories = personaData.categories.map((cat, idx) => ({
             name: cat.name,
             color: cat.color || getDefaultColor(idx),
-            startAngle: cat.startAngle || (idx * 2 * Math.PI / personaData.categories.length),
-            endAngle: cat.endAngle || ((idx + 1) * 2 * Math.PI / personaData.categories.length),
+            startAngle: cat.startAngle,
+            endAngle: cat.endAngle,
             items: cat.items.map(item => ({
                 name: item.name,
                 value: normalizeValue(item.value, cat.scale || { min: -2, max: 2 }),
                 rawValue: item.value
             }))
         }));
+        
+        // If angles aren't provided, calculate proportionally based on item counts
+        const needsAngleCalculation = categories.some(cat => cat.startAngle === undefined || cat.endAngle === undefined);
+        if (needsAngleCalculation) {
+            const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
+            let currentAngle = 0;
+            categories.forEach((category) => {
+                const proportion = category.items.length / totalItems;
+                const angleRange = proportion * 2 * Math.PI;
+                
+                category.startAngle = currentAngle;
+                category.endAngle = currentAngle + angleRange;
+                currentAngle += angleRange;
+            });
+        }
+        
+        return categories;
     }
 
     // Group traits by positive vs negative semantic valuation
@@ -364,11 +382,19 @@ function transformToCategories(personaData) {
 
     // Convert map to array, filter out empty categories, and assign angles
     const categories = Array.from(categoryMap.values()).filter(cat => cat.items.length > 0);
-    const anglePerCategory = (2 * Math.PI) / categories.length;
-
-    categories.forEach((category, idx) => {
-        category.startAngle = idx * anglePerCategory;
-        category.endAngle = (idx + 1) * anglePerCategory;
+    
+    // Calculate total number of items across all categories
+    const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
+    
+    // Assign angles proportional to the number of items in each category
+    let currentAngle = 0;
+    categories.forEach((category) => {
+        const proportion = category.items.length / totalItems;
+        const angleRange = proportion * 2 * Math.PI;
+        
+        category.startAngle = currentAngle;
+        category.endAngle = currentAngle + angleRange;
+        currentAngle += angleRange;
     });
 
     return categories;
