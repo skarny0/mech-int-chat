@@ -2,16 +2,25 @@
 
 ## Overview
 
-This project now includes a beautiful, interactive D3.js sunburst chart for visualizing persona vector data. The sunburst provides an intuitive way to see multi-dimensional persona ratings at a glance.
+This project includes a beautiful, interactive D3.js **two-ring sunburst chart** for visualizing persona vector data. The sunburst provides an intuitive way to see multi-dimensional persona ratings at a glance, with categories in the inner ring and individual traits extending outward based on their values.
+
+## Design
+
+The visualization uses a **two-ring architecture**:
+
+- **Inner Ring**: Shows categories with curved labels (e.g., Big Five personality traits)
+- **Outer Ring**: Individual traits/facets that extend outward based on their normalized values (0-100%)
+- **Center Circle**: Customizable label showing what the data represents
 
 ## Features
 
 ✨ **Interactive**: Hover over segments to see detailed information  
-🎨 **Color-coded**: Uses a red-yellow-green gradient to show negative to positive values  
-📊 **Hierarchical**: Displays persona dimensions in an elegant circular layout  
-🎭 **Animated**: Smooth transitions and loading animations  
-📱 **Responsive**: Adapts to different screen sizes  
-🔧 **Customizable**: Easy to configure size, colors, and behavior
+🎨 **Color-coded**: Each category has a distinct color with gradient variations for items  
+📊 **Two-Ring Design**: Clear separation between categories and individual traits  
+🎭 **Animated**: Smooth fade-in animations on load  
+📱 **Responsive**: Adapts to different screen sizes with SVG viewBox  
+🔧 **Customizable**: Supports both flat and custom categorized data formats  
+📏 **Visual Values**: Outer ring segments extend based on trait strength
 
 ## Quick Start
 

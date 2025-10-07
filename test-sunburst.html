@@ -90,13 +90,14 @@
         }
         
         #sunburstContainer {
-            min-height: 600px;
+            min-height: 900px;
             display: flex;
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-radius: 10px;
             padding: 2rem;
+            overflow: visible;
         }
         
         .description {
@@ -125,7 +126,8 @@
         <h1>🌞 Persona Vector Sunburst Visualization Test</h1>
         
         <div class="description">
-            <p>Interactive test page for the D3.js sunburst visualization of persona vectors.</p>
+            <p>Interactive test page for the D3.js two-ring sunburst visualization of persona vectors.</p>
+            <p><strong>Inner Ring:</strong> Categories • <strong>Outer Ring:</strong> Individual traits extending based on their values</p>
             <p>Hover over segments to see details, click to interact.</p>
         </div>
         
@@ -138,6 +140,12 @@
             </button>
             <button class="btn btn-tertiary" onclick="testPersona3()">
                 Test Persona 3 (Extreme Negative)
+            </button>
+            <button class="btn btn-primary" onclick="testCustomCategories()">
+                Test Custom Categories
+            </button>
+            <button class="btn btn-secondary" onclick="testRandomize()">
+                Randomize Values
             </button>
         </div>
         
@@ -175,38 +183,108 @@
             neuroticism: 1.9
         };
         
+        // Custom categories data (like the React example)
+        const customCategoriesData = {
+            categories: [
+                {
+                    name: "Positive Traits",
+                    color: "#66BB6A",
+                    items: [
+                        { name: "Empathy", value: 1.5 },
+                        { name: "Creativity", value: 1.2 },
+                        { name: "Honesty", value: 1.8 },
+                        { name: "Resilience", value: 1.4 },
+                        { name: "Curiosity", value: 1.6 }
+                    ]
+                },
+                {
+                    name: "Cognitive Style",
+                    color: "#757575",
+                    items: [
+                        { name: "Analytical", value: 0.8 },
+                        { name: "Intuitive", value: 0.5 },
+                        { name: "Detail-Oriented", value: 0.3 },
+                        { name: "Big Picture", value: 0.7 }
+                    ]
+                },
+                {
+                    name: "Social Tendencies",
+                    color: "#2196F3",
+                    items: [
+                        { name: "Assertiveness", value: -0.5 },
+                        { name: "Warmth", value: 0.9 },
+                        { name: "Sociability", value: 0.2 },
+                        { name: "Leadership", value: -0.3 }
+                    ]
+                }
+            ]
+        };
+        
+        let currentData = testData1;
+        
         function displayData(data) {
             document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
         }
         
         function testPersona1() {
+            currentData = testData1;
             createPersonaSunburst(testData1, 'sunburstContainer', {
-                width: 600,
-                height: 600,
-                innerRadius: 80,
+                width: 900,
+                height: 900,
                 animate: true
             });
             displayData(testData1);
         }
         
         function testPersona2() {
+            currentData = testData2;
             createPersonaSunburst(testData2, 'sunburstContainer', {
-                width: 600,
-                height: 600,
-                innerRadius: 80,
+                width: 900,
+                height: 900,
                 animate: true
             });
             displayData(testData2);
         }
         
         function testPersona3() {
+            currentData = testData3;
             createPersonaSunburst(testData3, 'sunburstContainer', {
-                width: 600,
-                height: 600,
-                innerRadius: 80,
+                width: 900,
+                height: 900,
                 animate: true
             });
             displayData(testData3);
+        }
+        
+        function testCustomCategories() {
+            currentData = customCategoriesData;
+            createPersonaSunburst(customCategoriesData, 'sunburstContainer', {
+                width: 900,
+                height: 900,
+                centerLabel: 'Custom',
+                centerSubLabel: 'Persona',
+                animate: true
+            });
+            displayData(customCategoriesData);
+        }
+        
+        function testRandomize() {
+            // Generate random values for each category
+            const randomData = {};
+            const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+            
+            traits.forEach(trait => {
+                // Random value between -2 and 2
+                randomData[trait] = (Math.random() * 4) - 2;
+            });
+            
+            currentData = randomData;
+            createPersonaSunburst(randomData, 'sunburstContainer', {
+                width: 900,
+                height: 900,
+                animate: true
+            });
+            displayData(randomData);
         }
         
         // Load first test on page load
