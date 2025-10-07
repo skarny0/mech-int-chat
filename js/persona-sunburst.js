@@ -365,7 +365,7 @@ function transformToCategories(personaData) {
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
         // Scale the value by 2
-        const scaledValue = value * 1.5;
+        const scaledValue = value * 1.1;
         
         // Get effective trait (handles antonyms for negative values)
         const effectiveTrait = getEffectiveTrait(key, scaledValue);
@@ -382,7 +382,10 @@ function transformToCategories(personaData) {
     }
 
     // Convert map to array, filter out empty categories, and assign angles
-    const categories = Array.from(categoryMap.values()).filter(cat => cat.items.length > 0);
+    const categories = Array.from(categoryMap.entries()).map(([name, cat]) => ({
+        ...cat,
+        name: name
+    })).filter(cat => cat.items.length > 0);
     
     // Calculate total number of items across all categories
     const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
