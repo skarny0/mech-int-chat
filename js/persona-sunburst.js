@@ -239,9 +239,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                 
                 tooltip.html(`
                     <strong style="font-size: 16px;">${item.name}</strong><br/>
-                    <span style="opacity: 0.9;">Category: ${category.name}</span><br/>
-                    <span style="opacity: 0.9;">Value: ${item.value.toFixed(1)}%</span><br/>
-                    ${item.rawValue !== undefined ? `<span style="opacity: 0.9;">Raw: ${item.rawValue.toFixed(3)}</span>` : ''}${originalTraitInfo}
+                    <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
                 `)
                     .style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 28) + 'px');
@@ -325,8 +323,8 @@ function transformToCategories(personaData) {
             endAngle: cat.endAngle,
             items: cat.items.map(item => ({
                 name: item.name,
-                value: normalizeValue(item.value, cat.scale || { min: -2, max: 2 }),
-                rawValue: item.value
+                value: normalizeValue(item.value * 2, cat.scale || { min: -2, max: 2 }),
+                rawValue: item.value * 2
             }))
         }));
         
@@ -366,8 +364,11 @@ function transformToCategories(personaData) {
 
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
+        // Scale the value by 2
+        const scaledValue = value * 2;
+        
         // Get effective trait (handles antonyms for negative values)
-        const effectiveTrait = getEffectiveTrait(key, value);
+        const effectiveTrait = getEffectiveTrait(key, scaledValue);
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
@@ -375,7 +376,7 @@ function transformToCategories(personaData) {
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
             value: normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 }),
-            rawValue: value,
+            rawValue: scaledValue,
             originalTrait: key
         });
     }
