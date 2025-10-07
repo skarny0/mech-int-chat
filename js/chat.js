@@ -378,7 +378,8 @@ async function checkPersona(systemPrompt) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('Persona Vector Response:', data);
+            console.log('🔵 [INITIAL - chat.js] Raw API Response from /api/persona-vector:', JSON.parse(JSON.stringify(data)));
+            console.log('🟦 [EXTRACTED - chat.js] Persona data (data.content):', JSON.parse(JSON.stringify(data.content)));
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
@@ -399,16 +400,14 @@ async function checkPersona(systemPrompt) {
 function renderPersonaChart(personaData) {
     const personaChart = $('#personaChart');
     
-    // Debug: Check if useSunburstDisplay function is available
-    console.log('typeof useSunburstDisplay:', typeof useSunburstDisplay);
+    console.log('🟪 [RENDER - chat.js] renderPersonaChart called with data:', JSON.parse(JSON.stringify(personaData)));
     
     // Use URL parameter to determine display mode (defaults to true if not specified)
     const useSunburst = typeof useSunburstDisplay === 'function' ? useSunburstDisplay() : true;
     
-    console.log('renderPersonaChart called with data:', personaData);
-    console.log('USE_SUNBURST:', useSunburst);
-    console.log('D3 available:', typeof d3 !== 'undefined');
-    console.log('createPersonaSunburst available:', typeof createPersonaSunburst !== 'undefined');
+    console.log('   ↳ USE_SUNBURST:', useSunburst);
+    console.log('   ↳ D3 available:', typeof d3 !== 'undefined');
+    console.log('   ↳ createPersonaSunburst available:', typeof createPersonaSunburst !== 'undefined');
     
     if (!personaData || typeof personaData !== 'object') {
         personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
@@ -426,12 +425,11 @@ function renderPersonaChart(personaData) {
         
         // Create container for sunburst
         personaChart.html('<div id="personaChartSunburst"></div>');
-        console.log('Created container #personaChartSunburst');
         
         // Create the sunburst visualization
         setTimeout(() => {
             if (typeof createPersonaSunburst === 'function') {
-                console.log('Creating sunburst with data:', personaData);
+                console.log('🎨 [SUNBURST - chat.js] Calling createPersonaSunburst with data:', JSON.parse(JSON.stringify(personaData)));
                 createPersonaSunburst(personaData, 'personaChartSunburst', {
                     width: 380,
                     height: 380,
