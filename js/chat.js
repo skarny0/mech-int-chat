@@ -394,15 +394,19 @@ async function checkPersona(systemPrompt) {
     }
 }
 
-// Configuration: Set to false to use bar chart instead of sunburst
-const USE_SUNBURST = true;
-
-// Render persona vector chart (sunburst or bar chart based on config)
+// Render persona vector chart (sunburst or bar chart based on URL parameter)
+// Uses ?sunburst=true or ?sunburst=false URL parameter (defaults to true if not specified)
 function renderPersonaChart(personaData) {
     const personaChart = $('#personaChart');
     
+    // Debug: Check if useSunburstDisplay function is available
+    console.log('typeof useSunburstDisplay:', typeof useSunburstDisplay);
+    
+    // Use URL parameter to determine display mode (defaults to true if not specified)
+    const useSunburst = typeof useSunburstDisplay === 'function' ? useSunburstDisplay() : true;
+    
     console.log('renderPersonaChart called with data:', personaData);
-    console.log('USE_SUNBURST:', USE_SUNBURST);
+    console.log('USE_SUNBURST:', useSunburst);
     console.log('D3 available:', typeof d3 !== 'undefined');
     console.log('createPersonaSunburst available:', typeof createPersonaSunburst !== 'undefined');
     
@@ -412,7 +416,7 @@ function renderPersonaChart(personaData) {
     }
 
     // Choose visualization based on config
-    if (USE_SUNBURST) {
+    if (useSunburst) {
         // Check if D3 is loaded
         if (typeof d3 === 'undefined') {
             console.error('D3.js not loaded! Falling back to bar chart.');
@@ -442,7 +446,7 @@ function renderPersonaChart(personaData) {
         }, 100);
     } else {
         // Use original bar chart
-        console.log('Using bar chart (USE_SUNBURST is false)');
+        console.log('Using bar chart (sunburst disabled via URL parameter or config)');
         renderPersonaBarChart(personaData);
     }
 }

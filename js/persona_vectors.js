@@ -135,6 +135,7 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
     // Build the HTML to display the persona vector ratings
     const useSunburst = useSunburstDisplay();
     const sunburstHtml = useSunburst ? '<div id="personaSunburstContainer" class="persona-sunburst-container"></div>' : '';
+    const barChartHtml = !useSunburst ? '<div id="personaBarChartContainer"></div>' : '';
     
     const personaVectorHtml = `
         <div class="persona-vector-results">
@@ -146,6 +147,7 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
             </div>
             
             ${sunburstHtml}
+            ${barChartHtml}
             
             <div class="persona-vector-details">
                 <h4>${useSunburst ? 'Detailed Values:' : 'Values:'}</h4>
@@ -183,7 +185,58 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
                 console.error('createPersonaSunburst function not found. Make sure persona-sunburst.js is loaded.');
             }
         }, 100);
+    } else {
+        // Render the bar chart when sunburst is disabled
+        renderPersonaVectorBarChart(personaVectorRatings);
     }
+}
+
+// Function to render bar chart visualization (used when sunburst is disabled)
+function renderPersonaVectorBarChart(personaData) {
+    const container = $('#personaBarChartContainer');
+    
+    if (container.length === 0) {
+        console.error('Bar chart container not found');
+        return;
+    }
+    
+    let chartHtml = '<div class="persona-bar-chart">';
+    
+    for (const [key, value] of Object.entries(personaData)) {
+        // Calculate bar width and position
+        // Values typically range from -2 to 2, so we normalize to 0-100%
+        const normalizedValue = Math.max(-2, Math.min(2, value)); // Clamp to [-2, 2]
+        const barWidth = Math.abs(normalizedValue) / 2 * 50; // Map to 0-50%
+        const barLeft = normalizedValue < 0 ? (50 - barWidth) : 50;
+        const barClass = normalizedValue < 0 ? 'negative' : 'positive';
+        
+        chartHtml += `
+            <div class="persona-bar-item">
+                <div class="persona-bar-label">
+                    <span class="persona-bar-name">${formatLabel(key)}</span>
+                    <span class="persona-bar-value">${value.toFixed(3)}</span>
+                </div>
+                <div class="persona-bar-track">
+                    <div class="persona-bar-background"></div>
+                    <div class="persona-bar-center"></div>
+                    <div class="persona-bar-fill ${barClass}" style="left: ${barLeft}%; width: ${barWidth}%;"></div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add axis labels
+    chartHtml += `
+        <div class="persona-axis" style="margin-top: 1rem;">
+            <div class="persona-axis-tick">-2.0</div>
+            <div class="persona-axis-tick">-1.0</div>
+            <div class="persona-axis-tick">0.0</div>
+            <div class="persona-axis-tick">1.0</div>
+            <div class="persona-axis-tick">2.0</div>
+        </div>
+    </div>`;
+    
+    container.html(chartHtml);
 }
 
 // Helper function to format labels
