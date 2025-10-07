@@ -394,24 +394,68 @@ async function checkPersona(systemPrompt) {
     }
 }
 
-// Render persona vector bar chart
+// Configuration: Set to false to use bar chart instead of sunburst
+const USE_SUNBURST = true;
+
+// Render persona vector chart (sunburst or bar chart based on config)
 function renderPersonaChart(personaData) {
     const personaChart = $('#personaChart');
+    
+    console.log('renderPersonaChart called with data:', personaData);
+    console.log('USE_SUNBURST:', USE_SUNBURST);
+    console.log('D3 available:', typeof d3 !== 'undefined');
+    console.log('createPersonaSunburst available:', typeof createPersonaSunburst !== 'undefined');
     
     if (!personaData || typeof personaData !== 'object') {
         personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
         return;
     }
 
-    // Create bar chart HTML
-    let chartHtml = '';
+    // Choose visualization based on config
+    if (USE_SUNBURST) {
+        // Check if D3 is loaded
+        if (typeof d3 === 'undefined') {
+            console.error('D3.js not loaded! Falling back to bar chart.');
+            renderPersonaBarChart(personaData);
+            return;
+        }
+        
+        // Create container for sunburst
+        personaChart.html('<div id="personaChartSunburst"></div>');
+        console.log('Created container #personaChartSunburst');
+        
+        // Create the sunburst visualization
+        setTimeout(() => {
+            if (typeof createPersonaSunburst === 'function') {
+                console.log('Creating sunburst with data:', personaData);
+                createPersonaSunburst(personaData, 'personaChartSunburst', {
+                    width: 380,
+                    height: 380,
+                    innerRadius: 45,
+                    animate: true
+                });
+            } else {
+                console.error('createPersonaSunburst function not found. Falling back to bar chart.');
+                // Fallback to bar chart
+                renderPersonaBarChart(personaData);
+            }
+        }, 100);
+    } else {
+        // Use original bar chart
+        console.log('Using bar chart (USE_SUNBURST is false)');
+        renderPersonaBarChart(personaData);
+    }
+}
+
+// Original bar chart rendering (fallback or primary based on USE_SUNBURST config)
+function renderPersonaBarChart(personaData) {
+    const personaChart = $('#personaChart');
+    
+    let chartHtml = '<div class="persona-fallback-list">';
     
     for (const [key, value] of Object.entries(personaData)) {
-        // Calculate position and width for the bar
-        // Value range is -2 to 2, we need to map this to 0-100%
-        const normalizedValue = ((value + 2) / 4) * 100; // Convert -2 to 2 range to 0-100
-        const barWidth = Math.abs(value) / 2 * 50; // Width from center (0-50%)
-        const barLeft = value < 0 ? (50 - barWidth) : 50; // Start position
+        const barWidth = Math.abs(value) / 2 * 50;
+        const barLeft = value < 0 ? (50 - barWidth) : 50;
         const barClass = value < 0 ? 'negative' : 'positive';
         
         chartHtml += `
@@ -429,7 +473,6 @@ function renderPersonaChart(personaData) {
         `;
     }
     
-    // Add axis labels
     chartHtml += `
         <div class="persona-axis" style="margin-top: 1rem;">
             <div class="persona-axis-tick">-2.0</div>
@@ -438,7 +481,7 @@ function renderPersonaChart(personaData) {
             <div class="persona-axis-tick">1.0</div>
             <div class="persona-axis-tick">2.0</div>
         </div>
-    `;
+    </div>`;
     
     personaChart.html(chartHtml);
 }

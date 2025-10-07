@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persona Sunburst Test</title>
+    
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
+    <!-- Persona Sunburst -->
+    <script src="js/persona-sunburst.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+        
+        .btn-tertiary {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .btn-tertiary:hover {
+            background: #dd6b20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(237, 137, 54, 0.4);
+        }
+        
+        #sunburstContainer {
+            min-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 2rem;
+        }
+        
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .data-display {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .data-display pre {
+            margin: 0.5rem 0 0 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌞 Persona Vector Sunburst Visualization Test</h1>
+        
+        <div class="description">
+            <p>Interactive test page for the D3.js sunburst visualization of persona vectors.</p>
+            <p>Hover over segments to see details, click to interact.</p>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="btn btn-primary" onclick="testPersona1()">
+                Test Persona 1 (Balanced)
+            </button>
+            <button class="btn btn-secondary" onclick="testPersona2()">
+                Test Persona 2 (Extreme Positive)
+            </button>
+            <button class="btn btn-tertiary" onclick="testPersona3()">
+                Test Persona 3 (Extreme Negative)
+            </button>
+        </div>
+        
+        <div id="sunburstContainer"></div>
+        
+        <div class="data-display">
+            <strong>Current Data:</strong>
+            <pre id="dataDisplay">Click a button to load data...</pre>
+        </div>
+    </div>
+    
+    <script>
+        // Test data sets
+        const testData1 = {
+            openness: 0.5,
+            conscientiousness: -0.3,
+            extraversion: 0.8,
+            agreeableness: 0.2,
+            neuroticism: -0.6
+        };
+        
+        const testData2 = {
+            openness: 1.8,
+            conscientiousness: 1.5,
+            extraversion: 1.9,
+            agreeableness: 1.7,
+            neuroticism: -1.8
+        };
+        
+        const testData3 = {
+            openness: -1.5,
+            conscientiousness: -1.8,
+            extraversion: -1.2,
+            agreeableness: -1.6,
+            neuroticism: 1.9
+        };
+        
+        function displayData(data) {
+            document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function testPersona1() {
+            createPersonaSunburst(testData1, 'sunburstContainer', {
+                width: 600,
+                height: 600,
+                innerRadius: 80,
+                animate: true
+            });
+            displayData(testData1);
+        }
+        
+        function testPersona2() {
+            createPersonaSunburst(testData2, 'sunburstContainer', {
+                width: 600,
+                height: 600,
+                innerRadius: 80,
+                animate: true
+            });
+            displayData(testData2);
+        }
+        
+        function testPersona3() {
+            createPersonaSunburst(testData3, 'sunburstContainer', {
+                width: 600,
+                height: 600,
+                innerRadius: 80,
+                animate: true
+            });
+            displayData(testData3);
+        }
+        
+        // Load first test on page load
+        window.addEventListener('load', function() {
+            testPersona1();
+        });
+    </script>
+</body>
+</html>
+

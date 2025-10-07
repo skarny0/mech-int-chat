@@ -1,6 +1,9 @@
 // Persona Vector Ratings Request JavaScript
 let personaVectorRequestInProgress = false;
 
+// Configuration: Set to false to use simple list instead of sunburst
+const USE_SUNBURST_DISPLAY = true;
+
 $(document).ready(function() {
     // Add button to trigger persona vector ratings request
     const personaVectorBtn = $('#personaVectorBtn'); // You'll need to add this button to your HTML
@@ -105,41 +108,64 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
     }
 
     // Build the HTML to display the persona vector ratings
+    const sunburstHtml = USE_SUNBURST_DISPLAY ? '<div id="personaSunburstContainer" class="persona-sunburst-container"></div>' : '';
+    
     const personaVectorHtml = `
         <div class="persona-vector-results">
-            <h3>Persona Vector Ratings</h3>
-            <div class="persona-vector-ratings">
-                <div class="persona-vector-item">
-                    <span class="persona-vector-label">Value 1:</span>
-                    <span class="persona-vector-value">${personaVectorRatings.value1}</span>
-                </div>
-                <div class="persona-vector-item">
-                    <span class="persona-vector-label">Value 2:</span>
-                    <span class="persona-vector-value">${personaVectorRatings.value2}</span>
-                </div>
-                <div class="persona-vector-item">
-                    <span class="persona-vector-label">Value 3:</span>
-                    <span class="persona-vector-value">${personaVectorRatings.value3}</span>
-                </div>
-                <div class="persona-vector-item">
-                    <span class="persona-vector-label">Value 4:</span>
-                    <span class="persona-vector-value">${personaVectorRatings.value4}</span>
-                </div>
-                <div class="persona-vector-item">
-                    <span class="persona-vector-label">Value 5:</span>
-                    <span class="persona-vector-value">${personaVectorRatings.value5}</span>
+            <div class="persona-vector-header">
+                <h3>Persona Vector Ratings</h3>
+                <button class="close-btn" onclick="closePersonaVectorDisplay()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            ${sunburstHtml}
+            
+            <div class="persona-vector-details">
+                <h4>${USE_SUNBURST_DISPLAY ? 'Detailed Values:' : 'Values:'}</h4>
+                <div class="persona-vector-ratings">
+                    ${Object.entries(personaVectorRatings).map(([key, value]) => `
+                        <div class="persona-vector-item">
+                            <span class="persona-vector-label">${formatLabel(key)}:</span>
+                            <span class="persona-vector-value">${value.toFixed(3)}</span>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
+            
             <div class="system-prompt-used">
                 <strong>System Prompt:</strong>
                 <p>${systemPrompt}</p>
             </div>
-            <button class="close-btn" onclick="closePersonaVectorDisplay()">Close</button>
         </div>
     `;
 
     personaVectorDisplay.html(personaVectorHtml);
     personaVectorDisplay.show();
+
+    // Create the sunburst visualization if enabled
+    if (USE_SUNBURST_DISPLAY) {
+        setTimeout(() => {
+            if (typeof createPersonaSunburst === 'function') {
+                createPersonaSunburst(personaVectorRatings, 'personaSunburstContainer', {
+                    width: 500,
+                    height: 500,
+                    innerRadius: 60,
+                    animate: true
+                });
+            } else {
+                console.error('createPersonaSunburst function not found. Make sure persona-sunburst.js is loaded.');
+            }
+        }, 100);
+    }
+}
+
+// Helper function to format labels
+function formatLabel(key) {
+    return key.replace(/_/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 // Function to display error messages
