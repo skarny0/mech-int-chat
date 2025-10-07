@@ -365,7 +365,7 @@ function transformToCategories(personaData) {
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
         // Scale the value by 2
-        const scaledValue = value * 2;
+        const scaledValue = value * 1.5;
         
         // Get effective trait (handles antonyms for negative values)
         const effectiveTrait = getEffectiveTrait(key, scaledValue);
