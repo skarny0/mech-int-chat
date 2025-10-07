@@ -467,14 +467,14 @@ async function checkPersona(systemPrompt) {
             const data = await response.json();
             console.log('📊 Persona Vector API Response:', data.content);
             
-            // Save persona data to Firebase
-            const personaPath = studyId + '/participantData/' + firebaseUserId + '/personaData';
-            await writeRealtimeDatabase(personaPath, {
+            // Save persona vector to history log
+            const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
+            await writeRealtimeDatabase(personaLogPath, {
                 personaVector: data.content,
                 systemPrompt: promptToUse,
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ Persona data saved to Firebase');
+            console.log('✅ Persona vector logged to history');
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
