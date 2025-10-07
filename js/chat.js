@@ -792,8 +792,12 @@ function setupSurveyEventListeners() {
     });
     
     // Phase 1 Proceed button
-    phase1ProceedBtn.on('click', function() {
+    phase1ProceedBtn.on('click', async function() {
         console.log('Phase 1 Proceed clicked');
+        
+        // Save Phase 1 data to Firebase
+        await savePhase1Data();
+        
         phase1.hide();
         phase2.show();
     });
@@ -823,8 +827,12 @@ function setupSurveyEventListeners() {
     }
     
     // Phase 2 Proceed button
-    phase2ProceedBtn.on('click', function() {
+    phase2ProceedBtn.on('click', async function() {
         console.log('Phase 2 Proceed clicked');
+        
+        // Save Phase 2 data to Firebase
+        await savePhase2Data();
+        
         phase2.hide();
         phase3.show();
     });
@@ -838,7 +846,10 @@ function setupSurveyEventListeners() {
     // Phase 3 Proceed button - save data and close
     phase3ProceedBtn.on('click', async function() {
         console.log('Phase 3 Proceed clicked');
-        await savePreTaskSurveyData();
+        
+        // Save Phase 3 data to Firebase
+        await savePhase3Data();
+        
         closePreTaskSurvey();
         
         // Survey complete - buttons are now enabled, user can proceed
@@ -931,68 +942,102 @@ function enableInterfaceButtons() {
     console.log('🔓 Interface buttons enabled');
 }
 
-// Collect and save pre-task survey data
-async function savePreTaskSurveyData() {
+// Save Phase 1 data to Firebase
+async function savePhase1Data() {
     try {
-        // Collect Phase 1 responses
-        const phase1Q1 = parseInt($('input[name="phase1_q1"]:checked').val());
-        const phase1Q2 = parseInt($('input[name="phase1_q2"]:checked').val());
-        
-        // Collect Phase 2 responses (trait predictions)
-        const traitPredictions = {
-            empathy: parseInt($('input[name="trait_empathy"]:checked').val()) / 10, // Normalize to 0-1
-            sociality: parseInt($('input[name="trait_sociality"]:checked').val()) / 10,
-            supportiveness: parseInt($('input[name="trait_supportiveness"]:checked').val()) / 10,
-            humor: parseInt($('input[name="trait_humor"]:checked').val()) / 10,
-            warmth: parseInt($('input[name="trait_warmth"]:checked').val()) / 10,
-            toxicity: parseInt($('input[name="trait_toxicity"]:checked').val()) / 10,
-            sycophancy: parseInt($('input[name="trait_sycophancy"]:checked').val()) / 10,
-            deceptiveness: parseInt($('input[name="trait_deceptiveness"]:checked').val()) / 10,
-            hallucination: parseInt($('input[name="trait_hallucination"]:checked').val()) / 10
-        };
-        
-        // Collect Phase 3 response
-        const phase3Trust = parseInt($('input[name="phase3_trust"]:checked').val());
-        
-        // Get system prompt
+        const timestamp = new Date().toISOString();
         const systemPrompt = $('#systemPromptInput').val();
         
-        // Create survey data object
-        const surveyData = {
-            phase1: {
-                q1_unintended_behaviors: phase1Q1,
-                q2_negative_unintended_behaviors: phase1Q2
-            },
-            phase2: {
-                trait_predictions: traitPredictions
-            },
-            phase3: {
-                trust_rating: phase3Trust
-            },
-            metadata: {
-                system_prompt: systemPrompt,
-                timestamp: new Date().toISOString(),
-                completion_time: Date.now()
-            }
+        // Collect Phase 1 responses
+        const phase1Data = {
+            "How well could you predict unintended behaviors from your system prompt?": parseInt($('input[name="phase1_q1"]:checked').val()),
+            "How well could you predict negative unintended behaviors from your system prompt?": parseInt($('input[name="phase1_q2"]:checked').val())
         };
         
-        console.log('📊 Pre-task survey data collected:', surveyData);
+        console.log('📊 Phase 1 data collected:', phase1Data);
         
-        // Store locally first (primary storage for now)
-        localStorage.setItem('preTaskSurveyData', JSON.stringify(surveyData));
-        console.log('✅ Pre-task survey data saved to localStorage');
+        // Save to Firebase
+        const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
+        await writeRealtimeDatabase(`${basePath}/phase1`, {
+            responses: phase1Data,
+            timestamp: timestamp
+        });
+        console.log('✅ Phase 1 data saved to Firebase');
         
-        // Save to Firebase using firebasepsych1.0.js API
-        try {
-            const surveyPath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
-            await writeRealtimeDatabase(surveyPath, surveyData);
-            console.log('✅ Pre-task survey data saved to Firebase at path:', surveyPath);
-        } catch (firebaseError) {
-            console.warn('⚠️ Could not save to Firebase:', firebaseError.message);
-        }
+        // Save metadata on first phase
+        await writeRealtimeDatabase(`${basePath}/metadata`, {
+            system_prompt: systemPrompt,
+            start_timestamp: timestamp
+        });
+        console.log('✅ Survey metadata initialized');
         
     } catch (error) {
-        console.error('❌ Error collecting pre-task survey data:', error);
-        // Even if there's an error, don't throw - allow the survey to complete
+        console.error('❌ Error saving Phase 1 data:', error);
+    }
+}
+
+// Save Phase 2 data to Firebase
+async function savePhase2Data() {
+    try {
+        const timestamp = new Date().toISOString();
+        
+        // Collect Phase 2 responses (trait predictions)
+        const phase2Data = {
+            "Empathy": parseInt($('input[name="trait_empathy"]:checked').val()),
+            "Sociality": parseInt($('input[name="trait_sociality"]:checked').val()),
+            "Supportiveness": parseInt($('input[name="trait_supportiveness"]:checked').val()),
+            "Humor": parseInt($('input[name="trait_humor"]:checked').val()),
+            "Warmth": parseInt($('input[name="trait_warmth"]:checked').val()),
+            "Toxicity": parseInt($('input[name="trait_toxicity"]:checked').val()),
+            "Sycophancy": parseInt($('input[name="trait_sycophancy"]:checked').val()),
+            "Deceptiveness": parseInt($('input[name="trait_deceptiveness"]:checked').val()),
+            "Hallucination": parseInt($('input[name="trait_hallucination"]:checked').val())
+        };
+        
+        console.log('📊 Phase 2 data collected:', phase2Data);
+        
+        // Save to Firebase
+        const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
+        await writeRealtimeDatabase(`${basePath}/phase2`, {
+            responses: phase2Data,
+            timestamp: timestamp
+        });
+        console.log('✅ Phase 2 data saved to Firebase');
+        
+    } catch (error) {
+        console.error('❌ Error saving Phase 2 data:', error);
+    }
+}
+
+// Save Phase 3 data to Firebase
+async function savePhase3Data() {
+    try {
+        const timestamp = new Date().toISOString();
+        
+        // Collect Phase 3 response
+        const phase3Data = {
+            "Given the relevant background about unintended model behaviors, how much do you trust this model?": parseInt($('input[name="phase3_trust"]:checked').val())
+        };
+        
+        console.log('📊 Phase 3 data collected:', phase3Data);
+        
+        // Save to Firebase
+        const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
+        await writeRealtimeDatabase(`${basePath}/phase3`, {
+            responses: phase3Data,
+            timestamp: timestamp
+        });
+        console.log('✅ Phase 3 data saved to Firebase');
+        
+        // Update metadata with completion time
+        await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
+        await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
+        console.log('✅ Survey completion metadata saved');
+        
+        // Mark survey as completed
+        localStorage.setItem('preTaskSurveyCompleted', 'true');
+        
+    } catch (error) {
+        console.error('❌ Error saving Phase 3 data:', error);
     }
 }
