@@ -118,6 +118,50 @@
         .data-display pre {
             margin: 0.5rem 0 0 0;
             overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .info-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #e8f5e9 0%, #fff3e0 100%);
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #2e7d32;
+            font-size: 1.1rem;
+        }
+        
+        .info-box ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .info-box li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        .code {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .positive-label {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .negative-label {
+            color: #F44336;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -126,64 +170,113 @@
         <h1>🌞 Persona Vector Sunburst Visualization Test</h1>
         
         <div class="description">
-            <p>Interactive test page for the D3.js two-ring sunburst visualization of persona vectors.</p>
-            <p><strong>Inner Ring:</strong> Categories • <strong>Outer Ring:</strong> Individual traits extending based on their values</p>
-            <p>Hover over segments to see details, click to interact.</p>
+            <p>Interactive test page for the D3.js two-ring sunburst visualization with <strong>trait polarity handling</strong>.</p>
+            <p><strong>Green Ring:</strong> Positive Traits • <strong>Red Ring:</strong> Negative Traits</p>
+            <p><strong>Negative activations</strong> automatically convert to antonyms (e.g., -empathy → "Non-Empathic")</p>
+            <p>Hover over segments to see details including original trait names.</p>
         </div>
         
         <div class="test-buttons">
-            <button class="btn btn-primary" onclick="testPersona1()">
-                Test Persona 1 (Balanced)
+            <button class="btn btn-primary" onclick="testRealData()">
+                Test Real Data (From API)
             </button>
-            <button class="btn btn-secondary" onclick="testPersona2()">
-                Test Persona 2 (Extreme Positive)
+            <button class="btn btn-secondary" onclick="testPositiveTraits()">
+                Test Positive Traits
             </button>
-            <button class="btn btn-tertiary" onclick="testPersona3()">
-                Test Persona 3 (Extreme Negative)
+            <button class="btn btn-tertiary" onclick="testNegativeTraits()">
+                Test Negative Traits
             </button>
-            <button class="btn btn-primary" onclick="testCustomCategories()">
+            <button class="btn btn-primary" onclick="testMixedTraits()">
+                Test Mixed Polarity
+            </button>
+            <button class="btn btn-secondary" onclick="testCustomCategories()">
                 Test Custom Categories
             </button>
-            <button class="btn btn-secondary" onclick="testRandomize()">
+            <button class="btn btn-tertiary" onclick="testRandomize()">
                 Randomize Values
             </button>
         </div>
         
         <div id="sunburstContainer"></div>
         
+        <div class="info-box">
+            <h3>🔄 How Trait Polarity Works</h3>
+            <ul>
+                <li><strong>Positive Traits</strong> (empathy, sociality, kindness, etc.):
+                    <br>• <span class="positive-label">Positive activation</span> → stays as <span class="code">Empathy</span> (<span class="positive-label">POSITIVE</span>)
+                    <br>• <span class="negative-label">Negative activation</span> → becomes <span class="code">Non-Empathic</span> (<span class="negative-label">NEGATIVE</span>)
+                </li>
+                <li><strong>Negative Traits</strong> (toxicity, sycophancy, aggression, etc.):
+                    <br>• <span class="positive-label">Positive activation</span> → stays as <span class="code">Toxicity</span> (<span class="negative-label">NEGATIVE</span>)
+                    <br>• <span class="negative-label">Negative activation</span> → becomes <span class="code">Non-Toxic</span> (<span class="positive-label">POSITIVE</span>)
+                </li>
+                <li><strong>Example:</strong> <span class="code">sociality: -0.5</span> transforms to <span class="code">Antisocial: 0.5</span> in the negative traits ring</li>
+                <li>Check the browser console to see all transformations logged!</li>
+            </ul>
+        </div>
+        
         <div class="data-display">
-            <strong>Current Data:</strong>
+            <strong>Current Data (Raw Input):</strong>
             <pre id="dataDisplay">Click a button to load data...</pre>
         </div>
     </div>
     
     <script>
-        // Test data sets
-        const testData1 = {
-            openness: 0.5,
-            conscientiousness: -0.3,
-            extraversion: 0.8,
-            agreeableness: 0.2,
-            neuroticism: -0.6
+        // Test data sets with trait polarity
+        
+        // Real API data - demonstrates negative activation handling
+        const realAPIData = {
+            empathy: -0.10697905880911046,      // Negative → "Non-Empathic" (negative trait)
+            sociality: 0.07528872169550496,     // Positive → "Sociality" (positive trait)
+            supportiveness: -0.0373792765073818, // Negative → "Unsupportive" (negative trait)
+            sycophancy: 0.13748006791357684,    // Positive → "Sycophancy" (negative trait)
+            toxicity: -0.28841338438788994      // Negative → "Non-Toxic" (positive trait)
         };
         
-        const testData2 = {
-            openness: 1.8,
-            conscientiousness: 1.5,
-            extraversion: 1.9,
-            agreeableness: 1.7,
-            neuroticism: -1.8
+        // Mostly positive traits with varied activations
+        const positiveTraitsData = {
+            empathy: 0.85,           // Positive → "Empathy" (positive)
+            kindness: 1.2,           // Positive → "Kindness" (positive)
+            compassion: 0.65,        // Positive → "Compassion" (positive)
+            honesty: 1.5,            // Positive → "Honesty" (positive)
+            supportiveness: 0.95,    // Positive → "Supportiveness" (positive)
+            sociality: 0.45,         // Positive → "Sociality" (positive)
+            trustworthiness: 1.1     // Positive → "Trustworthiness" (positive)
         };
         
-        const testData3 = {
-            openness: -1.5,
-            conscientiousness: -1.8,
-            extraversion: -1.2,
-            agreeableness: -1.6,
-            neuroticism: 1.9
+        // Mostly negative traits with varied activations
+        const negativeTraitsData = {
+            toxicity: 0.95,          // Positive → "Toxicity" (negative)
+            sycophancy: 1.2,         // Positive → "Sycophancy" (negative)
+            aggression: 0.75,        // Positive → "Aggression" (negative)
+            hostility: 0.55,         // Positive → "Hostility" (negative)
+            manipulation: 1.1,       // Positive → "Manipulation" (negative)
+            empathy: -0.85,          // Negative → "Non-Empathic" (negative)
+            kindness: -0.65          // Negative → "Unkind" (negative)
         };
         
-        // Custom categories data (like the React example)
+        // Mixed polarity - demonstrates full transformation logic
+        const mixedPolarityData = {
+            // Positive traits with positive activation → positive category
+            empathy: 0.8,
+            kindness: 1.2,
+            sociality: 0.6,
+            
+            // Positive traits with negative activation → negative category (becomes antonym)
+            supportiveness: -0.7,    // → "Unsupportive"
+            compassion: -0.9,        // → "Uncompassionate"
+            honesty: -0.5,           // → "Dishonest"
+            
+            // Negative traits with positive activation → negative category
+            toxicity: 0.9,           // → "Toxicity"
+            sycophancy: 1.1,         // → "Sycophancy"
+            
+            // Negative traits with negative activation → positive category (becomes antonym)
+            aggression: -1.2,        // → "Non-Aggressive"
+            hostility: -0.8          // → "Non-Hostile"
+        };
+        
+        // Custom categories data (bypasses automatic polarity)
         const customCategoriesData = {
             categories: [
                 {
@@ -211,49 +304,77 @@
                     name: "Social Tendencies",
                     color: "#2196F3",
                     items: [
-                        { name: "Assertiveness", value: -0.5 },
+                        { name: "Assertiveness", value: 0.5 },
                         { name: "Warmth", value: 0.9 },
                         { name: "Sociability", value: 0.2 },
-                        { name: "Leadership", value: -0.3 }
+                        { name: "Leadership", value: 0.3 }
                     ]
                 }
             ]
         };
         
-        let currentData = testData1;
+        let currentData = realAPIData;
         
         function displayData(data) {
-            document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+            const display = document.getElementById('dataDisplay');
+            display.textContent = JSON.stringify(data, null, 2);
+            
+            // Log transformations to console
+            console.log('\n=== Trait Transformations ===');
+            if (!data.categories) {
+                for (const [trait, value] of Object.entries(data)) {
+                    const effective = getEffectiveTrait(trait, value);
+                    console.log(`${trait}: ${value.toFixed(3)} → ${effective.name} (${effective.isPositive ? 'POSITIVE' : 'NEGATIVE'})`);
+                }
+            }
         }
         
-        function testPersona1() {
-            currentData = testData1;
-            createPersonaSunburst(testData1, 'sunburstContainer', {
+        function testRealData() {
+            currentData = realAPIData;
+            createPersonaSunburst(realAPIData, 'sunburstContainer', {
                 width: 900,
                 height: 900,
+                centerLabel: 'API',
+                centerSubLabel: 'Response',
                 animate: true
             });
-            displayData(testData1);
+            displayData(realAPIData);
         }
         
-        function testPersona2() {
-            currentData = testData2;
-            createPersonaSunburst(testData2, 'sunburstContainer', {
+        function testPositiveTraits() {
+            currentData = positiveTraitsData;
+            createPersonaSunburst(positiveTraitsData, 'sunburstContainer', {
                 width: 900,
                 height: 900,
+                centerLabel: 'Positive',
+                centerSubLabel: 'Profile',
                 animate: true
             });
-            displayData(testData2);
+            displayData(positiveTraitsData);
         }
         
-        function testPersona3() {
-            currentData = testData3;
-            createPersonaSunburst(testData3, 'sunburstContainer', {
+        function testNegativeTraits() {
+            currentData = negativeTraitsData;
+            createPersonaSunburst(negativeTraitsData, 'sunburstContainer', {
                 width: 900,
                 height: 900,
+                centerLabel: 'Negative',
+                centerSubLabel: 'Profile',
                 animate: true
             });
-            displayData(testData3);
+            displayData(negativeTraitsData);
+        }
+        
+        function testMixedTraits() {
+            currentData = mixedPolarityData;
+            createPersonaSunburst(mixedPolarityData, 'sunburstContainer', {
+                width: 900,
+                height: 900,
+                centerLabel: 'Mixed',
+                centerSubLabel: 'Profile',
+                animate: true
+            });
+            displayData(mixedPolarityData);
         }
         
         function testCustomCategories() {
@@ -269,11 +390,16 @@
         }
         
         function testRandomize() {
-            // Generate random values for each category
+            // Generate random values with mix of positive and negative traits
             const randomData = {};
-            const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+            const traits = ['empathy', 'sociality', 'supportiveness', 'toxicity', 'sycophancy', 
+                          'kindness', 'aggression', 'compassion', 'hostility'];
             
-            traits.forEach(trait => {
+            // Randomly select 5-7 traits
+            const numTraits = 5 + Math.floor(Math.random() * 3);
+            const selectedTraits = traits.sort(() => Math.random() - 0.5).slice(0, numTraits);
+            
+            selectedTraits.forEach(trait => {
                 // Random value between -2 and 2
                 randomData[trait] = (Math.random() * 4) - 2;
             });
@@ -282,14 +408,16 @@
             createPersonaSunburst(randomData, 'sunburstContainer', {
                 width: 900,
                 height: 900,
+                centerLabel: 'Random',
+                centerSubLabel: 'Profile',
                 animate: true
             });
             displayData(randomData);
         }
         
-        // Load first test on page load
+        // Load real API data on page load
         window.addEventListener('load', function() {
-            testPersona1();
+            testRealData();
         });
     </script>
 </body>

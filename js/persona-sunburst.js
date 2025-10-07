@@ -3,13 +3,13 @@
 //
 // DATA FORMATS SUPPORTED:
 //
-// 1. Flat Format (automatically grouped by Big Five):
+// 1. Flat Format (automatically grouped by Positive/Negative semantic traits):
 //    {
-//      openness: 1.5,
-//      conscientiousness: -0.5,
-//      extraversion: 0.8,
-//      agreeableness: 0.2,
-//      neuroticism: -0.6
+//      empathy: -0.107,        // Negative value → "Non-empathic" (negative trait)
+//      sociality: 0.075,       // Positive value → "Sociality" (positive trait)
+//      supportiveness: -0.037, // Negative value → "Unsupportive" (negative trait)
+//      sycophancy: 0.137,      // Positive value → "Sycophancy" (negative trait)
+//      toxicity: -0.288        // Negative value → "Non-toxic" (positive trait)
 //    }
 //
 // 2. Custom Categories Format:
@@ -29,10 +29,15 @@
 //      ]
 //    }
 //
+// TRAIT POLARITY LOGIC:
+// - Positive traits (empathy, sociality) → negative values become antonyms (non-empathic, antisocial)
+// - Negative traits (toxicity, sycophancy) → negative values become positive antonyms (non-toxic)
+// - Categories: "Positive Traits" (green) vs "Negative Traits" (red)
+//
 // VISUALIZATION DETAILS:
-// - Inner ring: Colored categories with curved labels
+// - Inner ring: Colored categories with curved labels (Green=Positive, Red=Negative)
 // - Outer ring: Individual traits extending outward based on normalized values (0-100%)
-// - Tooltips: Show details on hover
+// - Tooltips: Show details on hover including original trait if transformed
 // - Interactive: Hover effects and click handlers
 // - Animated: Fade-in animation on load
 
@@ -222,11 +227,14 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                     .duration(200)
                     .style('opacity', 1);
                 
+                const originalTraitInfo = item.originalTrait ? 
+                    `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
+                
                 tooltip.html(`
                     <strong>${item.name}</strong><br/>
                     Category: ${category.name}<br/>
                     Value: ${item.value.toFixed(1)}%<br/>
-                    ${item.rawValue !== undefined ? `Raw: ${item.rawValue.toFixed(3)}` : ''}
+                    ${item.rawValue !== undefined ? `Raw: ${item.rawValue.toFixed(3)}` : ''}${originalTraitInfo}
                 `)
                     .style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 28) + 'px');
@@ -322,57 +330,40 @@ function transformToCategories(personaData) {
         }));
     }
 
-    // If flat data, group into default Big Five categories
-    const bigFiveMapping = {
-        openness: { category: 'Openness', color: '#9C27B0' },
-        conscientiousness: { category: 'Conscientiousness', color: '#2196F3' },
-        extraversion: { category: 'Extraversion', color: '#FF9800' },
-        agreeableness: { category: 'Agreeableness', color: '#4CAF50' },
-        neuroticism: { category: 'Neuroticism', color: '#F44336' }
-    };
-
+    // Group traits by positive vs negative semantic valuation
     const categoryMap = new Map();
+    
+    // Initialize two categories
+    categoryMap.set('Positive Traits', {
+        name: 'Positive Traits',
+        color: '#4CAF50', // Green for positive
+        items: []
+    });
+    
+    categoryMap.set('Negative Traits', {
+        name: 'Negative Traits',
+        color: '#F44336', // Red for negative
+        items: []
+    });
 
-    // Group items by category
+    // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
-        const keyLower = key.toLowerCase();
-        let categoryInfo = null;
-
-        // Try to match to Big Five
-        for (const [trait, info] of Object.entries(bigFiveMapping)) {
-            if (keyLower.includes(trait)) {
-                categoryInfo = info;
-                break;
-            }
-        }
-
-        // Default to "Other Traits" if no match
-        if (!categoryInfo) {
-            categoryInfo = { category: 'Other Traits', color: '#757575' };
-        }
-
-        if (!categoryMap.has(categoryInfo.category)) {
-            categoryMap.set(categoryInfo.category, {
-                name: categoryInfo.category,
-                color: categoryInfo.color,
-                items: []
-            });
-        }
-
-        const label = key.replace(/_/g, ' ')
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-
-        categoryMap.get(categoryInfo.category).items.push({
-            name: label,
-            value: normalizeValue(value, { min: -2, max: 2 }),
-            rawValue: value
+        // Get effective trait (handles antonyms for negative values)
+        const effectiveTrait = getEffectiveTrait(key, value);
+        
+        // Determine which category to place it in
+        const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
+        
+        categoryMap.get(categoryName).items.push({
+            name: effectiveTrait.name,
+            value: normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 }),
+            rawValue: value,
+            originalTrait: key
         });
     }
 
-    // Convert map to array and assign angles
-    const categories = Array.from(categoryMap.values());
+    // Convert map to array, filter out empty categories, and assign angles
+    const categories = Array.from(categoryMap.values()).filter(cat => cat.items.length > 0);
     const anglePerCategory = (2 * Math.PI) / categories.length;
 
     categories.forEach((category, idx) => {
@@ -394,6 +385,136 @@ function normalizeValue(value, scale = { min: -2, max: 2 }) {
     const clampedValue = Math.max(scale.min, Math.min(scale.max, value));
     // Normalize to 0-100
     return ((clampedValue - scale.min) / (scale.max - scale.min)) * 100;
+}
+
+/**
+ * Trait polarity mapping: defines which traits are inherently positive or negative
+ * and their antonyms
+ */
+const TRAIT_POLARITY = {
+    // Inherently positive traits (having them is good)
+    empathy: { 
+        positive: true, 
+        antonym: 'non-empathic',
+        antonymPositive: false 
+    },
+    sociality: { 
+        positive: true, 
+        antonym: 'antisocial',
+        antonymPositive: false 
+    },
+    prosociality: { 
+        positive: true, 
+        antonym: 'antisocial',
+        antonymPositive: false 
+    },
+    supportiveness: { 
+        positive: true, 
+        antonym: 'unsupportive',
+        antonymPositive: false 
+    },
+    kindness: { 
+        positive: true, 
+        antonym: 'unkind',
+        antonymPositive: false 
+    },
+    compassion: { 
+        positive: true, 
+        antonym: 'uncompassionate',
+        antonymPositive: false 
+    },
+    honesty: { 
+        positive: true, 
+        antonym: 'dishonest',
+        antonymPositive: false 
+    },
+    trustworthiness: { 
+        positive: true, 
+        antonym: 'untrustworthy',
+        antonymPositive: false 
+    },
+    
+    // Inherently negative traits (having them is bad)
+    toxicity: { 
+        positive: false, 
+        antonym: 'non-toxic',
+        antonymPositive: true 
+    },
+    sycophancy: { 
+        positive: false, 
+        antonym: 'non-sycophantic',
+        antonymPositive: true 
+    },
+    aggression: { 
+        positive: false, 
+        antonym: 'non-aggressive',
+        antonymPositive: true 
+    },
+    hostility: { 
+        positive: false, 
+        antonym: 'non-hostile',
+        antonymPositive: true 
+    },
+    manipulation: { 
+        positive: false, 
+        antonym: 'non-manipulative',
+        antonymPositive: true 
+    },
+    deception: { 
+        positive: false, 
+        antonym: 'non-deceptive',
+        antonymPositive: true 
+    }
+};
+
+/**
+ * Gets the effective trait name and polarity based on the value
+ * @param {string} traitName - Original trait name
+ * @param {number} value - Trait value
+ * @returns {Object} - { name, isPositive, absValue }
+ */
+function getEffectiveTrait(traitName, value) {
+    const traitKey = traitName.toLowerCase().replace(/[^a-z]/g, '');
+    const traitInfo = TRAIT_POLARITY[traitKey];
+    
+    // If trait not in mapping, use default behavior
+    if (!traitInfo) {
+        return {
+            name: traitName,
+            isPositive: value >= 0,
+            absValue: Math.abs(value)
+        };
+    }
+    
+    // If value is positive, use original trait
+    if (value >= 0) {
+        return {
+            name: formatTraitName(traitName),
+            isPositive: traitInfo.positive,
+            absValue: value
+        };
+    }
+    
+    // If value is negative, use antonym
+    return {
+        name: formatTraitName(traitInfo.antonym),
+        isPositive: traitInfo.antonymPositive,
+        absValue: Math.abs(value)
+    };
+}
+
+/**
+ * Formats a trait name to be display-friendly
+ * @param {string} name - Trait name
+ * @returns {string} - Formatted name
+ */
+function formatTraitName(name) {
+    return name
+        .replace(/_/g, ' ')
+        .replace(/-/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 /**
@@ -425,7 +546,10 @@ if (typeof module !== 'undefined' && module.exports) {
         updatePersonaSunburst,
         transformToCategories,
         normalizeValue,
-        getDefaultColor
+        getDefaultColor,
+        getEffectiveTrait,
+        formatTraitName,
+        TRAIT_POLARITY
     };
 }
 
