@@ -314,18 +314,29 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData) {
+    console.log('🔵 [1] Initial API Response:', JSON.parse(JSON.stringify(personaData)));
+    
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
+        console.log('📊 Processing CATEGORIES format');
         const categories = personaData.categories.map((cat, idx) => ({
             name: cat.name,
             color: cat.color || getDefaultColor(idx),
             startAngle: cat.startAngle,
             endAngle: cat.endAngle,
-            items: cat.items.map(item => ({
-                name: item.name,
-                value: normalizeValue(item.value * 2, cat.scale || { min: -2, max: 2 }),
-                rawValue: item.value * 2
-            }))
+            items: cat.items.map(item => {
+                const firstScale = item.value * 2;
+                console.log(`🟡 [2] First Scale (${item.name}): ${item.value} * 2 = ${firstScale}`);
+                
+                const secondScale = normalizeValue(firstScale, cat.scale || { min: -2, max: 2 });
+                console.log(`🟠 [3] Second Scale (${item.name}): normalizeValue(${firstScale}) = ${secondScale}`);
+                
+                return {
+                    name: item.name,
+                    value: secondScale,
+                    rawValue: firstScale
+                };
+            })
         }));
         
         // If angles aren't provided, calculate proportionally based on item counts
@@ -343,10 +354,12 @@ function transformToCategories(personaData) {
             });
         }
         
+        console.log('✅ Final categories structure:', JSON.parse(JSON.stringify(categories)));
         return categories;
     }
 
     // Group traits by positive vs negative semantic valuation
+    console.log('📊 Processing FLAT format');
     const categoryMap = new Map();
     
     // Initialize two categories
@@ -364,18 +377,23 @@ function transformToCategories(personaData) {
 
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
-        // Scale the value by 2
+        // Scale the value by 1.1
         const scaledValue = value * 1.1;
+        console.log(`🟡 [2] First Scale (${key}): ${value} * 1.1 = ${scaledValue}`);
         
         // Get effective trait (handles antonyms for negative values)
         const effectiveTrait = getEffectiveTrait(key, scaledValue);
+        console.log(`   ↳ Effective trait: ${effectiveTrait.name}, absValue: ${effectiveTrait.absValue}`);
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
         
+        const normalizedValue = normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 });
+        console.log(`🟠 [3] Second Scale (${key}): normalizeValue(${effectiveTrait.absValue}) = ${normalizedValue}`);
+        
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
-            value: normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 }),
+            value: normalizedValue,
             rawValue: scaledValue,
             originalTrait: key
         });
@@ -401,6 +419,7 @@ function transformToCategories(personaData) {
         currentAngle += angleRange;
     });
 
+    console.log('✅ Final categories structure:', JSON.parse(JSON.stringify(categories)));
     return categories;
 }
 
@@ -420,6 +439,7 @@ function normalizeValue(value, scale = { min: -2, max: 2 }) {
 /**
  * Trait polarity mapping: defines which traits are inherently positive or negative
  * and their antonyms
+ * Limited to traits actually returned by the persona-vector API
  */
 const TRAIT_POLARITY = {
     // Inherently positive traits (having them is good)
@@ -433,34 +453,9 @@ const TRAIT_POLARITY = {
         antonym: 'antisocial',
         antonymPositive: false 
     },
-    prosociality: { 
-        positive: true, 
-        antonym: 'antisocial',
-        antonymPositive: false 
-    },
     supportiveness: { 
         positive: true, 
         antonym: 'unsupportive',
-        antonymPositive: false 
-    },
-    kindness: { 
-        positive: true, 
-        antonym: 'unkind',
-        antonymPositive: false 
-    },
-    compassion: { 
-        positive: true, 
-        antonym: 'uncompassionate',
-        antonymPositive: false 
-    },
-    honesty: { 
-        positive: true, 
-        antonym: 'dishonest',
-        antonymPositive: false 
-    },
-    trustworthiness: { 
-        positive: true, 
-        antonym: 'untrustworthy',
         antonymPositive: false 
     },
     humor: { 
@@ -483,26 +478,6 @@ const TRAIT_POLARITY = {
     sycophancy: { 
         positive: false, 
         antonym: 'non-sycophantic',
-        antonymPositive: true 
-    },
-    aggression: { 
-        positive: false, 
-        antonym: 'non-aggressive',
-        antonymPositive: true 
-    },
-    hostility: { 
-        positive: false, 
-        antonym: 'non-hostile',
-        antonymPositive: true 
-    },
-    manipulation: { 
-        positive: false, 
-        antonym: 'non-manipulative',
-        antonymPositive: true 
-    },
-    deception: { 
-        positive: false, 
-        antonym: 'non-deceptive',
         antonymPositive: true 
     },
     deceptiveness: { 
