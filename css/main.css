@@ -1234,6 +1234,10 @@ body {
 
 /* Survey Phase Container */
 .survey-phase {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 600px;
     animation: fadeIn 0.3s ease-in;
 }
 
@@ -1248,7 +1252,7 @@ body {
     }
 }
 
-/* Phase Header */
+/* Phase Header - scrolls with content */
 .phase-header {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
@@ -1266,11 +1270,6 @@ body {
     margin: 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
-}
-
-/* Survey Question */
-.survey-question {
-    margin-bottom: 2rem;
 }
 
 .question-label {
@@ -1342,30 +1341,50 @@ body {
     margin-top: 0.5rem;
 }
 
-/* Trait Predictions Container (Phase 2) */
-.trait-predictions-container {
-    max-height: 400px;
+/* Phase content wrapper - scrollable section (includes header) */
+.phase-content {
+    flex: 1;
     overflow-y: auto;
-    padding-right: 0.5rem;
-    margin-bottom: 1rem;
+    padding: 0 0.5rem 0 0;
+    margin-bottom: 0;
 }
 
-/* Custom scrollbar for trait predictions */
-.trait-predictions-container::-webkit-scrollbar {
+/* Phase header inside scrollable content */
+.phase-content .phase-header {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+/* Individual survey questions and trait container within phase content */
+.phase-content .survey-question {
+    margin-bottom: 2rem;
+}
+
+.phase-content .survey-question:last-child {
+    margin-bottom: 0;
+}
+
+.trait-predictions-container {
+    /* No need for flex properties here since it's inside phase-content */
+    padding-right: 0.5rem;
+}
+
+/* Custom scrollbar for scrollable survey content */
+.phase-content::-webkit-scrollbar {
     width: 8px;
 }
 
-.trait-predictions-container::-webkit-scrollbar-track {
+.phase-content::-webkit-scrollbar-track {
     background: var(--bg-secondary);
     border-radius: 4px;
 }
 
-.trait-predictions-container::-webkit-scrollbar-thumb {
+.phase-content::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 4px;
 }
 
-.trait-predictions-container::-webkit-scrollbar-thumb:hover {
+.phase-content::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
 
@@ -1403,8 +1422,9 @@ body {
 /* Trait Scale (0-10 radio buttons) */
 .trait-scale {
     display: flex;
-    gap: 0.25rem;
-    flex-wrap: wrap;
+    gap: 0.2rem;
+    flex-wrap: nowrap;
+    justify-content: center;
 }
 
 .trait-scale input[type="radio"] {
@@ -1415,15 +1435,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    height: 36px;
-    padding: 0 0.5rem;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.25rem;
     border: 2px solid var(--border-color);
     border-radius: var(--radius-sm);
     background-color: white;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-secondary);
 }
@@ -1445,17 +1465,21 @@ body {
     background-color: var(--accent-hover);
 }
 
-/* Phase Actions */
+/* Phase Actions - Fixed at bottom */
 .phase-actions {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    margin-top: 2rem;
+    padding: 0.75rem 0.5rem 0 0;
+    border-top: none;
+    margin-top: 0;
+    background-color: transparent;
 }
 
 .phase-actions .btn {
-    min-width: 120px;
+    min-width: 100px;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.95rem;
 }
 
 /* Button States */

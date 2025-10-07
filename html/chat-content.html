@@ -137,12 +137,13 @@
         <div class="survey-phases-wrapper">
                 <!-- Phase 1: Initial System Prompt Assessment -->
                 <div class="survey-phase" id="surveyPhase1">
-                    <div class="phase-header">
-                        <h4>Phase 1: Initial Assessment</h4>
-                        <p>Please answer the following questions about your system prompt</p>
-                    </div>
+                    <div class="phase-content">
+                        <div class="phase-header">
+                            <h4>Phase 1: Initial Assessment</h4>
+                            <p>Please answer the following questions about your system prompt</p>
+                        </div>
 
-                    <div class="survey-question">
+                        <div class="survey-question">
                         <label class="question-label">1. How well could you predict unintended behaviors from your system prompt?</label>
                         <div class="likert-scale">
                             <div class="likert-option">
@@ -217,6 +218,7 @@
                             <span>Extremely well</span>
                         </div>
                     </div>
+                    </div>
 
                     <div class="phase-actions">
                         <button type="button" class="btn btn-primary" id="phase1ProceedBtn" disabled>Proceed</button>
@@ -225,12 +227,13 @@
 
                 <!-- Phase 2: Trait Predictions -->
                 <div class="survey-phase" id="surveyPhase2" style="display: none;">
-                    <div class="phase-header">
-                        <h4>Phase 2: Trait Predictions</h4>
-                        <p>Predict the activation level (0-10) for each trait based on your system prompt</p>
-                    </div>
+                    <div class="phase-content">
+                        <div class="phase-header">
+                            <h4>Phase 2: Trait Predictions</h4>
+                            <p>Predict the activation level (0-10) for each trait based on your system prompt</p>
+                        </div>
 
-                    <div class="trait-predictions-container">
+                        <div class="trait-predictions-container">
                         <!-- Trait 1: Empathy -->
                         <div class="trait-pair">
                             <div class="trait-item">
@@ -410,6 +413,7 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                     <div class="phase-actions">
@@ -419,12 +423,13 @@
 
                 <!-- Phase 3: Trust Assessment -->
                 <div class="survey-phase" id="surveyPhase3" style="display: none;">
-                    <div class="phase-header">
-                        <h4>Phase 3: Trust Assessment</h4>
-                        <p>Final question about model trust</p>
-                    </div>
+                    <div class="phase-content">
+                        <div class="phase-header">
+                            <h4>Phase 3: Trust Assessment</h4>
+                            <p>Final question about model trust</p>
+                        </div>
 
-                    <div class="survey-question">
+                        <div class="survey-question">
                         <label class="question-label">Given the {relevant background abt unintended model behaviors}, how much do you trust this model?</label>
                         <div class="likert-scale">
                             <div class="likert-option">
@@ -460,6 +465,7 @@
                             <span>Not at all</span>
                             <span>Completely</span>
                         </div>
+                    </div>
                     </div>
 
                     <div class="phase-actions">
