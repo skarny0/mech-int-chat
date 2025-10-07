@@ -11,6 +11,12 @@ function getURLParameter(name) {
     return urlParams.get(name);
 }
 
+// Todo items:
+// Okay, we're going to adjust sunburst visualization to these parameters
+// 1) We should display all the traits original lables and their antonyms.
+// 2) We should expect that the values we get are between 0 and 1 from the api query. 
+// 3) We should add labels that are peripheral to the visualization.
+
 /**
  * Determines if sunburst display should be used based on URL parameter
  * URL parameter: ?sunburst=true or ?sunburst=false

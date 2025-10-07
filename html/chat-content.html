@@ -118,5 +118,20 @@
 </div>
 
 
+<!-- Firebase Configuration (must be defined before importing firebasepsych) -->
+<script>
+    // Define Firebase config globally so firebasepsych1.0.js can access it
+    window.firebaseConfig = {
+        apiKey: "AIzaSyBnlqrGcIfgo59WCzure6azGQitEQaGhZg",
+        authDomain: "mech-chat-ee0c5.firebaseapp.com",
+        projectId: "mech-chat-ee0c5",
+        storageBucket: "mech-chat-ee0c5.firebasestorage.app",
+        messagingSenderId: "1027129084043",
+        appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
+    };
+    // Also make it available as a plain variable for modules
+    var firebaseConfig = window.firebaseConfig;
+</script>
+
 <!-- Chat Interface JavaScript -->
-<script src="../js/chat.js"></script>
+<script src="../js/chat.js" type="module"></script>
