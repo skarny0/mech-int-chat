@@ -377,7 +377,7 @@ function transformToCategories(personaData) {
         
         const normalizedValue = normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 });
         
-        console.log(`  ${effectiveTrait.name}: ${value.toFixed(3)} → ${normalizedValue.toFixed(1)}%`);
+        console.log(`  ${effectiveTrait.name}: API=${value.toFixed(3)}, abs=${effectiveTrait.absValue.toFixed(3)} → ${normalizedValue.toFixed(1)}%`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
