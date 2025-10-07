@@ -1175,62 +1175,61 @@ body {
 }
 
 /* ============================================
-   PRE-TASK SURVEY MODAL STYLES
+   PRE-TASK SURVEY INLINE STYLES
    ============================================ */
 
-/* Survey Modal Overlay */
-.survey-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+/* Survey Container (inline in right column) */
+.survey-container {
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    backdrop-filter: blur(4px);
-}
-
-/* Survey Modal Container */
-.survey-modal {
-    background-color: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    max-width: 800px;
-    width: 90%;
-    max-height: 85vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-/* Survey Header */
-.survey-header {
-    padding: 1.5rem;
+/* Survey Header Inline */
+.survey-header-inline {
+    padding: 1rem 0 1rem 0;
     border-bottom: 2px solid var(--border-color);
-    background-color: var(--bg-secondary);
+    margin-bottom: 1rem;
 }
 
-.survey-header h3 {
+.survey-header-inline h4 {
     margin: 0 0 0.5rem 0;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 600;
     color: var(--text-primary);
 }
 
-.survey-description {
+.survey-description-inline {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.875rem;
 }
 
-/* Survey Content */
-.survey-content {
-    padding: 2rem;
-    overflow-y: auto;
+/* Survey Content Inline */
+.survey-content-inline {
     flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Custom scrollbar for inline survey */
+.survey-content-inline::-webkit-scrollbar {
+    width: 8px;
+}
+
+.survey-content-inline::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.survey-content-inline::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.survey-content-inline::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
 }
 
 /* Survey Phase Container */
@@ -1345,7 +1344,7 @@ body {
 
 /* Trait Predictions Container (Phase 2) */
 .trait-predictions-container {
-    max-height: 50vh;
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 0.5rem;
     margin-bottom: 1rem;

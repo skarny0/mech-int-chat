@@ -19,8 +19,14 @@
                         placeholder="Enter your system prompt here..."
                         style="padding: 0.75rem; font-size: 0.875rem; font-family: 'Courier New', monospace;">You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.</textarea>
                 </div>
-                <!-- Persona Check Buttons -->
-                <div class="persona-check-buttons" style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-shrink: 0;">
+                <!-- Submit Prompt Button -->
+                <div class="submit-prompt-button" style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-shrink: 0;">
+                    <button type="button" class="btn btn-primary" id="submitPromptBtn" style="flex: 1;">
+                        <i class="fas fa-paper-plane"></i> Submit Prompt
+                    </button>
+                </div>
+                <!-- Persona Check Buttons - Hidden, survey triggered automatically -->
+                <div class="persona-check-buttons" style="display: none; gap: 0.5rem; margin-top: 0.75rem; flex-shrink: 0;">
                     <button type="button" class="btn btn-secondary" id="testPersonaBtn" title="Test with simulated data" style="flex: 1;">
                         <i class="fas fa-flask"></i> Test Persona
                     </button>
@@ -30,18 +36,33 @@
                 </div>
             </div>
 
-            <!-- Right Column: Persona Analysis -->
+            <!-- Right Column: Persona Analysis / Survey -->
             <div class="persona-analysis-column">
                 <div class="persona-section-wrapper">
+                    <!-- Initial Placeholder -->
+                    <div id="initialPlaceholder" class="persona-placeholder">
+                        <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                            <i class="fas fa-arrow-left" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p style="margin: 0; font-size: 1.1rem;">Click "Submit Prompt" to begin assessment</p>
+                        </div>
+                    </div>
+
+                    <!-- Pre-Task Survey (shown after submit) -->
+                    <div id="preTaskSurveyContainer" class="survey-container" style="display: none;">
+                        <div class="survey-header-inline">
+                            <h4>System Prompt Assessment</h4>
+                            <p class="survey-description-inline">Please evaluate your system prompt across three phases</p>
+                        </div>
+
+                        <div class="survey-content-inline" id="surveyPhasesContainer">
+                            <!-- Survey phases will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Persona Visualization (shown after survey) -->
                     <div class="persona-visualization" id="personaVisualization" style="display: none;">
                         <h4>Persona Analysis</h4>
                         <div id="personaChart" class="persona-chart"></div>
-                    </div>
-                    <div id="personaPlaceholder" class="persona-placeholder">
-                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                            <p style="margin: 0;">Click "Test Persona" or "Check Persona" to analyze</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -116,15 +137,9 @@
         </div>
     </div>
 
-    <!-- Pre-Task Survey Modal -->
-    <div class="survey-modal-overlay" id="preTaskSurveyModal" style="display: none;">
-        <div class="survey-modal">
-            <div class="survey-header">
-                <h3>System Prompt Assessment</h3>
-                <p class="survey-description">Please evaluate your system prompt across three phases</p>
-            </div>
-
-            <div class="survey-content">
+    <!-- Pre-Task Survey Phases (to be moved into inline container by JS) -->
+    <div id="surveyPhasesSource" style="display: none;">
+        <div class="survey-phases-wrapper">
                 <!-- Phase 1: Initial System Prompt Assessment -->
                 <div class="survey-phase" id="surveyPhase1">
                     <div class="phase-header">
@@ -600,7 +615,6 @@
                         <button type="button" class="btn btn-primary" id="phase3ProceedBtn" disabled>Proceed</button>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 </div>

@@ -82,6 +82,82 @@ function initializeDynamicInterface() {
         // Initialize survey
         initializePreTaskSurvey();
 
+        // Clear survey completion on page load (for testing/fresh start)
+        localStorage.removeItem('preTaskSurveyCompleted');
+        localStorage.removeItem('preTaskSurveyData');
+        console.log('🔄 Survey data cleared on page load');
+
+        // Always start with Check/Test Persona buttons hidden
+        $('.persona-check-buttons').hide();
+
+        // Check if survey has been completed
+        const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+        console.log('🔍 Survey completion status on load:', surveyCompleted);
+        
+        if (!surveyCompleted) {
+            // Disable all buttons except Submit Prompt
+            disableInterfaceButtons();
+            // Show initial placeholder (survey will show after Submit Prompt clicked)
+            $('#initialPlaceholder').show();
+            $('#preTaskSurveyContainer').hide();
+            $('#personaVisualization').hide();
+            // Explicitly hide Check/Test Persona buttons until survey is complete
+            $('.persona-check-buttons').hide();
+            console.log('🔒 Check/Test Persona buttons hidden (survey not completed)');
+        } else {
+            // Survey already completed
+            $('#submitPromptBtn').hide(); // Hide Submit Prompt button
+            $('#initialPlaceholder').show();
+            $('#initialPlaceholder').html(`
+                <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                    <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+                </div>
+            `);
+            $('#preTaskSurveyContainer').hide();
+            $('#personaVisualization').hide();
+            // Show Check/Test Persona buttons
+            $('.persona-check-buttons').show();
+        }
+
+        // Submit Prompt button - triggers survey
+        $('#submitPromptBtn').on('click', function() {
+            const systemPrompt = $('#systemPromptInput').val();
+            
+            if (!systemPrompt.trim()) {
+                alert('Please enter a system prompt first.');
+                return;
+            }
+            
+            // Check if survey was already completed
+            const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            
+            if (surveyCompleted) {
+                console.log('⚠️ Survey already completed, skipping');
+                // Hide placeholder and Submit button, show Check/Test Persona buttons
+                $('#initialPlaceholder').hide();
+                $('#submitPromptBtn').hide();
+                $('.persona-check-buttons').show();
+                $('#initialPlaceholder').show();
+                $('#initialPlaceholder').html(`
+                    <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                        <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+                    </div>
+                `);
+                return;
+            }
+            
+            // Hide placeholder and show survey
+            $('#initialPlaceholder').hide();
+            renderInlineSurvey();
+            
+            // Hide Submit Prompt button after clicking
+            $('#submitPromptBtn').prop('disabled', true).hide();
+            
+            console.log('📝 System prompt submitted, showing survey');
+        });
+
         // Reset configuration
         resetConfig.on('click', async function() {
             const defaultPrompt = 'You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.';
@@ -168,7 +244,7 @@ function initializeDynamicInterface() {
             switchToChat();
         });
 
-        // Check Persona button - show survey first if not completed
+        // Check Persona button - analyze persona with API
         $('#checkPersonaBtn').on('click', async function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
@@ -182,20 +258,15 @@ function initializeDynamicInterface() {
             });
             console.log('✅ System prompt logged (check persona)');
             
-            // Check if survey has been completed
-            const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            // Hide placeholder, show persona visualization area
+            $('#initialPlaceholder').hide();
+            $('#personaVisualization').show();
             
-            if (!surveyCompleted) {
-                // Show survey modal and store which action to perform after
-                window.postSurveyAction = 'checkPersona';
-                showPreTaskSurvey();
-            } else {
-                // Survey already completed, proceed with persona check
-                checkPersona(systemPrompt);
-            }
+            // Call persona check
+            checkPersona(systemPrompt);
         });
 
-        // Test Persona button - simulate with mock data, also show survey if not completed
+        // Test Persona button - generate mock data
         $('#testPersonaBtn').on('click', async function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
@@ -209,17 +280,12 @@ function initializeDynamicInterface() {
             });
             console.log('✅ System prompt logged (test persona)');
             
-            // Check if survey has been completed
-            const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            // Hide placeholder, show persona visualization area
+            $('#initialPlaceholder').hide();
+            $('#personaVisualization').show();
             
-            if (!surveyCompleted) {
-                // Show survey modal and store which action to perform after
-                window.postSurveyAction = 'testPersona';
-                showPreTaskSurvey();
-            } else {
-                // Survey already completed, proceed with test
-                testPersonaWithMockData();
-            }
+            // Generate test persona
+            testPersonaWithMockData();
         });
 
         // Helper function to show/hide persona sections
@@ -693,9 +759,17 @@ function testPersonaWithMockData() {
 // PRE-TASK SURVEY FUNCTIONS
 // ============================================
 
-// Initialize pre-task survey
+// Initialize pre-task survey (called on page load)
 function initializePreTaskSurvey() {
-    const surveyModal = $('#preTaskSurveyModal');
+    // This is now just a placeholder - actual event listeners are set up
+    // in setupSurveyEventListeners() after HTML is inserted
+    console.log('Survey initialization ready');
+}
+
+// Set up survey event listeners (called after HTML is inserted)
+function setupSurveyEventListeners() {
+    console.log('🔧 Setting up survey event listeners...');
+    
     const phase1 = $('#surveyPhase1');
     const phase2 = $('#surveyPhase2');
     const phase3 = $('#surveyPhase3');
@@ -704,15 +778,22 @@ function initializePreTaskSurvey() {
     const phase2ProceedBtn = $('#phase2ProceedBtn');
     const phase3ProceedBtn = $('#phase3ProceedBtn');
     
+    console.log('Phase 1 button found:', phase1ProceedBtn.length > 0);
+    console.log('Phase 2 button found:', phase2ProceedBtn.length > 0);
+    console.log('Phase 3 button found:', phase3ProceedBtn.length > 0);
+    
     // Phase 1: Listen to radio button changes
     $('input[name="phase1_q1"], input[name="phase1_q2"]').on('change', function() {
         const q1Answered = $('input[name="phase1_q1"]:checked').length > 0;
         const q2Answered = $('input[name="phase1_q2"]:checked').length > 0;
-        phase1ProceedBtn.prop('disabled', !(q1Answered && q2Answered));
+        const bothAnswered = q1Answered && q2Answered;
+        console.log('Phase 1 validation - Q1:', q1Answered, 'Q2:', q2Answered, 'Both:', bothAnswered);
+        phase1ProceedBtn.prop('disabled', !bothAnswered);
     });
     
     // Phase 1 Proceed button
     phase1ProceedBtn.on('click', function() {
+        console.log('Phase 1 Proceed clicked');
         phase1.hide();
         phase2.show();
     });
@@ -743,6 +824,7 @@ function initializePreTaskSurvey() {
     
     // Phase 2 Proceed button
     phase2ProceedBtn.on('click', function() {
+        console.log('Phase 2 Proceed clicked');
         phase2.hide();
         phase3.show();
     });
@@ -755,46 +837,98 @@ function initializePreTaskSurvey() {
     
     // Phase 3 Proceed button - save data and close
     phase3ProceedBtn.on('click', async function() {
+        console.log('Phase 3 Proceed clicked');
         await savePreTaskSurveyData();
         closePreTaskSurvey();
         
-        // Now trigger the appropriate action based on which button was clicked
-        const systemPrompt = $('#systemPromptInput').val();
-        const action = window.postSurveyAction || 'checkPersona'; // Default to checkPersona
-        
-        if (action === 'testPersona') {
-            testPersonaWithMockData();
-        } else {
-            checkPersona(systemPrompt);
-        }
-        
-        // Clear the action flag
-        window.postSurveyAction = null;
+        // Survey complete - buttons are now enabled, user can proceed
+        console.log('📝 Survey complete. User can now interact with the interface.');
     });
+    
+    console.log('✅ Survey event listeners set up successfully');
 }
 
-// Show pre-task survey modal
-function showPreTaskSurvey() {
-    const surveyModal = $('#preTaskSurveyModal');
-    surveyModal.show();
+// Render survey inline in the right column
+function renderInlineSurvey() {
+    console.log('🔍 Attempting to render inline survey...');
+    
+    // Get survey phases from hidden source
+    const surveySource = $('#surveyPhasesSource .survey-phases-wrapper');
+    console.log('Survey source found:', surveySource.length > 0);
+    
+    if (surveySource.length > 0) {
+        const surveyHTML = surveySource.html();
+        console.log('Survey HTML length:', surveyHTML ? surveyHTML.length : 0);
+        $('#surveyPhasesContainer').html(surveyHTML);
+        
+        // NOW set up event listeners after HTML is in place
+        setupSurveyEventListeners();
+    } else {
+        console.error('❌ Survey source not found!');
+    }
+    
+    // Show survey container
+    $('#preTaskSurveyContainer').show();
+    console.log('Survey container visibility:', $('#preTaskSurveyContainer').is(':visible'));
     
     // Reset to phase 1
-    $('#surveyPhase1').show();
-    $('#surveyPhase2').hide();
-    $('#surveyPhase3').hide();
+    setTimeout(() => {
+        $('#surveyPhase1').show();
+        $('#surveyPhase2').hide();
+        $('#surveyPhase3').hide();
+        console.log('Phase 1 visible:', $('#surveyPhase1').is(':visible'));
+    }, 100);
     
-    console.log('📋 Pre-task survey displayed');
+    console.log('📋 Pre-task survey displayed inline');
 }
 
-// Close pre-task survey modal
+// Close/hide inline survey
 function closePreTaskSurvey() {
-    const surveyModal = $('#preTaskSurveyModal');
-    surveyModal.hide();
+    // Hide survey container
+    $('#preTaskSurveyContainer').hide();
+    
+    // Show placeholder in persona area with instructions
+    $('#personaVisualization').hide();
+    $('#initialPlaceholder').show();
+    $('#initialPlaceholder').html(`
+        <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+        </div>
+    `);
     
     // Mark survey as completed
     localStorage.setItem('preTaskSurveyCompleted', 'true');
     
+    // Enable interface buttons now that survey is complete
+    enableInterfaceButtons();
+    
+    // Show Check Persona and Test Persona buttons
+    $('.persona-check-buttons').show();
+    
     console.log('✅ Pre-task survey completed and closed');
+    console.log('👉 Check Persona and Test Persona buttons now available');
+}
+
+// Disable interface buttons (called before survey)
+function disableInterfaceButtons() {
+    $('#startChatBtn').prop('disabled', true);
+    $('#resetConfig').prop('disabled', true);
+    $('#checkPersonaBtn').prop('disabled', true);
+    $('#testPersonaBtn').prop('disabled', true);
+    // Keep Submit Prompt button enabled initially
+    $('#submitPromptBtn').prop('disabled', false);
+    console.log('🔒 Interface buttons disabled until survey completion');
+}
+
+// Enable interface buttons (called after survey)
+function enableInterfaceButtons() {
+    $('#startChatBtn').prop('disabled', false);
+    $('#resetConfig').prop('disabled', false);
+    $('#checkPersonaBtn').prop('disabled', false);
+    $('#testPersonaBtn').prop('disabled', false);
+    // Submit Prompt button already hidden/disabled after use
+    console.log('🔓 Interface buttons enabled');
 }
 
 // Collect and save pre-task survey data
