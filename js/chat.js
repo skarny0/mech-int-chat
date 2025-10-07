@@ -47,6 +47,24 @@ if (typeof window.lastSystemPrompt === 'undefined') {
     window.lastSystemPrompt = null; // Track the last system prompt used
 }
 
+// Timer variables
+if (typeof window.timerStartTime === 'undefined') {
+    window.timerStartTime = null;
+}
+if (typeof window.timerInterval === 'undefined') {
+    window.timerInterval = null;
+}
+if (typeof window.timerDuration === 'undefined') {
+    // Check for debug mode via URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const debugTimer = urlParams.get('debugTimer') === 'true';
+    window.timerDuration = debugTimer ? 10 : 600; // 10 seconds for debug, 10 minutes (600s) for production
+    console.log(`⏱️ Timer duration set to: ${window.timerDuration} seconds ${debugTimer ? '(DEBUG MODE)' : ''}`);
+}
+if (typeof window.timerExpired === 'undefined') {
+    window.timerExpired = false;
+}
+
 // Note: API configuration is loaded from config-unified.js file
 
 $(document).ready(function() {
@@ -239,6 +257,11 @@ function initializeDynamicInterface() {
                 timestamp: new Date().toISOString()
             });
             console.log('✅ System prompt saved to Firebase');
+            
+            // Start timer if not already started
+            if (window.timerStartTime === null) {
+                startTimer();
+            }
             
             // Switch to chat interface
             switchToChat();
@@ -1040,4 +1063,210 @@ async function savePhase3Data() {
     } catch (error) {
         console.error('❌ Error saving Phase 3 data:', error);
     }
+}
+
+// ============================================
+// TIMER FUNCTIONS
+// ============================================
+
+// Start the timer
+async function startTimer() {
+    if (window.timerStartTime !== null) {
+        console.log('⚠️ Timer already started');
+        return;
+    }
+    
+    window.timerStartTime = Date.now();
+    const startTimeISO = new Date().toISOString();
+    
+    console.log(`⏱️ Timer started at ${startTimeISO} for ${window.timerDuration} seconds`);
+    
+    // Save timer start to Firebase
+    const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
+    await writeRealtimeDatabase(timerPath + '/startTime', startTimeISO);
+    await writeRealtimeDatabase(timerPath + '/duration', window.timerDuration);
+    
+    // Show timer display
+    $('#timerDisplay').show();
+    
+    // Update timer every second
+    window.timerInterval = setInterval(updateTimer, 1000);
+    
+    // Initial update
+    updateTimer();
+}
+
+// Update timer display
+function updateTimer() {
+    if (window.timerStartTime === null || window.timerExpired) {
+        return;
+    }
+    
+    const elapsed = Math.floor((Date.now() - window.timerStartTime) / 1000);
+    const remaining = Math.max(0, window.timerDuration - elapsed);
+    
+    // Format time as M:SS
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    $('#timerText').text(timeString);
+    
+    // Check if timer has expired
+    if (remaining <= 0 && !window.timerExpired) {
+        timerExpired();
+    }
+}
+
+// Timer has expired
+async function timerExpired() {
+    window.timerExpired = true;
+    
+    // Stop the interval
+    if (window.timerInterval) {
+        clearInterval(window.timerInterval);
+        window.timerInterval = null;
+    }
+    
+    console.log('⏰ Timer expired!');
+    
+    // Save timer end to Firebase
+    const endTimeISO = new Date().toISOString();
+    const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
+    await writeRealtimeDatabase(timerPath + '/endTime', endTimeISO);
+    
+    // Show post-survey modal
+    showPostSurvey();
+}
+
+// ============================================
+// POST-SURVEY FUNCTIONS
+// ============================================
+
+// Show post-survey modal
+function showPostSurvey() {
+    console.log('📋 Showing post-survey modal');
+    
+    // Disable chat interface
+    $('#messageInput').prop('disabled', true);
+    $('#sendBtn').prop('disabled', true);
+    $('#attachBtn').prop('disabled', true);
+    $('#imageBtn').prop('disabled', true);
+    $('#backToConfigBtn').prop('disabled', true);
+    
+    // Show modal
+    $('#postSurveyModal').fadeIn(300);
+    
+    // Initialize post-survey event listeners
+    initializePostSurvey();
+}
+
+// Initialize post-survey event listeners
+function initializePostSurvey() {
+    console.log('🔧 Setting up post-survey event listeners');
+    
+    // Phase 1: Listen to radio button changes
+    $('input[name="post_q1"], input[name="post_q2"], input[name="post_q3"]').on('change', function() {
+        const q1Answered = $('input[name="post_q1"]:checked').length > 0;
+        const q2Answered = $('input[name="post_q2"]:checked').length > 0;
+        const q3Answered = $('input[name="post_q3"]:checked').length > 0;
+        const allAnswered = q1Answered && q2Answered && q3Answered;
+        $('#postPhase1ProceedBtn').prop('disabled', !allAnswered);
+    });
+    
+    // Phase 1 Proceed button
+    $('#postPhase1ProceedBtn').off('click').on('click', async function() {
+        console.log('Post-survey Phase 1 Proceed clicked');
+        await savePostPhase1Data();
+        $('#postSurveyPhase1').hide();
+        $('#postSurveyPhase2').show();
+    });
+    
+    // Phase 2: Listen to textarea input
+    $('#postOpenEndedResponse').on('input', function() {
+        const hasText = $(this).val().trim().length > 0;
+        $('#postPhase2SubmitBtn').prop('disabled', !hasText);
+    });
+    
+    // Phase 2 Back button
+    $('#postPhase2BackBtn').off('click').on('click', function() {
+        $('#postSurveyPhase2').hide();
+        $('#postSurveyPhase1').show();
+    });
+    
+    // Phase 2 Submit button
+    $('#postPhase2SubmitBtn').off('click').on('click', async function() {
+        console.log('Post-survey Phase 2 Submit clicked');
+        await savePostPhase2Data();
+        completePostSurvey();
+    });
+}
+
+// Save Phase 1 data from post-survey
+async function savePostPhase1Data() {
+    try {
+        const timestamp = new Date().toISOString();
+        
+        const phase1Data = {
+            "How well could you predict unintended behaviors from your system prompt?": parseInt($('input[name="post_q1"]:checked').val()),
+            "How well could you predict negative unintended behaviors from your system prompt?": parseInt($('input[name="post_q2"]:checked').val()),
+            "Given the {relevant background abt unintended model behaviors}, how much do you trust this model?": parseInt($('input[name="post_q3"]:checked').val())
+        };
+        
+        console.log('📊 Post-survey Phase 1 data collected:', phase1Data);
+        
+        const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
+        await writeRealtimeDatabase(`${basePath}/phase1`, {
+            responses: phase1Data,
+            timestamp: timestamp
+        });
+        console.log('✅ Post-survey Phase 1 data saved to Firebase');
+        
+    } catch (error) {
+        console.error('❌ Error saving post-survey Phase 1 data:', error);
+    }
+}
+
+// Save Phase 2 data from post-survey
+async function savePostPhase2Data() {
+    try {
+        const timestamp = new Date().toISOString();
+        
+        const phase2Data = {
+            "openEndedFeedback": $('#postOpenEndedResponse').val().trim()
+        };
+        
+        console.log('📊 Post-survey Phase 2 data collected:', phase2Data);
+        
+        const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
+        await writeRealtimeDatabase(`${basePath}/phase2`, {
+            responses: phase2Data,
+            timestamp: timestamp
+        });
+        
+        // Update metadata with completion time
+        await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
+        await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
+        console.log('✅ Post-survey Phase 2 data saved to Firebase');
+        
+    } catch (error) {
+        console.error('❌ Error saving post-survey Phase 2 data:', error);
+    }
+}
+
+// Complete post-survey and redirect to completion page
+function completePostSurvey() {
+    console.log('✅ Post-survey completed, redirecting to completion page');
+    
+    // Hide modal
+    $('#postSurveyModal').fadeOut(300);
+    
+    // Redirect to completion page after a short delay
+    setTimeout(function() {
+        // Load completion page into the main content area
+        $('#task-main-content').load('html/complete.html');
+        
+        // Or redirect to completion page
+        // window.location.href = 'html/complete.html';
+    }, 500);
 }

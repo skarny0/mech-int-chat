@@ -73,10 +73,15 @@
     <!-- Chat Interface -->
     <div class="chat-interface" id="chatInterface" style="display: none;">
         <!-- Interface Controls -->
-        <div class="interface-controls" style="display: flex; gap: 0.5rem; padding: 1rem; border-bottom: 1px solid var(--border-color);">
+        <div class="interface-controls" style="display: flex; gap: 0.5rem; padding: 1rem; border-bottom: 1px solid var(--border-color); justify-content: space-between; align-items: center;">
             <button class="btn btn-secondary" id="backToConfigBtn">
                 <i class="fas fa-cog"></i> Back to Configuration
             </button>
+            <!-- Timer Display -->
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                <i class="fas fa-clock"></i>
+                <span id="timerText">0:00</span>
+            </div>
         </div>
 
         <!-- Messages Area -->
@@ -127,6 +132,164 @@
                 </div>
                 <div class="input-hints">
                     <span>Press Enter to send, Shift+Enter for new line</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post-Task Survey Modal -->
+    <div class="post-survey-modal" id="postSurveyModal" style="display: none;">
+        <div class="post-survey-overlay"></div>
+        <div class="post-survey-content">
+            <div class="post-survey-header">
+                <h3>Post-Interaction Survey</h3>
+                <p>Thank you for participating! Please answer the following questions about your experience.</p>
+            </div>
+
+            <!-- Phase 1: Likert Scale Questions -->
+            <div class="post-survey-phase" id="postSurveyPhase1">
+                <div class="post-survey-questions">
+                    <!-- Question 1 -->
+                    <div class="survey-question">
+                        <label class="question-label">1. How well could you predict unintended behaviors from your system prompt?</label>
+                        <div class="likert-scale">
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="1" id="post_q1_1">
+                                <label for="post_q1_1">1</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="2" id="post_q1_2">
+                                <label for="post_q1_2">2</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="3" id="post_q1_3">
+                                <label for="post_q1_3">3</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="4" id="post_q1_4">
+                                <label for="post_q1_4">4</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="5" id="post_q1_5">
+                                <label for="post_q1_5">5</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="6" id="post_q1_6">
+                                <label for="post_q1_6">6</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q1" value="7" id="post_q1_7">
+                                <label for="post_q1_7">7</label>
+                            </div>
+                        </div>
+                        <div class="scale-labels">
+                            <span>Not at all</span>
+                            <span>Extremely well</span>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="survey-question">
+                        <label class="question-label">2. How well could you predict negative unintended behaviors from your system prompt?</label>
+                        <div class="likert-scale">
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="1" id="post_q2_1">
+                                <label for="post_q2_1">1</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="2" id="post_q2_2">
+                                <label for="post_q2_2">2</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="3" id="post_q2_3">
+                                <label for="post_q2_3">3</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="4" id="post_q2_4">
+                                <label for="post_q2_4">4</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="5" id="post_q2_5">
+                                <label for="post_q2_5">5</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="6" id="post_q2_6">
+                                <label for="post_q2_6">6</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q2" value="7" id="post_q2_7">
+                                <label for="post_q2_7">7</label>
+                            </div>
+                        </div>
+                        <div class="scale-labels">
+                            <span>Not at all</span>
+                            <span>Extremely well</span>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="survey-question">
+                        <label class="question-label">3. Given the {relevant background abt unintended model behaviors}, how much do you trust this model?</label>
+                        <div class="likert-scale">
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="1" id="post_q3_1">
+                                <label for="post_q3_1">1</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="2" id="post_q3_2">
+                                <label for="post_q3_2">2</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="3" id="post_q3_3">
+                                <label for="post_q3_3">3</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="4" id="post_q3_4">
+                                <label for="post_q3_4">4</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="5" id="post_q3_5">
+                                <label for="post_q3_5">5</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="6" id="post_q3_6">
+                                <label for="post_q3_6">6</label>
+                            </div>
+                            <div class="likert-option">
+                                <input type="radio" name="post_q3" value="7" id="post_q3_7">
+                                <label for="post_q3_7">7</label>
+                            </div>
+                        </div>
+                        <div class="scale-labels">
+                            <span>Not at all</span>
+                            <span>Completely</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-survey-actions">
+                    <button type="button" class="btn btn-primary" id="postPhase1ProceedBtn" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Phase 2: Open-Ended Response -->
+            <div class="post-survey-phase" id="postSurveyPhase2" style="display: none;">
+                <div class="post-survey-questions">
+                    <div class="survey-question">
+                        <label class="question-label">Please provide your open-ended feedback about the interface and your general thoughts about the experiment:</label>
+                        <textarea 
+                            id="postOpenEndedResponse" 
+                            class="form-control" 
+                            rows="8" 
+                            placeholder="Share your thoughts here..."
+                            style="width: 100%; padding: 0.75rem; font-size: 0.95rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); resize: vertical;"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="post-survey-actions">
+                    <button type="button" class="btn btn-secondary" id="postPhase2BackBtn">Back</button>
+                    <button type="button" class="btn btn-primary" id="postPhase2SubmitBtn" disabled>Submit</button>
                 </div>
             </div>
         </div>

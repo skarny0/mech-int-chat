@@ -1594,3 +1594,200 @@ body {
     }
 }
 
+/* ============================================
+   TIMER DISPLAY STYLES
+   ============================================ */
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.timer-display i {
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+.timer-display #timerText {
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* ============================================
+   POST-SURVEY MODAL STYLES
+   ============================================ */
+.post-survey-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-survey-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.post-survey-content {
+    position: relative;
+    z-index: 10000;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 700px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.post-survey-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.post-survey-header h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.post-survey-header p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.post-survey-phase {
+    display: block;
+}
+
+.post-survey-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.post-survey-questions .survey-question {
+    margin-bottom: 1.5rem;
+}
+
+.post-survey-questions .question-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.post-survey-questions .likert-scale {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.post-survey-questions .likert-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.post-survey-questions .likert-option input[type="radio"] {
+    margin: 0;
+}
+
+.post-survey-questions .likert-option label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin: 0;
+}
+
+.post-survey-questions .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.post-survey-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.post-survey-actions .btn {
+    padding: 0.625rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Scrollbar styling for post-survey content */
+.post-survey-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.post-survey-content::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.post-survey-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.post-survey-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Responsive adjustments for post-survey */
+@media (max-width: 768px) {
+    .post-survey-content {
+        width: 95%;
+        padding: 1.5rem;
+        max-height: 90vh;
+    }
+    
+    .post-survey-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .post-survey-questions .likert-scale {
+        gap: 0.25rem;
+    }
+    
+    .post-survey-questions .likert-option label {
+        font-size: 0.75rem;
+    }
+}
+
