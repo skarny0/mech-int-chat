@@ -10,38 +10,30 @@ const firebaseConfig = {
     appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
   };
 
-// Import Firebase functions
-import { initializeRealtimeDatabase, writeRealtimeDatabase } from "./firebasepsych1.1.js";
+// Import Firebase functions from v1.0 (auto-initializes)
+import { 
+    writeRealtimeDatabase, writeURLParameters, readRealtimeDatabase,
+    blockRandomization, finalizeBlockRandomization, firebaseUserId 
+} from "./firebasepsych1.0.js";
 
-// Initialize Firebase Database
-let db1, firebaseUserId1;
-(async function initFirebase() {
-    try {
-        console.log("🔄 Initializing Firebase with config:", firebaseConfig);
-        [db1, firebaseUserId1] = await initializeRealtimeDatabase(firebaseConfig);
-        console.log("✅ Firebase initialized with user ID:", firebaseUserId1);
-        
-        // Make Firebase accessible globally for other functions
-        window.chatDb = db1;
-        window.chatFirebaseUserId = firebaseUserId1;
-        
-        // Write a simple test case to the database
-        const testPath = 'chat-study/testData/' + firebaseUserId1 + '/testMessage';
-        const testValue = {
-            message: "Hello from chat.js!",
-            timestamp: new Date().toISOString(),
-            value: 42
-        };
-        
-        console.log("🔄 Writing test data to path:", testPath);
-        await writeRealtimeDatabase(db1, testPath, testValue);
-        console.log("✅ Test data written successfully!");
-        console.log("✅ Firebase is ready! Access via window.chatDb and window.chatFirebaseUserId");
-    } catch (error) {
-        console.error("❌ Firebase initialization or write failed:", error);
-        console.error("Error details:", error.message);
-    }
-})();
+console.log("Firebase UserId=" + firebaseUserId);
+
+// Write a simple test case to the database
+const studyId = 'chat-study';
+const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
+const testValue = {
+    message: "Hello from chat.js!",
+    timestamp: new Date().toISOString(),
+    value: 42
+};
+
+await writeRealtimeDatabase(testPath, testValue);
+console.log("✅ Test data written to Firebase at path:", testPath);
+
+// Write URL parameters to Firebase
+const urlParamsPath = studyId + '/participantData/' + firebaseUserId + '/urlParameters';
+await writeURLParameters(urlParamsPath);
+console.log("✅ URL parameters saved to Firebase");
 
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
@@ -84,6 +76,9 @@ function initializeDynamicInterface() {
         // Get the system prompt input
         const systemPromptInput = $('#systemPromptInput');
 
+        // Initialize survey
+        initializePreTaskSurvey();
+
         // Reset configuration
         resetConfig.on('click', function() {
             systemPromptInput.val('You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.');
@@ -101,16 +96,37 @@ function initializeDynamicInterface() {
             switchToChat();
         });
 
-        // Check Persona button
+        // Check Persona button - show survey first if not completed
         $('#checkPersonaBtn').on('click', function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
-            checkPersona(systemPrompt);
+            
+            // Check if survey has been completed
+            const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            
+            if (!surveyCompleted) {
+                // Show survey modal and store which action to perform after
+                window.postSurveyAction = 'checkPersona';
+                showPreTaskSurvey();
+            } else {
+                // Survey already completed, proceed with persona check
+                checkPersona(systemPrompt);
+            }
         });
 
-        // Test Persona button - simulate with mock data
+        // Test Persona button - simulate with mock data, also show survey if not completed
         $('#testPersonaBtn').on('click', function() {
-            testPersonaWithMockData();
+            // Check if survey has been completed
+            const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            
+            if (!surveyCompleted) {
+                // Show survey modal and store which action to perform after
+                window.postSurveyAction = 'testPersona';
+                showPreTaskSurvey();
+            } else {
+                // Survey already completed, proceed with test
+                testPersonaWithMockData();
+            }
         });
 
         // Helper function to show/hide persona sections
@@ -548,4 +564,187 @@ function testPersonaWithMockData() {
         console.log('Mock Persona Data:', mockData);
         renderPersonaChart(mockData);
     }, 800); // Simulate network delay
+}
+
+// ============================================
+// PRE-TASK SURVEY FUNCTIONS
+// ============================================
+
+// Initialize pre-task survey
+function initializePreTaskSurvey() {
+    const surveyModal = $('#preTaskSurveyModal');
+    const phase1 = $('#surveyPhase1');
+    const phase2 = $('#surveyPhase2');
+    const phase3 = $('#surveyPhase3');
+    
+    const phase1ProceedBtn = $('#phase1ProceedBtn');
+    const phase2ProceedBtn = $('#phase2ProceedBtn');
+    const phase3ProceedBtn = $('#phase3ProceedBtn');
+    
+    // Phase 1: Listen to radio button changes
+    $('input[name="phase1_q1"], input[name="phase1_q2"]').on('change', function() {
+        const q1Answered = $('input[name="phase1_q1"]:checked').length > 0;
+        const q2Answered = $('input[name="phase1_q2"]:checked').length > 0;
+        phase1ProceedBtn.prop('disabled', !(q1Answered && q2Answered));
+    });
+    
+    // Phase 1 Proceed button
+    phase1ProceedBtn.on('click', function() {
+        phase1.hide();
+        phase2.show();
+    });
+    
+    // Phase 2: Listen to all trait radio buttons
+    const traitNames = [
+        'trait_empathy', 'trait_nonempathic',
+        'trait_sociality', 'trait_antisocial',
+        'trait_supportiveness', 'trait_unsupportive',
+        'trait_humor', 'trait_humorless',
+        'trait_warmth', 'trait_cold',
+        'trait_toxicity', 'trait_nontoxic',
+        'trait_sycophancy', 'trait_nonsycophantic',
+        'trait_deceptiveness', 'trait_truthful',
+        'trait_hallucination', 'trait_accurate'
+    ];
+    
+    traitNames.forEach(traitName => {
+        $(`input[name="${traitName}"]`).on('change', validatePhase2);
+    });
+    
+    function validatePhase2() {
+        const allAnswered = traitNames.every(traitName => {
+            return $(`input[name="${traitName}"]:checked`).length > 0;
+        });
+        phase2ProceedBtn.prop('disabled', !allAnswered);
+    }
+    
+    // Phase 2 Proceed button
+    phase2ProceedBtn.on('click', function() {
+        phase2.hide();
+        phase3.show();
+    });
+    
+    // Phase 3: Listen to trust question
+    $('input[name="phase3_trust"]').on('change', function() {
+        const trustAnswered = $('input[name="phase3_trust"]:checked').length > 0;
+        phase3ProceedBtn.prop('disabled', !trustAnswered);
+    });
+    
+    // Phase 3 Proceed button - save data and close
+    phase3ProceedBtn.on('click', async function() {
+        await savePreTaskSurveyData();
+        closePreTaskSurvey();
+        
+        // Now trigger the appropriate action based on which button was clicked
+        const systemPrompt = $('#systemPromptInput').val();
+        const action = window.postSurveyAction || 'checkPersona'; // Default to checkPersona
+        
+        if (action === 'testPersona') {
+            testPersonaWithMockData();
+        } else {
+            checkPersona(systemPrompt);
+        }
+        
+        // Clear the action flag
+        window.postSurveyAction = null;
+    });
+}
+
+// Show pre-task survey modal
+function showPreTaskSurvey() {
+    const surveyModal = $('#preTaskSurveyModal');
+    surveyModal.show();
+    
+    // Reset to phase 1
+    $('#surveyPhase1').show();
+    $('#surveyPhase2').hide();
+    $('#surveyPhase3').hide();
+    
+    console.log('📋 Pre-task survey displayed');
+}
+
+// Close pre-task survey modal
+function closePreTaskSurvey() {
+    const surveyModal = $('#preTaskSurveyModal');
+    surveyModal.hide();
+    
+    // Mark survey as completed
+    localStorage.setItem('preTaskSurveyCompleted', 'true');
+    
+    console.log('✅ Pre-task survey completed and closed');
+}
+
+// Collect and save pre-task survey data
+async function savePreTaskSurveyData() {
+    try {
+        // Collect Phase 1 responses
+        const phase1Q1 = parseInt($('input[name="phase1_q1"]:checked').val());
+        const phase1Q2 = parseInt($('input[name="phase1_q2"]:checked').val());
+        
+        // Collect Phase 2 responses (trait predictions)
+        const traitPredictions = {
+            empathy: parseInt($('input[name="trait_empathy"]:checked').val()) / 10, // Normalize to 0-1
+            nonempathic: parseInt($('input[name="trait_nonempathic"]:checked').val()) / 10,
+            sociality: parseInt($('input[name="trait_sociality"]:checked').val()) / 10,
+            antisocial: parseInt($('input[name="trait_antisocial"]:checked').val()) / 10,
+            supportiveness: parseInt($('input[name="trait_supportiveness"]:checked').val()) / 10,
+            unsupportive: parseInt($('input[name="trait_unsupportive"]:checked').val()) / 10,
+            humor: parseInt($('input[name="trait_humor"]:checked').val()) / 10,
+            humorless: parseInt($('input[name="trait_humorless"]:checked').val()) / 10,
+            warmth: parseInt($('input[name="trait_warmth"]:checked').val()) / 10,
+            cold: parseInt($('input[name="trait_cold"]:checked').val()) / 10,
+            toxicity: parseInt($('input[name="trait_toxicity"]:checked').val()) / 10,
+            nontoxic: parseInt($('input[name="trait_nontoxic"]:checked').val()) / 10,
+            sycophancy: parseInt($('input[name="trait_sycophancy"]:checked').val()) / 10,
+            nonsycophantic: parseInt($('input[name="trait_nonsycophantic"]:checked').val()) / 10,
+            deceptiveness: parseInt($('input[name="trait_deceptiveness"]:checked').val()) / 10,
+            truthful: parseInt($('input[name="trait_truthful"]:checked').val()) / 10,
+            hallucination: parseInt($('input[name="trait_hallucination"]:checked').val()) / 10,
+            accurate: parseInt($('input[name="trait_accurate"]:checked').val()) / 10
+        };
+        
+        // Collect Phase 3 response
+        const phase3Trust = parseInt($('input[name="phase3_trust"]:checked').val());
+        
+        // Get system prompt
+        const systemPrompt = $('#systemPromptInput').val();
+        
+        // Create survey data object
+        const surveyData = {
+            phase1: {
+                q1_unintended_behaviors: phase1Q1,
+                q2_negative_unintended_behaviors: phase1Q2
+            },
+            phase2: {
+                trait_predictions: traitPredictions
+            },
+            phase3: {
+                trust_rating: phase3Trust
+            },
+            metadata: {
+                system_prompt: systemPrompt,
+                timestamp: new Date().toISOString(),
+                completion_time: Date.now()
+            }
+        };
+        
+        console.log('📊 Pre-task survey data collected:', surveyData);
+        
+        // Store locally first (primary storage for now)
+        localStorage.setItem('preTaskSurveyData', JSON.stringify(surveyData));
+        console.log('✅ Pre-task survey data saved to localStorage');
+        
+        // Save to Firebase using firebasepsych1.0.js API
+        try {
+            const surveyPath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
+            await writeRealtimeDatabase(surveyPath, surveyData);
+            console.log('✅ Pre-task survey data saved to Firebase at path:', surveyPath);
+        } catch (firebaseError) {
+            console.warn('⚠️ Could not save to Firebase:', firebaseError.message);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error collecting pre-task survey data:', error);
+        // Even if there's an error, don't throw - allow the survey to complete
+    }
 }
