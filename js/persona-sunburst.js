@@ -77,7 +77,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
     const width = config.width;
     const height = config.height;
     // Use more of the available space - only leave small margin for labels
-    const radius = Math.min(width, height) / 2 - 40;
+    const radius = Math.min(width, height) / 2 - 20;
 
     // Create SVG container that fills its container
     const svg = d3.select(`#${containerId}`)
@@ -96,7 +96,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
     // Define ring radii with better proportions
     const innerRadius = radius * 0.25;
     const middleRadius = radius * 0.50;
-    const maxOuterRadius = radius * 0.95;
+    const maxOuterRadius = radius * 0.98;
 
     // Add tooltip div
     const tooltip = d3.select('body').append('div')
