@@ -37,9 +37,11 @@
 // VISUALIZATION DETAILS:
 // - Inner ring: Colored categories with curved labels (Green=Positive, Red=Negative)
 // - Outer ring: Individual traits extending outward based on normalized values (0-100%)
-// - Tooltips: Show details on hover including original trait if transformed
-// - Interactive: Hover effects and click handlers
+// - Hover-to-reveal: No static labels - details shown in tooltips on hover
+// - Enhanced hover effects: Segments brighten, enlarge, and show detailed tooltips
+// - Interactive: Smooth hover transitions and click handlers
 // - Animated: Fade-in animation on load
+// - Clean design: "Hover to explore" hint in center guides users
 
 /**
  * Creates a beautiful two-ring sunburst chart for persona vector data
@@ -101,12 +103,15 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .attr('class', 'persona-sunburst-tooltip')
         .style('opacity', 0)
         .style('position', 'absolute')
-        .style('background-color', 'rgba(0, 0, 0, 0.8)')
+        .style('background-color', 'rgba(0, 0, 0, 0.9)')
         .style('color', 'white')
-        .style('padding', '10px')
-        .style('border-radius', '5px')
+        .style('padding', '12px 16px')
+        .style('border-radius', '8px')
         .style('pointer-events', 'none')
         .style('font-size', '14px')
+        .style('font-family', 'system-ui, -apple-system, sans-serif')
+        .style('line-height', '1.6')
+        .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.3)')
         .style('z-index', '10000');
 
     // Draw category arcs (inner ring)
@@ -215,13 +220,14 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                 .style('opacity', 0.9)
                 .style('cursor', 'pointer');
 
-            // Add hover effects to items
+            // Add hover effects to items with enhanced visual feedback
             itemArc.on('mouseenter', function(event) {
                 d3.select(this)
                     .transition()
                     .duration(200)
                     .style('opacity', 1)
-                    .attr('stroke-width', 3);
+                    .attr('stroke-width', 4)
+                    .style('filter', 'brightness(1.1)');
                 
                 tooltip.transition()
                     .duration(200)
@@ -231,10 +237,10 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                     `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
                 
                 tooltip.html(`
-                    <strong>${item.name}</strong><br/>
-                    Category: ${category.name}<br/>
-                    Value: ${item.value.toFixed(1)}%<br/>
-                    ${item.rawValue !== undefined ? `Raw: ${item.rawValue.toFixed(3)}` : ''}${originalTraitInfo}
+                    <strong style="font-size: 16px;">${item.name}</strong><br/>
+                    <span style="opacity: 0.9;">Category: ${category.name}</span><br/>
+                    <span style="opacity: 0.9;">Value: ${item.value.toFixed(1)}%</span><br/>
+                    ${item.rawValue !== undefined ? `<span style="opacity: 0.9;">Raw: ${item.rawValue.toFixed(3)}</span>` : ''}${originalTraitInfo}
                 `)
                     .style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 28) + 'px');
@@ -244,7 +250,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                     .transition()
                     .duration(200)
                     .style('opacity', 0.9)
-                    .attr('stroke-width', 2);
+                    .attr('stroke-width', 2)
+                    .style('filter', 'none');
                 
                 tooltip.transition()
                     .duration(200)
@@ -253,22 +260,6 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
             .on('click', function() {
                 console.log('Clicked:', item.name, 'Value:', item.value);
             });
-
-            // Item label
-            const labelAngle = (itemStartAngle + itemEndAngle) / 2;
-            const labelRadius = middleRadius + extension / 2;
-            const labelText = config.showPercentages ? 
-                `${item.name} (${Math.round(item.value)}%)` : 
-                item.name;
-
-            g.append('text')
-                .attr('transform', `rotate(${labelAngle * 180 / Math.PI - 90}) translate(${labelRadius},0) rotate(${labelAngle < Math.PI ? 0 : 180})`)
-                .attr('text-anchor', 'middle')
-                .attr('dy', '0.35em')
-                .style('font-size', `${Math.max(10, radius * 0.025)}px`)
-                .style('fill', '#222')
-                .style('pointer-events', 'none')
-                .text(labelText);
         });
     });
 
@@ -293,6 +284,15 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .style('font-size', `${Math.max(14, radius * 0.038)}px`)
         .style('fill', '#666')
         .text(config.centerSubLabel);
+
+    // Add hover instruction
+    g.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '2.8em')
+        .style('font-size', `${Math.max(11, radius * 0.028)}px`)
+        .style('fill', '#999')
+        .style('font-style', 'italic')
+        .text('Hover to explore');
 
     // Animate on load
     if (config.animate) {

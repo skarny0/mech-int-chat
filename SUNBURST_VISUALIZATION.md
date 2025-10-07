@@ -12,15 +12,28 @@ The visualization uses a **two-ring architecture**:
 - **Outer Ring**: Individual traits/facets that extend outward based on their normalized values (0-100%)
 - **Center Circle**: Customizable label showing what the data represents
 
+## Interaction Guide
+
+The sunburst uses a **hover-to-reveal** design for a clean, uncluttered appearance:
+
+- **Hover over any segment** to see detailed information in a tooltip
+- **Visual feedback**: Segments brighten and enlarge on hover
+- **Category hover**: See average value and item count
+- **Trait hover**: See trait name, category, percentage value, and raw score
+- **Center hint**: "Hover to explore" text guides first-time users
+
+No static labels means the visualization stays clean while remaining fully informative!
+
 ## Features
 
-✨ **Interactive**: Hover over segments to see detailed information  
+✨ **Interactive**: Hover over segments to see detailed information in tooltips  
 🎨 **Color-coded**: Each category has a distinct color with gradient variations for items  
 📊 **Two-Ring Design**: Clear separation between categories and individual traits  
 🎭 **Animated**: Smooth fade-in animations on load  
 📱 **Responsive**: Adapts to different screen sizes with SVG viewBox  
 🔧 **Customizable**: Supports both flat and custom categorized data formats  
-📏 **Visual Values**: Outer ring segments extend based on trait strength
+📏 **Visual Values**: Outer ring segments extend based on trait strength  
+🧹 **Clean Design**: Hover-only labels keep the visualization uncluttered
 
 ## Quick Start
 
