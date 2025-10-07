@@ -166,34 +166,34 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         });
 
         // Create curved path for category label
-        const textRadius = (innerRadius + middleRadius) / 2;
-        const pathId = `category-path-${catIndex}`;
-        const midAngle = (category.startAngle + category.endAngle) / 2;
-        const needsReverse = midAngle > Math.PI / 2 && midAngle < (3 * Math.PI / 2);
+        // const textRadius = (innerRadius + middleRadius) / 2;
+        // const pathId = `category-path-${catIndex}`;
+        // const midAngle = (category.startAngle + category.endAngle) / 2;
+        // const needsReverse = midAngle > Math.PI / 2 && midAngle < (3 * Math.PI / 2);
 
-        const arcPath = d3.arc()
-            .innerRadius(textRadius)
-            .outerRadius(textRadius)
-            .startAngle(needsReverse ? category.endAngle : category.startAngle)
-            .endAngle(needsReverse ? category.startAngle : category.endAngle);
+        // const arcPath = d3.arc()
+        //     .innerRadius(textRadius)
+        //     .outerRadius(textRadius)
+        //     .startAngle(needsReverse ? category.endAngle : category.startAngle)
+        //     .endAngle(needsReverse ? category.startAngle : category.endAngle);
 
-        g.append('path')
-            .attr('id', pathId)
-            .attr('d', arcPath)
-            .style('fill', 'none');
+        // g.append('path')
+        //     .attr('id', pathId)
+        //     .attr('d', arcPath)
+        //     .style('fill', 'none');
 
         // Category label on curved path
-        g.append('text')
-            .append('textPath')
-            .attr('href', `#${pathId}`)
-            .attr('startOffset', '50%')
-            .attr('text-anchor', 'middle')
-            .style('font-size', `${Math.max(14, radius * 0.04)}px`)
-            .style('font-weight', 'bold')
-            .style('fill', 'white')
-            .style('letter-spacing', '0.5px')
-            .style('pointer-events', 'none')
-            .text(category.name);
+        // g.append('text')
+        //     .append('textPath')
+        //     .attr('href', `#${pathId}`)
+        //     .attr('startOffset', '50%')
+        //     .attr('text-anchor', 'middle')
+        //     .style('font-size', `${Math.max(14, radius * 0.04)}px`)
+        //     .style('font-weight', 'bold')
+        //     .style('fill', 'white')
+        //     .style('letter-spacing', '0.5px')
+        //     .style('pointer-events', 'none')
+        //     .text(category.name);
     });
 
     // Draw item arcs (outer ring)
