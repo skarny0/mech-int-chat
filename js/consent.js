@@ -43,9 +43,9 @@ This file should contain static experimental metadata such as:
             None! This needs to be modified by you!
 */
 var EXPERIMENT_SUMMARY = `
-    This experiment tests how people plan and act in quickly changing enviornments. 
-    To test this, we built an arcade-like videogame where your goal is to intercept targets that are moving in a 2D space. 
-    Your goal will be to maximize your score in the limited time alotted in each round. - You have an AI collaborative player that will help you with the task.
+    This experiment tests how people shape AIs such as ChatGPT's behavior. 
+    To test this, we built an interactive experiment that requires users to create AI characters using system prompts.
+    We want to see how users understand the consequences of their system prompts and see if there are ways to help inform them of these AIs prompts priot to interaction.
 `;
 
 /*
