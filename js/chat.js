@@ -43,6 +43,9 @@ if (typeof window.messageIdCounter === 'undefined') {
 if (typeof window.conversationHistory === 'undefined') {
     window.conversationHistory = []; // Store conversation history for API calls
 }
+if (typeof window.lastSystemPrompt === 'undefined') {
+    window.lastSystemPrompt = null; // Track the last system prompt used
+}
 
 // Note: API configuration is loaded from config-unified.js file
 
@@ -80,26 +83,104 @@ function initializeDynamicInterface() {
         initializePreTaskSurvey();
 
         // Reset configuration
-        resetConfig.on('click', function() {
-            systemPromptInput.val('You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.');
+        resetConfig.on('click', async function() {
+            const defaultPrompt = 'You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.';
+            systemPromptInput.val(defaultPrompt);
+            
+            // Log this reset action to Firebase
+            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
+            await writeRealtimeDatabase(promptLogPath, {
+                prompt: defaultPrompt,
+                action: 'reset_to_default',
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt reset logged');
         });
 
         // Start chat
-        startChatBtn.on('click', function() {
+        startChatBtn.on('click', async function() {
             const systemPrompt = $('#systemPromptInput').val();
+            
+            // Check if system prompt has changed
+            const promptChanged = window.lastSystemPrompt !== null && window.lastSystemPrompt !== systemPrompt;
+            
+            if (promptChanged) {
+                console.log('🔄 System prompt changed - clearing chat history');
+                
+                // Log the chat history clear event to Firebase
+                const clearLogPath = studyId + '/participantData/' + firebaseUserId + '/chatHistoryClearLog/' + Date.now();
+                await writeRealtimeDatabase(clearLogPath, {
+                    previousPrompt: window.lastSystemPrompt,
+                    newPrompt: systemPrompt,
+                    timestamp: new Date().toISOString(),
+                    reason: 'system_prompt_changed'
+                });
+                console.log('✅ Chat history clear logged');
+                
+                // Clear conversation history
+                window.conversationHistory = [];
+                // Clear chat UI
+                const messagesContainer = $('#messagesContainer');
+                messagesContainer.empty();
+                // Add welcome message back
+                const welcomeMessage = `
+                    <div class="message assistant-message" data-message-id="1">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messagesContainer.append(welcomeMessage);
+                // Reset message counter
+                window.messageIdCounter = 2;
+            }
+            
+            // Update last system prompt
+            window.lastSystemPrompt = systemPrompt;
             
             // Store system prompt in localStorage for the chat interface
             localStorage.setItem('customSystemPrompt', systemPrompt);
             console.log('📝 System prompt saved to localStorage:', systemPrompt.substring(0, 50) + '...');
+            
+            // Log this system prompt attempt to Firebase
+            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
+            await writeRealtimeDatabase(promptLogPath, {
+                prompt: systemPrompt,
+                action: 'start_chat',
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt logged (start chat)');
+            
+            // Save system prompt to Firebase
+            const systemPromptPath = studyId + '/participantData/' + firebaseUserId + '/systemPrompt';
+            await writeRealtimeDatabase(systemPromptPath, {
+                prompt: systemPrompt,
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt saved to Firebase');
             
             // Switch to chat interface
             switchToChat();
         });
 
         // Check Persona button - show survey first if not completed
-        $('#checkPersonaBtn').on('click', function() {
+        $('#checkPersonaBtn').on('click', async function() {
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
+            
+            // Log this system prompt attempt to Firebase
+            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
+            await writeRealtimeDatabase(promptLogPath, {
+                prompt: systemPrompt,
+                action: 'check_persona',
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt logged (check persona)');
             
             // Check if survey has been completed
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
@@ -115,7 +196,19 @@ function initializeDynamicInterface() {
         });
 
         // Test Persona button - simulate with mock data, also show survey if not completed
-        $('#testPersonaBtn').on('click', function() {
+        $('#testPersonaBtn').on('click', async function() {
+            // Get the current system prompt from the input
+            const systemPrompt = $('#systemPromptInput').val();
+            
+            // Log this system prompt attempt to Firebase
+            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
+            await writeRealtimeDatabase(promptLogPath, {
+                prompt: systemPrompt,
+                action: 'test_persona',
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt logged (test persona)');
+            
             // Check if survey has been completed
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
             
@@ -183,21 +276,21 @@ function initializeDynamicInterface() {
     }
 
     // Send message function
-    function sendMessage() {
+    async function sendMessage() {
         const message = messageInput.val().trim();
         if (message === '') return;
 
-        // Add user message
-        const userMessageId = addMessage(message, 'user');
-        messageInput.val('');
-        sendBtn.prop('disabled', true);
-        messageInput.css('height', 'auto');
-
-        // Add user message to conversation history
+        // Add user message to conversation history first
         window.conversationHistory.push({
             role: 'user',
             content: message
         });
+
+        // Add user message to UI and save to Firebase
+        const userMessageId = await addMessage(message, 'user');
+        messageInput.val('');
+        sendBtn.prop('disabled', true);
+        messageInput.css('height', 'auto');
 
         // Show typing indicator
         typingIndicator.show();
@@ -236,8 +329,8 @@ function initializeDynamicInterface() {
                 content: assistantMessage
             });
 
-            // Add assistant message to chat
-            addMessage(assistantMessage, 'assistant');
+            // Add assistant message to chat and save to Firebase
+            await addMessage(assistantMessage, 'assistant');
 
         } catch (error) {
             console.error('Error calling AI API:', error);
@@ -259,23 +352,29 @@ function initializeDynamicInterface() {
                 errorMessage = `Error: ${error.message}. Please try again or contact the study administrator.`;
             }
             
-            addMessage(errorMessage, 'assistant');
-            
             // Add error message to conversation history
             window.conversationHistory.push({
                 role: 'assistant',
                 content: errorMessage
             });
+            
+            // Add error message to chat and save to Firebase
+            await addMessage(errorMessage, 'assistant');
         }
     }
 
     // Add message to chat with enhanced features
-    function addMessage(text, sender) {
+    async function addMessage(text, sender) {
         const messageId = window.messageIdCounter++;
         const messageClass = sender === 'user' ? 'user-message' : 'assistant-message';
         const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
         const senderName = sender === 'user' ? 'You' : 'Assistant';
         const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const timestamp = new Date().toISOString();
+        
+        // Get the current system prompt being used
+        const currentSystemPrompt = localStorage.getItem('customSystemPrompt') || 
+            "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
         
         const messageHtml = `
             <div class="message ${messageClass}" data-message-id="${messageId}">
@@ -290,6 +389,21 @@ function initializeDynamicInterface() {
         
         messagesContainer.append(messageHtml);
         messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+        
+        // Save message to Firebase with system prompt
+        const messagePath = studyId + '/participantData/' + firebaseUserId + '/messages/' + messageId;
+        await writeRealtimeDatabase(messagePath, {
+            messageId: messageId,
+            role: sender,
+            content: text,
+            timestamp: timestamp,
+            systemPrompt: currentSystemPrompt
+        });
+        
+        // Also save the full conversation history after each message
+        const conversationPath = studyId + '/participantData/' + firebaseUserId + '/conversationHistory';
+        await writeRealtimeDatabase(conversationPath, window.conversationHistory);
+        
         return messageId;
     }
 
@@ -440,6 +554,15 @@ async function checkPersona(systemPrompt) {
         if (response.ok) {
             const data = await response.json();
             console.log('📊 Persona Vector API Response:', data.content);
+            
+            // Save persona vector to history log
+            const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
+            await writeRealtimeDatabase(personaLogPath, {
+                personaVector: data.content,
+                systemPrompt: promptToUse,
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ Persona vector logged to history');
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
