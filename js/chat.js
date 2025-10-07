@@ -800,15 +800,15 @@ function setupSurveyEventListeners() {
     
     // Phase 2: Listen to all trait radio buttons
     const traitNames = [
-        'trait_empathy', 'trait_nonempathic',
-        'trait_sociality', 'trait_antisocial',
-        'trait_supportiveness', 'trait_unsupportive',
-        'trait_humor', 'trait_humorless',
-        'trait_warmth', 'trait_cold',
-        'trait_toxicity', 'trait_nontoxic',
-        'trait_sycophancy', 'trait_nonsycophantic',
-        'trait_deceptiveness', 'trait_truthful',
-        'trait_hallucination', 'trait_accurate'
+        'trait_empathy',
+        'trait_sociality',
+        'trait_supportiveness',
+        'trait_humor',
+        'trait_warmth',
+        'trait_toxicity',
+        'trait_sycophancy',
+        'trait_deceptiveness',
+        'trait_hallucination'
     ];
     
     traitNames.forEach(traitName => {
@@ -941,23 +941,14 @@ async function savePreTaskSurveyData() {
         // Collect Phase 2 responses (trait predictions)
         const traitPredictions = {
             empathy: parseInt($('input[name="trait_empathy"]:checked').val()) / 10, // Normalize to 0-1
-            nonempathic: parseInt($('input[name="trait_nonempathic"]:checked').val()) / 10,
             sociality: parseInt($('input[name="trait_sociality"]:checked').val()) / 10,
-            antisocial: parseInt($('input[name="trait_antisocial"]:checked').val()) / 10,
             supportiveness: parseInt($('input[name="trait_supportiveness"]:checked').val()) / 10,
-            unsupportive: parseInt($('input[name="trait_unsupportive"]:checked').val()) / 10,
             humor: parseInt($('input[name="trait_humor"]:checked').val()) / 10,
-            humorless: parseInt($('input[name="trait_humorless"]:checked').val()) / 10,
             warmth: parseInt($('input[name="trait_warmth"]:checked').val()) / 10,
-            cold: parseInt($('input[name="trait_cold"]:checked').val()) / 10,
             toxicity: parseInt($('input[name="trait_toxicity"]:checked').val()) / 10,
-            nontoxic: parseInt($('input[name="trait_nontoxic"]:checked').val()) / 10,
             sycophancy: parseInt($('input[name="trait_sycophancy"]:checked').val()) / 10,
-            nonsycophantic: parseInt($('input[name="trait_nonsycophantic"]:checked').val()) / 10,
             deceptiveness: parseInt($('input[name="trait_deceptiveness"]:checked').val()) / 10,
-            truthful: parseInt($('input[name="trait_truthful"]:checked').val()) / 10,
-            hallucination: parseInt($('input[name="trait_hallucination"]:checked').val()) / 10,
-            accurate: parseInt($('input[name="trait_accurate"]:checked').val()) / 10
+            hallucination: parseInt($('input[name="trait_hallucination"]:checked').val()) / 10
         };
         
         // Collect Phase 3 response

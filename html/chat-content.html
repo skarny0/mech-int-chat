@@ -49,11 +49,6 @@
 
                     <!-- Pre-Task Survey (shown after submit) -->
                     <div id="preTaskSurveyContainer" class="survey-container" style="display: none;">
-                        <div class="survey-header-inline">
-                            <h4>System Prompt Assessment</h4>
-                            <p class="survey-description-inline">Please evaluate your system prompt across three phases</p>
-                        </div>
-
                         <div class="survey-content-inline" id="surveyPhasesContainer">
                             <!-- Survey phases will be dynamically inserted here -->
                         </div>
@@ -232,11 +227,11 @@
                 <div class="survey-phase" id="surveyPhase2" style="display: none;">
                     <div class="phase-header">
                         <h4>Phase 2: Trait Predictions</h4>
-                        <p>Predict the activation level (0-10) for each trait pair based on your system prompt</p>
+                        <p>Predict the activation level (0-10) for each trait based on your system prompt</p>
                     </div>
 
                     <div class="trait-predictions-container">
-                        <!-- Trait Pair 1: Empathy / Non-empathic -->
+                        <!-- Trait 1: Empathy -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Empathy</label>
@@ -254,25 +249,9 @@
                                     <input type="radio" name="trait_empathy" value="10" id="t_empathy_10"><label for="t_empathy_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Non-empathic</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_nonempathic" value="0" id="t_nonempathic_0"><label for="t_nonempathic_0">0</label>
-                                    <input type="radio" name="trait_nonempathic" value="1" id="t_nonempathic_1"><label for="t_nonempathic_1">1</label>
-                                    <input type="radio" name="trait_nonempathic" value="2" id="t_nonempathic_2"><label for="t_nonempathic_2">2</label>
-                                    <input type="radio" name="trait_nonempathic" value="3" id="t_nonempathic_3"><label for="t_nonempathic_3">3</label>
-                                    <input type="radio" name="trait_nonempathic" value="4" id="t_nonempathic_4"><label for="t_nonempathic_4">4</label>
-                                    <input type="radio" name="trait_nonempathic" value="5" id="t_nonempathic_5"><label for="t_nonempathic_5">5</label>
-                                    <input type="radio" name="trait_nonempathic" value="6" id="t_nonempathic_6"><label for="t_nonempathic_6">6</label>
-                                    <input type="radio" name="trait_nonempathic" value="7" id="t_nonempathic_7"><label for="t_nonempathic_7">7</label>
-                                    <input type="radio" name="trait_nonempathic" value="8" id="t_nonempathic_8"><label for="t_nonempathic_8">8</label>
-                                    <input type="radio" name="trait_nonempathic" value="9" id="t_nonempathic_9"><label for="t_nonempathic_9">9</label>
-                                    <input type="radio" name="trait_nonempathic" value="10" id="t_nonempathic_10"><label for="t_nonempathic_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 2: Sociality / Antisocial -->
+                        <!-- Trait 2: Sociality -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Sociality</label>
@@ -290,25 +269,9 @@
                                     <input type="radio" name="trait_sociality" value="10" id="t_sociality_10"><label for="t_sociality_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Antisocial</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_antisocial" value="0" id="t_antisocial_0"><label for="t_antisocial_0">0</label>
-                                    <input type="radio" name="trait_antisocial" value="1" id="t_antisocial_1"><label for="t_antisocial_1">1</label>
-                                    <input type="radio" name="trait_antisocial" value="2" id="t_antisocial_2"><label for="t_antisocial_2">2</label>
-                                    <input type="radio" name="trait_antisocial" value="3" id="t_antisocial_3"><label for="t_antisocial_3">3</label>
-                                    <input type="radio" name="trait_antisocial" value="4" id="t_antisocial_4"><label for="t_antisocial_4">4</label>
-                                    <input type="radio" name="trait_antisocial" value="5" id="t_antisocial_5"><label for="t_antisocial_5">5</label>
-                                    <input type="radio" name="trait_antisocial" value="6" id="t_antisocial_6"><label for="t_antisocial_6">6</label>
-                                    <input type="radio" name="trait_antisocial" value="7" id="t_antisocial_7"><label for="t_antisocial_7">7</label>
-                                    <input type="radio" name="trait_antisocial" value="8" id="t_antisocial_8"><label for="t_antisocial_8">8</label>
-                                    <input type="radio" name="trait_antisocial" value="9" id="t_antisocial_9"><label for="t_antisocial_9">9</label>
-                                    <input type="radio" name="trait_antisocial" value="10" id="t_antisocial_10"><label for="t_antisocial_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 3: Supportiveness / Unsupportive -->
+                        <!-- Trait 3: Supportiveness -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Supportiveness</label>
@@ -326,25 +289,9 @@
                                     <input type="radio" name="trait_supportiveness" value="10" id="t_supportiveness_10"><label for="t_supportiveness_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Unsupportive</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_unsupportive" value="0" id="t_unsupportive_0"><label for="t_unsupportive_0">0</label>
-                                    <input type="radio" name="trait_unsupportive" value="1" id="t_unsupportive_1"><label for="t_unsupportive_1">1</label>
-                                    <input type="radio" name="trait_unsupportive" value="2" id="t_unsupportive_2"><label for="t_unsupportive_2">2</label>
-                                    <input type="radio" name="trait_unsupportive" value="3" id="t_unsupportive_3"><label for="t_unsupportive_3">3</label>
-                                    <input type="radio" name="trait_unsupportive" value="4" id="t_unsupportive_4"><label for="t_unsupportive_4">4</label>
-                                    <input type="radio" name="trait_unsupportive" value="5" id="t_unsupportive_5"><label for="t_unsupportive_5">5</label>
-                                    <input type="radio" name="trait_unsupportive" value="6" id="t_unsupportive_6"><label for="t_unsupportive_6">6</label>
-                                    <input type="radio" name="trait_unsupportive" value="7" id="t_unsupportive_7"><label for="t_unsupportive_7">7</label>
-                                    <input type="radio" name="trait_unsupportive" value="8" id="t_unsupportive_8"><label for="t_unsupportive_8">8</label>
-                                    <input type="radio" name="trait_unsupportive" value="9" id="t_unsupportive_9"><label for="t_unsupportive_9">9</label>
-                                    <input type="radio" name="trait_unsupportive" value="10" id="t_unsupportive_10"><label for="t_unsupportive_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 4: Humor / Humorless -->
+                        <!-- Trait 4: Humor -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Humor</label>
@@ -362,25 +309,9 @@
                                     <input type="radio" name="trait_humor" value="10" id="t_humor_10"><label for="t_humor_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Humorless</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_humorless" value="0" id="t_humorless_0"><label for="t_humorless_0">0</label>
-                                    <input type="radio" name="trait_humorless" value="1" id="t_humorless_1"><label for="t_humorless_1">1</label>
-                                    <input type="radio" name="trait_humorless" value="2" id="t_humorless_2"><label for="t_humorless_2">2</label>
-                                    <input type="radio" name="trait_humorless" value="3" id="t_humorless_3"><label for="t_humorless_3">3</label>
-                                    <input type="radio" name="trait_humorless" value="4" id="t_humorless_4"><label for="t_humorless_4">4</label>
-                                    <input type="radio" name="trait_humorless" value="5" id="t_humorless_5"><label for="t_humorless_5">5</label>
-                                    <input type="radio" name="trait_humorless" value="6" id="t_humorless_6"><label for="t_humorless_6">6</label>
-                                    <input type="radio" name="trait_humorless" value="7" id="t_humorless_7"><label for="t_humorless_7">7</label>
-                                    <input type="radio" name="trait_humorless" value="8" id="t_humorless_8"><label for="t_humorless_8">8</label>
-                                    <input type="radio" name="trait_humorless" value="9" id="t_humorless_9"><label for="t_humorless_9">9</label>
-                                    <input type="radio" name="trait_humorless" value="10" id="t_humorless_10"><label for="t_humorless_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 5: Warmth / Cold -->
+                        <!-- Trait 5: Warmth -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Warmth</label>
@@ -398,25 +329,9 @@
                                     <input type="radio" name="trait_warmth" value="10" id="t_warmth_10"><label for="t_warmth_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Cold</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_cold" value="0" id="t_cold_0"><label for="t_cold_0">0</label>
-                                    <input type="radio" name="trait_cold" value="1" id="t_cold_1"><label for="t_cold_1">1</label>
-                                    <input type="radio" name="trait_cold" value="2" id="t_cold_2"><label for="t_cold_2">2</label>
-                                    <input type="radio" name="trait_cold" value="3" id="t_cold_3"><label for="t_cold_3">3</label>
-                                    <input type="radio" name="trait_cold" value="4" id="t_cold_4"><label for="t_cold_4">4</label>
-                                    <input type="radio" name="trait_cold" value="5" id="t_cold_5"><label for="t_cold_5">5</label>
-                                    <input type="radio" name="trait_cold" value="6" id="t_cold_6"><label for="t_cold_6">6</label>
-                                    <input type="radio" name="trait_cold" value="7" id="t_cold_7"><label for="t_cold_7">7</label>
-                                    <input type="radio" name="trait_cold" value="8" id="t_cold_8"><label for="t_cold_8">8</label>
-                                    <input type="radio" name="trait_cold" value="9" id="t_cold_9"><label for="t_cold_9">9</label>
-                                    <input type="radio" name="trait_cold" value="10" id="t_cold_10"><label for="t_cold_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 6: Toxicity / Non-toxic -->
+                        <!-- Trait 6: Toxicity -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Toxicity</label>
@@ -434,25 +349,9 @@
                                     <input type="radio" name="trait_toxicity" value="10" id="t_toxicity_10"><label for="t_toxicity_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Non-toxic</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_nontoxic" value="0" id="t_nontoxic_0"><label for="t_nontoxic_0">0</label>
-                                    <input type="radio" name="trait_nontoxic" value="1" id="t_nontoxic_1"><label for="t_nontoxic_1">1</label>
-                                    <input type="radio" name="trait_nontoxic" value="2" id="t_nontoxic_2"><label for="t_nontoxic_2">2</label>
-                                    <input type="radio" name="trait_nontoxic" value="3" id="t_nontoxic_3"><label for="t_nontoxic_3">3</label>
-                                    <input type="radio" name="trait_nontoxic" value="4" id="t_nontoxic_4"><label for="t_nontoxic_4">4</label>
-                                    <input type="radio" name="trait_nontoxic" value="5" id="t_nontoxic_5"><label for="t_nontoxic_5">5</label>
-                                    <input type="radio" name="trait_nontoxic" value="6" id="t_nontoxic_6"><label for="t_nontoxic_6">6</label>
-                                    <input type="radio" name="trait_nontoxic" value="7" id="t_nontoxic_7"><label for="t_nontoxic_7">7</label>
-                                    <input type="radio" name="trait_nontoxic" value="8" id="t_nontoxic_8"><label for="t_nontoxic_8">8</label>
-                                    <input type="radio" name="trait_nontoxic" value="9" id="t_nontoxic_9"><label for="t_nontoxic_9">9</label>
-                                    <input type="radio" name="trait_nontoxic" value="10" id="t_nontoxic_10"><label for="t_nontoxic_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 7: Sycophancy / Non-sycophantic -->
+                        <!-- Trait 7: Sycophancy -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Sycophancy</label>
@@ -470,25 +369,9 @@
                                     <input type="radio" name="trait_sycophancy" value="10" id="t_sycophancy_10"><label for="t_sycophancy_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Non-sycophantic</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_nonsycophantic" value="0" id="t_nonsycophantic_0"><label for="t_nonsycophantic_0">0</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="1" id="t_nonsycophantic_1"><label for="t_nonsycophantic_1">1</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="2" id="t_nonsycophantic_2"><label for="t_nonsycophantic_2">2</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="3" id="t_nonsycophantic_3"><label for="t_nonsycophantic_3">3</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="4" id="t_nonsycophantic_4"><label for="t_nonsycophantic_4">4</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="5" id="t_nonsycophantic_5"><label for="t_nonsycophantic_5">5</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="6" id="t_nonsycophantic_6"><label for="t_nonsycophantic_6">6</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="7" id="t_nonsycophantic_7"><label for="t_nonsycophantic_7">7</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="8" id="t_nonsycophantic_8"><label for="t_nonsycophantic_8">8</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="9" id="t_nonsycophantic_9"><label for="t_nonsycophantic_9">9</label>
-                                    <input type="radio" name="trait_nonsycophantic" value="10" id="t_nonsycophantic_10"><label for="t_nonsycophantic_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 8: Deceptiveness / Truthful -->
+                        <!-- Trait 8: Deceptiveness -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Deceptiveness</label>
@@ -506,25 +389,9 @@
                                     <input type="radio" name="trait_deceptiveness" value="10" id="t_deceptiveness_10"><label for="t_deceptiveness_10">10</label>
                                 </div>
                             </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Truthful</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_truthful" value="0" id="t_truthful_0"><label for="t_truthful_0">0</label>
-                                    <input type="radio" name="trait_truthful" value="1" id="t_truthful_1"><label for="t_truthful_1">1</label>
-                                    <input type="radio" name="trait_truthful" value="2" id="t_truthful_2"><label for="t_truthful_2">2</label>
-                                    <input type="radio" name="trait_truthful" value="3" id="t_truthful_3"><label for="t_truthful_3">3</label>
-                                    <input type="radio" name="trait_truthful" value="4" id="t_truthful_4"><label for="t_truthful_4">4</label>
-                                    <input type="radio" name="trait_truthful" value="5" id="t_truthful_5"><label for="t_truthful_5">5</label>
-                                    <input type="radio" name="trait_truthful" value="6" id="t_truthful_6"><label for="t_truthful_6">6</label>
-                                    <input type="radio" name="trait_truthful" value="7" id="t_truthful_7"><label for="t_truthful_7">7</label>
-                                    <input type="radio" name="trait_truthful" value="8" id="t_truthful_8"><label for="t_truthful_8">8</label>
-                                    <input type="radio" name="trait_truthful" value="9" id="t_truthful_9"><label for="t_truthful_9">9</label>
-                                    <input type="radio" name="trait_truthful" value="10" id="t_truthful_10"><label for="t_truthful_10">10</label>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Trait Pair 9: Hallucination / Accurate -->
+                        <!-- Trait 9: Hallucination -->
                         <div class="trait-pair">
                             <div class="trait-item">
                                 <label class="trait-label">Hallucination</label>
@@ -540,22 +407,6 @@
                                     <input type="radio" name="trait_hallucination" value="8" id="t_hallucination_8"><label for="t_hallucination_8">8</label>
                                     <input type="radio" name="trait_hallucination" value="9" id="t_hallucination_9"><label for="t_hallucination_9">9</label>
                                     <input type="radio" name="trait_hallucination" value="10" id="t_hallucination_10"><label for="t_hallucination_10">10</label>
-                                </div>
-                            </div>
-                            <div class="trait-item">
-                                <label class="trait-label">Accurate</label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_accurate" value="0" id="t_accurate_0"><label for="t_accurate_0">0</label>
-                                    <input type="radio" name="trait_accurate" value="1" id="t_accurate_1"><label for="t_accurate_1">1</label>
-                                    <input type="radio" name="trait_accurate" value="2" id="t_accurate_2"><label for="t_accurate_2">2</label>
-                                    <input type="radio" name="trait_accurate" value="3" id="t_accurate_3"><label for="t_accurate_3">3</label>
-                                    <input type="radio" name="trait_accurate" value="4" id="t_accurate_4"><label for="t_accurate_4">4</label>
-                                    <input type="radio" name="trait_accurate" value="5" id="t_accurate_5"><label for="t_accurate_5">5</label>
-                                    <input type="radio" name="trait_accurate" value="6" id="t_accurate_6"><label for="t_accurate_6">6</label>
-                                    <input type="radio" name="trait_accurate" value="7" id="t_accurate_7"><label for="t_accurate_7">7</label>
-                                    <input type="radio" name="trait_accurate" value="8" id="t_accurate_8"><label for="t_accurate_8">8</label>
-                                    <input type="radio" name="trait_accurate" value="9" id="t_accurate_9"><label for="t_accurate_9">9</label>
-                                    <input type="radio" name="trait_accurate" value="10" id="t_accurate_10"><label for="t_accurate_10">10</label>
                                 </div>
                             </div>
                         </div>
