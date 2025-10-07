@@ -378,8 +378,7 @@ async function checkPersona(systemPrompt) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('🔵 [INITIAL - chat.js] Raw API Response from /api/persona-vector:', JSON.parse(JSON.stringify(data)));
-            console.log('🟦 [EXTRACTED - chat.js] Persona data (data.content):', JSON.parse(JSON.stringify(data.content)));
+            console.log('📊 Persona Vector API Response:', data.content);
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
@@ -400,14 +399,8 @@ async function checkPersona(systemPrompt) {
 function renderPersonaChart(personaData) {
     const personaChart = $('#personaChart');
     
-    console.log('🟪 [RENDER - chat.js] renderPersonaChart called with data:', JSON.parse(JSON.stringify(personaData)));
-    
     // Use URL parameter to determine display mode (defaults to true if not specified)
     const useSunburst = typeof useSunburstDisplay === 'function' ? useSunburstDisplay() : true;
-    
-    console.log('   ↳ USE_SUNBURST:', useSunburst);
-    console.log('   ↳ D3 available:', typeof d3 !== 'undefined');
-    console.log('   ↳ createPersonaSunburst available:', typeof createPersonaSunburst !== 'undefined');
     
     if (!personaData || typeof personaData !== 'object') {
         personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
@@ -429,7 +422,6 @@ function renderPersonaChart(personaData) {
         // Create the sunburst visualization
         setTimeout(() => {
             if (typeof createPersonaSunburst === 'function') {
-                console.log('🎨 [SUNBURST - chat.js] Calling createPersonaSunburst with data:', JSON.parse(JSON.stringify(personaData)));
                 createPersonaSunburst(personaData, 'personaChartSunburst', {
                     width: 380,
                     height: 380,

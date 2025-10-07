@@ -76,7 +76,7 @@ async function requestPersonaVectorRatings() {
         }
 
         const data = await response.json();
-        console.log('🔵 [INITIAL] Raw API Response from persona-vector endpoint:', JSON.parse(JSON.stringify(data)));
+        console.log('📊 Persona Vector API Response:', data);
         
         // Process the persona vector ratings
         processPersonaVectorRatings(data);
@@ -115,9 +115,6 @@ function processPersonaVectorRatings(data) {
 
     const personaVectorRatings = data.persona_vector_ratings;
     const systemPrompt = data.system_prompt;
-
-    console.log('🟦 [EXTRACTED] Persona vector ratings object:', JSON.parse(JSON.stringify(personaVectorRatings)));
-    console.log('System prompt used:', systemPrompt);
 
     // Display the persona vector ratings
     displayPersonaVectorRatings(personaVectorRatings, systemPrompt);
@@ -176,7 +173,6 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
     if (useSunburst) {
         setTimeout(() => {
             if (typeof createPersonaSunburst === 'function') {
-                console.log('🟪 [BEFORE SUNBURST] Data being passed to createPersonaSunburst:', JSON.parse(JSON.stringify(personaVectorRatings)));
                 createPersonaSunburst(personaVectorRatings, 'personaSunburstContainer', {
                     width: 500,
                     height: 500,

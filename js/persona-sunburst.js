@@ -314,11 +314,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData) {
-    console.log('🟣 [TRANSFORM] Data received in transformToCategories:', JSON.parse(JSON.stringify(personaData)));
-    
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
-        console.log('📊 Processing CATEGORIES format');
         const categories = personaData.categories.map((cat, idx) => ({
             name: cat.name,
             color: cat.color || getDefaultColor(idx),
@@ -326,10 +323,7 @@ function transformToCategories(personaData) {
             endAngle: cat.endAngle,
             items: cat.items.map(item => {
                 const firstScale = item.value * 2;
-                console.log(`🟡 [2] First Scale (${item.name}): ${item.value} * 2 = ${firstScale}`);
-                
                 const secondScale = normalizeValue(firstScale, cat.scale || { min: -2, max: 2 });
-                console.log(`🟠 [3] Second Scale (${item.name}): normalizeValue(${firstScale}) = ${secondScale}`);
                 
                 return {
                     name: item.name,
@@ -354,12 +348,10 @@ function transformToCategories(personaData) {
             });
         }
         
-        console.log('✅ Final categories structure:', JSON.parse(JSON.stringify(categories)));
         return categories;
     }
 
     // Group traits by positive vs negative semantic valuation
-    console.log('📊 Processing FLAT format');
     const categoryMap = new Map();
     
     // Initialize two categories
@@ -377,17 +369,15 @@ function transformToCategories(personaData) {
 
     // Process each trait
     for (const [key, value] of Object.entries(personaData)) {
-        console.log(`🟡 [2] Processing trait (${key}): API value = ${value}`);
-        
         // Get effective trait (handles antonyms for negative values)
         const effectiveTrait = getEffectiveTrait(key, value);
-        console.log(`   ↳ Effective trait: ${effectiveTrait.name}, absValue: ${effectiveTrait.absValue}`);
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
         
         const normalizedValue = normalizeValue(effectiveTrait.absValue, { min: 0, max: 2 });
-        console.log(`🟠 [3] Normalized value (${key}): normalizeValue(${effectiveTrait.absValue}) = ${normalizedValue}%`);
+        
+        console.log(`  ${effectiveTrait.name}: ${value.toFixed(3)} → ${normalizedValue.toFixed(1)}%`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
@@ -417,7 +407,6 @@ function transformToCategories(personaData) {
         currentAngle += angleRange;
     });
 
-    console.log('✅ Final categories structure:', JSON.parse(JSON.stringify(categories)));
     return categories;
 }
 
