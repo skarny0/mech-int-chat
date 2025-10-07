@@ -287,13 +287,13 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .text(config.centerSubLabel);
 
     // Add hover instruction
-    g.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '2.8em')
-        .style('font-size', `${Math.max(11, radius * 0.028)}px`)
-        .style('fill', '#999')
-        .style('font-style', 'italic')
-        .text('Hover to explore');
+    // g.append('text')
+    //     .attr('text-anchor', 'lower')
+    //     .attr('dy', '2.8em')
+    //     .style('font-size', `${Math.max(11, radius * 0.028)}px`)
+    //     .style('fill', '#999')
+    //     .style('font-style', 'italic')
+    //     .text('Hover to explore');
 
     // Animate on load
     if (config.animate) {
@@ -353,13 +353,13 @@ function transformToCategories(personaData) {
     
     // Initialize two categories
     categoryMap.set('Positive Traits', {
-        name: 'Positive Traits',
+        // name: 'Positive Traits',
         color: '#4CAF50', // Green for positive
         items: []
     });
     
     categoryMap.set('Negative Traits', {
-        name: 'Negative Traits',
+        // name: 'Negative Traits',
         color: '#F44336', // Red for negative
         items: []
     });
