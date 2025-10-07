@@ -1,10 +1,35 @@
 // Persona Vector Ratings Request JavaScript
 let personaVectorRequestInProgress = false;
 
-// Configuration: Set to false to use simple list instead of sunburst
-const USE_SUNBURST_DISPLAY = true;
+/**
+ * Gets URL parameter value
+ * @param {string} name - Parameter name
+ * @returns {string|null} - Parameter value or null if not found
+ */
+function getURLParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+/**
+ * Determines if sunburst display should be used based on URL parameter
+ * URL parameter: ?sunburst=true or ?sunburst=false
+ * Default: true (if parameter not specified)
+ * @returns {boolean}
+ */
+function useSunburstDisplay() {
+    const sunburstParam = getURLParameter('sunburst');
+    if (sunburstParam === null) {
+        return true; // Default to true
+    }
+    return sunburstParam.toLowerCase() === 'true' || sunburstParam === '1';
+}
 
 $(document).ready(function() {
+    // Log the current sunburst display mode
+    console.log(`Persona Vector Display Mode: ${useSunburstDisplay() ? 'Sunburst' : 'Simple List'}`);
+    console.log('Toggle with URL parameter: ?sunburst=true or ?sunburst=false');
+    
     // Add button to trigger persona vector ratings request
     const personaVectorBtn = $('#personaVectorBtn'); // You'll need to add this button to your HTML
     
@@ -108,7 +133,8 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
     }
 
     // Build the HTML to display the persona vector ratings
-    const sunburstHtml = USE_SUNBURST_DISPLAY ? '<div id="personaSunburstContainer" class="persona-sunburst-container"></div>' : '';
+    const useSunburst = useSunburstDisplay();
+    const sunburstHtml = useSunburst ? '<div id="personaSunburstContainer" class="persona-sunburst-container"></div>' : '';
     
     const personaVectorHtml = `
         <div class="persona-vector-results">
@@ -122,7 +148,7 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
             ${sunburstHtml}
             
             <div class="persona-vector-details">
-                <h4>${USE_SUNBURST_DISPLAY ? 'Detailed Values:' : 'Values:'}</h4>
+                <h4>${useSunburst ? 'Detailed Values:' : 'Values:'}</h4>
                 <div class="persona-vector-ratings">
                     ${Object.entries(personaVectorRatings).map(([key, value]) => `
                         <div class="persona-vector-item">
@@ -144,7 +170,7 @@ function displayPersonaVectorRatings(personaVectorRatings, systemPrompt) {
     personaVectorDisplay.show();
 
     // Create the sunburst visualization if enabled
-    if (USE_SUNBURST_DISPLAY) {
+    if (useSunburst) {
         setTimeout(() => {
             if (typeof createPersonaSunburst === 'function') {
                 createPersonaSunburst(personaVectorRatings, 'personaSunburstContainer', {
