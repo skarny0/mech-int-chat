@@ -62,6 +62,10 @@
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
     console.log('🎨 createPersonaSunburst called for:', containerId);
+    console.log('🎨 Received personaData:', personaData);
+    console.log('🎨 Data type:', typeof personaData);
+    console.log('🎨 Data keys:', personaData ? Object.keys(personaData) : 'null/undefined');
+    console.log('🎨 First 3 entries:', personaData ? Object.entries(personaData).slice(0, 3) : 'none');
     
     // Default configuration
     const config = {
@@ -78,7 +82,9 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
     console.log('🧹 Cleared existing sunburst content');
 
     // Transform data into categories structure
+    console.log('🔄 About to transform data to categories...');
     const categories = transformToCategories(personaData);
+    console.log('✅ Transformed categories:', categories);
 
     // Set up dimensions
     const width = config.width;
@@ -356,8 +362,11 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData) {
+    console.log('🔍 transformToCategories called with:', personaData);
+    
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
+        console.log('✅ Data already in categories format');
         const categories = personaData.categories.map((cat, idx) => ({
             name: cat.name,
             color: cat.color || getDefaultColor(idx),
@@ -392,8 +401,10 @@ function transformToCategories(personaData) {
     }
 
     // First, filter to keep only dominant traits from each pair
+    console.log('🔄 Filtering dominant traits from:', personaData);
     const filteredData = filterDominantTraits(personaData);
-    console.log('🔍 Filtered dominant traits:', filteredData);
+    console.log('✅ Filtered dominant traits:', filteredData);
+    console.log('✅ Number of filtered traits:', Object.keys(filteredData).length);
     
     // Group traits by positive vs negative semantic valuation
     const categoryMap = new Map();

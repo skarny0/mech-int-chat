@@ -896,7 +896,11 @@ async function checkPersona(systemPrompt) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('📊 Persona Vector API Response:', data.content);
+            console.log('📊 Persona Vector API Response (full):', data);
+            console.log('📊 Persona Vector API Response (content only):', data.content);
+            console.log('📊 Data type:', typeof data.content);
+            console.log('📊 Data keys:', data.content ? Object.keys(data.content) : 'No keys');
+            console.log('📊 Sample values:', data.content ? Object.entries(data.content).slice(0, 3) : 'No values');
             
             // Save persona vector to history log
             const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
@@ -924,12 +928,19 @@ async function checkPersona(systemPrompt) {
 // Render persona vector chart (sunburst or bar chart based on URL parameter)
 // Uses ?sunburst=true or ?sunburst=false URL parameter (defaults to true if not specified)
 function renderPersonaChart(personaData) {
+    console.log('🎨 renderPersonaChart called with data:', personaData);
+    console.log('🎨 Data type:', typeof personaData);
+    console.log('🎨 Is object?', typeof personaData === 'object');
+    console.log('🎨 Keys:', personaData ? Object.keys(personaData) : 'null/undefined');
+    
     const personaChart = $('#personaChart');
     
     // Use URL parameter to determine display mode (defaults to true if not specified)
     const useSunburst = typeof useSunburstDisplay === 'function' ? useSunburstDisplay() : true;
+    console.log('🎨 Using sunburst?', useSunburst);
     
     if (!personaData || typeof personaData !== 'object') {
+        console.error('❌ Invalid persona data:', personaData);
         personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
         return;
     }
@@ -1022,17 +1033,39 @@ function testPersonaWithMockData() {
     
     // Simulate API delay
     setTimeout(() => {
-        // Generate random mock data in the range of -2 to 2
+        // Generate random mock data matching REAL API format (0-1 range with trait pairs)
+        // Each pair should sum to 1.0, matching the Modal API response format
         const mockData = {
-            empathy: (Math.random() * 4 - 2), // Random value between -2 and 2
-            sycophancy: (Math.random() * 4 - 2),
-            humor: (Math.random() * 4 - 2),
-            toxicity: (Math.random() * 4 - 2),
-            formality: (Math.random() * 4 - 2),
-            creativity: (Math.random() * 4 - 2)
+            // Trait pairs - values sum to 1.0
+            empathetic: Math.random(),
+            unempathetic: 0, // Will be calculated
+            encouraging: Math.random(),
+            discouraging: 0,
+            social: Math.random(),
+            antisocial: 0,
+            casual: Math.random(),
+            formal: 0,
+            honest: Math.random(),
+            sycophantic: 0,
+            funny: Math.random(),
+            serious: 0,
+            accurate: Math.random(),
+            hallucinatory: 0,
+            respectful: Math.random(),
+            toxic: 0
         };
         
-        console.log('Mock Persona Data:', mockData);
+        // Calculate complementary values so each pair sums to 1.0
+        mockData.unempathetic = 1 - mockData.empathetic;
+        mockData.discouraging = 1 - mockData.encouraging;
+        mockData.antisocial = 1 - mockData.social;
+        mockData.formal = 1 - mockData.casual;
+        mockData.sycophantic = 1 - mockData.honest;
+        mockData.serious = 1 - mockData.funny;
+        mockData.hallucinatory = 1 - mockData.accurate;
+        mockData.toxic = 1 - mockData.respectful;
+        
+        console.log('🧪 Mock Persona Data (API format with trait pairs 0-1):', mockData);
         renderPersonaChart(mockData);
     }, 800); // Simulate network delay
 }
