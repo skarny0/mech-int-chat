@@ -227,6 +227,7 @@
         // Test data sets matching API format
         
         // Real API data format - trait pairs where values sum to 1.0
+        // This example includes the "factual" trait that wasn't in the original predefined list
         const realAPIData = {
             empathetic: 0.8033,
             unempathetic: 0.1967,
@@ -240,10 +241,10 @@
             honest: 0.2424,
             funny: 0.7985,
             serious: 0.2015,
-            hallucinatory: 0.9827,
-            accurate: 0.0173,
-            toxic: 0.9048,
-            respectful: 0.0952
+            hallucinatory: 0.0173,
+            factual: 0.9827,  // New trait pair detected dynamically!
+            toxic: 0.1048,
+            respectful: 0.8952
         };
         
         // Mostly positive traits - dominant positive traits
@@ -414,6 +415,7 @@
         
         function testRandomize() {
             // Generate random trait pairs where values sum to 1.0
+            // Now includes more possible trait pairs to test dynamic detection
             const randomData = {};
             const traitPairs = [
                 ['empathetic', 'unempathetic'],
@@ -421,12 +423,15 @@
                 ['social', 'antisocial'],
                 ['honest', 'sycophantic'],
                 ['funny', 'serious'],
-                ['accurate', 'hallucinatory'],
-                ['respectful', 'toxic']
+                ['factual', 'hallucinatory'],
+                ['respectful', 'toxic'],
+                ['casual', 'formal'],
+                ['warm', 'cold'],
+                ['creative', 'conventional']
             ];
             
-            // Randomly select 4-6 trait pairs
-            const numPairs = 4 + Math.floor(Math.random() * 3);
+            // Randomly select 4-8 trait pairs to test dynamic detection
+            const numPairs = 4 + Math.floor(Math.random() * 5);
             const selectedPairs = traitPairs.sort(() => Math.random() - 0.5).slice(0, numPairs);
             
             selectedPairs.forEach(([trait1, trait2]) => {
@@ -436,6 +441,9 @@
                 randomData[trait1] = Math.round(value1 * 1000) / 1000;
                 randomData[trait2] = Math.round(value2 * 1000) / 1000;
             });
+            
+            console.log('🎲 Generated random data with', numPairs, 'trait pairs');
+            console.log('Pairs will be auto-detected from data (not predefined)');
             
             currentData = randomData;
             createPersonaSunburst(randomData, 'sunburstContainer', {

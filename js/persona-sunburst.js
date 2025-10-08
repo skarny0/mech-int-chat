@@ -477,61 +477,106 @@ function normalizeValue(value, scale = { min: -2, max: 2 }) {
 }
 
 /**
- * Trait pairs mapping: defines opposite trait pairs returned by the API
- * Each pair's values sum to 1.0, and only the dominant trait is displayed
+ * Dynamically detect trait pairs from API response
+ * Trait pairs are detected when two traits' values sum to approximately 1.0 (±0.01)
+ * This allows the visualization to work with any trait pairs the API returns
+ * @param {Object} personaData - Raw API data with traits
+ * @returns {Object} - Map of trait to its opposite trait
  */
-const TRAIT_PAIRS = {
-    empathetic: 'unempathetic',
-    unempathetic: 'empathetic',
-    encouraging: 'discouraging',
-    discouraging: 'encouraging',
-    social: 'antisocial',
-    antisocial: 'social',
-    casual: 'formal',
-    formal: 'casual',
-    honest: 'sycophantic',
-    sycophantic: 'honest',
-    funny: 'serious',
-    serious: 'funny',
-    accurate: 'hallucinatory',
-    hallucinatory: 'accurate',
-    respectful: 'toxic',
-    toxic: 'respectful'
-};
+function detectTraitPairs(personaData) {
+    const traitPairs = {};
+    const processed = new Set();
+    
+    const traits = Object.keys(personaData);
+    
+    // Check each trait against all other traits to find pairs that sum to ~1.0
+    for (let i = 0; i < traits.length; i++) {
+        const trait1 = traits[i];
+        if (processed.has(trait1)) continue;
+        
+        for (let j = i + 1; j < traits.length; j++) {
+            const trait2 = traits[j];
+            if (processed.has(trait2)) continue;
+            
+            const val1 = personaData[trait1];
+            const val2 = personaData[trait2];
+            const sum = val1 + val2;
+            
+            // If values sum to approximately 1.0 (±0.01), they're a pair
+            if (Math.abs(sum - 1.0) < 0.01) {
+                traitPairs[trait1] = trait2;
+                traitPairs[trait2] = trait1;
+                processed.add(trait1);
+                processed.add(trait2);
+                console.log(`🔗 Detected trait pair: ${trait1} (${val1.toFixed(3)}) ↔ ${trait2} (${val2.toFixed(3)}) = ${sum.toFixed(3)}`);
+                break;
+            }
+        }
+    }
+    
+    return traitPairs;
+}
 
 /**
- * Trait classification: defines which traits are inherently positive or negative
- * for categorization in the sunburst visualization
+ * Dynamically classify traits as positive or negative based on common patterns
+ * Uses heuristics to determine if a trait is generally positive or negative
+ * @param {string} traitName - Name of the trait
+ * @returns {boolean} - true if positive, false if negative
  */
-const TRAIT_CLASSIFICATION = {
-    // Positive traits (desirable characteristics)
-    empathetic: true,
-    encouraging: true,
-    social: true,
-    casual: true,
-    honest: true,
-    funny: true,
-    accurate: true,
-    respectful: true,
+function classifyTrait(traitName) {
+    const trait = traitName.toLowerCase();
     
-    // Negative traits (undesirable characteristics)
-    unempathetic: false,
-    discouraging: false,
-    antisocial: false,
-    formal: false,  // Context-dependent, but treating as neutral-negative
-    sycophantic: false,
-    serious: false, // Context-dependent, but treating as neutral-negative
-    hallucinatory: false,
-    toxic: false
-};
+    // Negative trait indicators (prefixes/contains)
+    const negativeIndicators = [
+        'un', 'dis', 'anti', 'in', // Negative prefixes
+        'toxic', 'harmful', 'rude', 'aggressive', 'hostile',
+        'sycophant', 'deceptive', 'dishonest', 'fake',
+        'hallucinat', 'inaccurate', 'wrong', 'false',
+        'boring', 'dull', 'cold', 'unfriendly'
+    ];
+    
+    // Positive trait indicators (contains)
+    const positiveIndicators = [
+        'empath', 'kind', 'caring', 'warm', 'friendly',
+        'encourag', 'support', 'help', 'positive',
+        'social', 'outgoing', 'engaging',
+        'honest', 'truthful', 'genuine', 'authentic',
+        'funny', 'humorous', 'witty', 'playful',
+        'accurate', 'correct', 'precise', 'factual',
+        'respectful', 'polite', 'courteous',
+        'creative', 'innovative', 'original',
+        'casual', 'relaxed', 'easy'
+    ];
+    
+    // Check for negative indicators
+    for (const indicator of negativeIndicators) {
+        if (trait.includes(indicator)) {
+            return false;
+        }
+    }
+    
+    // Check for positive indicators
+    for (const indicator of positiveIndicators) {
+        if (trait.includes(indicator)) {
+            return true;
+        }
+    }
+    
+    // Default to positive if no clear indicators (neutral traits)
+    return true;
+}
 
 /**
  * Filters trait pairs to keep only the dominant trait from each pair
- * Works with API format where trait pairs have complementary values (sum to 1.0)
+ * Dynamically detects pairs and filters - works with any traits the API returns
  * @param {Object} personaData - Raw API data with trait pairs
  * @returns {Object} - Filtered data with only dominant traits
  */
 function filterDominantTraits(personaData) {
+    // First, dynamically detect trait pairs from the data
+    const traitPairs = detectTraitPairs(personaData);
+    console.log('🔍 Detected trait pairs:', traitPairs);
+    
     const processed = new Set();
     const result = {};
     
@@ -543,8 +588,8 @@ function filterDominantTraits(personaData) {
             continue;
         }
         
-        // Check if this trait has a pair
-        const oppositeTrait = TRAIT_PAIRS[traitKey];
+        // Check if this trait has a pair (using dynamically detected pairs)
+        const oppositeTrait = traitPairs[traitName];
         
         if (oppositeTrait && personaData[oppositeTrait] !== undefined) {
             // This is a trait pair - keep the dominant one (higher value)
@@ -552,8 +597,10 @@ function filterDominantTraits(personaData) {
             
             if (value >= oppositeValue) {
                 result[traitName] = value;
+                console.log(`  ✓ Keeping ${traitName} (${value.toFixed(3)}) over ${oppositeTrait} (${oppositeValue.toFixed(3)})`);
             } else {
                 result[oppositeTrait] = oppositeValue;
+                console.log(`  ✓ Keeping ${oppositeTrait} (${oppositeValue.toFixed(3)}) over ${traitName} (${value.toFixed(3)})`);
             }
             
             // Mark both as processed
@@ -563,6 +610,7 @@ function filterDominantTraits(personaData) {
             // Not a paired trait, keep it as-is
             result[traitName] = value;
             processed.add(traitKey);
+            console.log(`  ℹ️ Non-paired trait: ${traitName} (${value.toFixed(3)})`);
         }
     }
     
@@ -571,20 +619,18 @@ function filterDominantTraits(personaData) {
 
 /**
  * Gets the effective trait name and polarity based on the trait
+ * Dynamically classifies traits using heuristics
  * @param {string} traitName - Original trait name from API
  * @param {number} value - Trait value (0-1 range)
  * @returns {Object} - { name, isPositive, absValue }
  */
 function getEffectiveTrait(traitName, value) {
-    const traitKey = traitName.toLowerCase();
+    // Use dynamic classification instead of predefined list
+    const isPositive = classifyTrait(traitName);
     
-    // Check if trait is in our classification
-    const isPositive = TRAIT_CLASSIFICATION[traitKey];
-    
-    // If trait not in classification, use default (treat as positive)
     return {
         name: formatTraitName(traitName),
-        isPositive: isPositive !== undefined ? isPositive : true,
+        isPositive: isPositive,
         absValue: value
     };
 }
@@ -636,8 +682,8 @@ if (typeof module !== 'undefined' && module.exports) {
         getDefaultColor,
         getEffectiveTrait,
         formatTraitName,
-        TRAIT_PAIRS,
-        TRAIT_CLASSIFICATION
+        detectTraitPairs,
+        classifyTrait
     };
 }
 
