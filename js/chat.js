@@ -225,6 +225,37 @@ function initializeDynamicInterface() {
         // Always start with Check/Test Persona buttons hidden
         $('.persona-check-buttons').hide();
 
+        // Character counter functionality
+        const MIN_CHAR_LENGTH = 200;
+        const urlParams = new URLSearchParams(window.location.search);
+        const shortenPrompt = urlParams.get('shortenPrompt') === 'true';
+        
+        const updateCharacterCounter = function() {
+            const currentLength = systemPromptInput.val().length;
+            $('#charCount').text(currentLength);
+            
+            // Update color based on whether minimum is met (or bypassed)
+            if (shortenPrompt || currentLength >= MIN_CHAR_LENGTH) {
+                $('#characterCounter').css('color', 'var(--success-color, #28a745)');
+                $('#submitPromptBtn').prop('disabled', false);
+            } else {
+                $('#characterCounter').css('color', 'var(--text-secondary)');
+                $('#submitPromptBtn').prop('disabled', true);
+            }
+        };
+        
+        // Update counter text if bypass is enabled
+        if (shortenPrompt) {
+            $('#characterCounter').html('<span id="charCount">0</span> characters (minimum bypassed)');
+            console.log('⏭️ Shortened prompt mode: Bypassing 200 character minimum');
+        }
+        
+        // Initialize character counter on page load
+        updateCharacterCounter();
+        
+        // Update character counter on input
+        systemPromptInput.on('input', updateCharacterCounter);
+
         // Check if survey has been completed
         const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
         console.log('🔍 Survey completion status on load:', surveyCompleted);
@@ -264,9 +295,14 @@ function initializeDynamicInterface() {
                 return;
             }
             
+            // Check minimum length unless bypassed
+            if (!shortenPrompt && systemPrompt.length < MIN_CHAR_LENGTH) {
+                alert(`Please enter at least ${MIN_CHAR_LENGTH} characters. Current length: ${systemPrompt.length}`);
+                return;
+            }
+            
             // Check if survey was already completed OR if skipSurvey mode is on
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
-            const urlParams = new URLSearchParams(window.location.search);
             const skipSurvey = urlParams.get('skipSurvey') === 'true';
             
             if (surveyCompleted || skipSurvey) {
@@ -307,14 +343,14 @@ function initializeDynamicInterface() {
 
         // Reset configuration
         resetConfig.on('click', async function() {
-            const defaultPrompt = 'You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.';
-            systemPromptInput.val(defaultPrompt);
+            systemPromptInput.val('');
+            updateCharacterCounter(); // Update the counter to show 0
             
             // Log this reset action to Firebase
             const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
             await writeRealtimeDatabase(promptLogPath, {
-                prompt: defaultPrompt,
-                action: 'reset_to_default',
+                prompt: '',
+                action: 'reset_to_empty',
                 timestamp: new Date().toISOString()
             });
             console.log('✅ System prompt reset logged');
