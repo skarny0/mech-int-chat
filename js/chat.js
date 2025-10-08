@@ -19,7 +19,13 @@ import {
 console.log("Firebase UserId=" + firebaseUserId);
 
 // Write a simple test case to the database
-const studyId = 'chat-study';
+let studyId;
+if (DEBUG){
+    studyId = 'pilot-oct8-debug';
+} else {
+    studyId = 'pilot-oct8';
+}
+
 const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
 const testValue = {
     message: "Hello from chat.js!",
