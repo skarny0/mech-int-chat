@@ -203,21 +203,31 @@
             console.log('Display Mode:', useSunburstDisplay() ? 'Sunburst' : 'Bar Graph');
         }
         
-        // Test data sets
+        // Test data sets - trait pairs where values sum to 1.0
         const testData1 = {
-            empathy: 0.85,
-            sociality: 0.42,
-            supportiveness: 1.2,
-            kindness: 0.67,
-            creativity: 1.5
+            empathetic: 0.85,
+            unempathetic: 0.15,
+            social: 0.72,
+            antisocial: 0.28,
+            encouraging: 0.88,
+            discouraging: 0.12,
+            honest: 0.67,
+            sycophantic: 0.33,
+            respectful: 0.91,
+            toxic: 0.09
         };
         
         const testData2 = {
-            empathy: -0.10697905880911046,
-            sociality: 0.07528872169550496,
-            supportiveness: -0.0373792765073818,
-            sycophancy: 0.13748006791357684,
-            toxicity: -0.28841338438788994
+            empathetic: 0.8033,
+            unempathetic: 0.1967,
+            social: 0.6984,
+            antisocial: 0.3016,
+            encouraging: 0.6718,
+            discouraging: 0.3282,
+            honest: 0.2424,
+            sycophantic: 0.7576,
+            respectful: 0.0952,
+            toxic: 0.9048
         };
         
         function testBarGraph() {

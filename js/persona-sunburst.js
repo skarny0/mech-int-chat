@@ -3,14 +3,18 @@
 //
 // DATA FORMATS SUPPORTED:
 //
-// 1. Flat Format (automatically grouped by Positive/Negative semantic traits):
+// 1. API Format (trait pairs with complementary values that sum to 1.0):
 //    {
-//      empathy: -0.107,        // Negative value → "Non-empathic" (negative trait)
-//      sociality: 0.075,       // Positive value → "Sociality" (positive trait)
-//      supportiveness: -0.037, // Negative value → "Unsupportive" (negative trait)
-//      sycophancy: 0.137,      // Positive value → "Sycophancy" (negative trait)
-//      toxicity: -0.288        // Negative value → "Non-toxic" (positive trait)
+//      empathetic: 0.803,     // Trait value (0-1 range)
+//      unempathetic: 0.197,   // Opposite trait (empathetic + unempathetic = 1.0)
+//      encouraging: 0.672,    // Trait value
+//      discouraging: 0.328,   // Opposite trait (encouraging + discouraging = 1.0)
+//      social: 0.698,         // Trait value
+//      antisocial: 0.302,     // Opposite trait (social + antisocial = 1.0)
+//      toxic: 0.105,          // Negative trait value
+//      respectful: 0.895      // Opposite trait (toxic + respectful = 1.0)
 //    }
+//    Note: Only the dominant trait (higher value) from each pair is displayed
 //
 // 2. Custom Categories Format:
 //    {
@@ -20,19 +24,18 @@
 //          color: "#66BB6A",  // optional
 //          startAngle: 0,     // optional
 //          endAngle: 2.094,   // optional
-//          scale: { min: -2, max: 2 },  // optional
 //          items: [
-//            { name: "Trait 1", value: 1.5 },
-//            { name: "Trait 2", value: -0.3 }
+//            { name: "Trait 1", value: 0.8 },
+//            { name: "Trait 2", value: 0.3 }
 //          ]
 //        }
 //      ]
 //    }
 //
-// TRAIT POLARITY LOGIC:
-// - Positive traits (empathy, sociality) → negative values become antonyms (non-empathic, antisocial)
-// - Negative traits (toxicity, sycophancy) → negative values become positive antonyms (non-toxic)
-// - Categories: "Positive Traits" (green) vs "Negative Traits" (red)
+// TRAIT CLASSIFICATION:
+// - Positive traits (empathetic, encouraging, social, honest, etc.) → Green category
+// - Negative traits (toxic, sycophantic, hallucinatory, etc.) → Red category
+// - Values range from 0-1 (inactive traits marked with -1.0 are filtered out)
 //
 // VISUALIZATION DETAILS:
 // - Inner ring: Colored categories with curved labels (Green=Positive, Red=Negative)
@@ -207,8 +210,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         category.items.forEach((item, index) => {
             const itemStartAngle = category.startAngle + index * itemAngle;
             const itemEndAngle = itemStartAngle + itemAngle;
-            // Use raw values (0-2 range) directly for extension
-            const extension = (item.value / 2) * (maxOuterRadius - middleRadius);
+            // Use raw values (0-1 range) directly for extension
+            const extension = item.value * (maxOuterRadius - middleRadius);
             const outerRadius = middleRadius + extension;
 
             // Item arc
@@ -388,6 +391,10 @@ function transformToCategories(personaData) {
         return categories;
     }
 
+    // First, filter to keep only dominant traits from each pair
+    const filteredData = filterDominantTraits(personaData);
+    console.log('🔍 Filtered dominant traits:', filteredData);
+    
     // Group traits by positive vs negative semantic valuation
     const categoryMap = new Map();
     
@@ -405,18 +412,18 @@ function transformToCategories(personaData) {
     });
 
     // Process each trait
-    for (const [key, value] of Object.entries(personaData)) {
-        // Get effective trait (handles antonyms for negative values)
+    for (const [key, value] of Object.entries(filteredData)) {
+        // Get effective trait classification
         const effectiveTrait = getEffectiveTrait(key, value);
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
         
-        console.log(`  ${effectiveTrait.name}: API=${value.toFixed(3)}`);
+        console.log(`  ${effectiveTrait.name}: ${value.toFixed(3)} (${categoryName})`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
-            value: effectiveTrait.absValue, // Use raw absolute value directly
+            value: effectiveTrait.absValue, // Use raw value directly (0-1 range)
             rawValue: value,
             originalTrait: key
         });
@@ -459,94 +466,115 @@ function normalizeValue(value, scale = { min: -2, max: 2 }) {
 }
 
 /**
- * Trait polarity mapping: defines which traits are inherently positive or negative
- * and their antonyms
- * Limited to traits actually returned by the persona-vector API
+ * Trait pairs mapping: defines opposite trait pairs returned by the API
+ * Each pair's values sum to 1.0, and only the dominant trait is displayed
  */
-const TRAIT_POLARITY = {
-    // Inherently positive traits (having them is good)
-    empathy: { 
-        positive: true, 
-        antonym: 'non-empathic',
-        antonymPositive: false 
-    },
-    sociality: { 
-        positive: true, 
-        antonym: 'antisocial',
-        antonymPositive: false 
-    },
-    supportiveness: { 
-        positive: true, 
-        antonym: 'unsupportive',
-        antonymPositive: false 
-    },
-    humor: { 
-        positive: true, 
-        antonym: 'humorless',
-        antonymPositive: false 
-    },
-    warmth: { 
-        positive: true, 
-        antonym: 'cold',
-        antonymPositive: false 
-    },
-    
-    // Inherently negative traits (having them is bad)
-    toxicity: { 
-        positive: false, 
-        antonym: 'non-toxic',
-        antonymPositive: true 
-    },
-    sycophancy: { 
-        positive: false, 
-        antonym: 'non-sycophantic',
-        antonymPositive: true 
-    },
-    deceptiveness: { 
-        positive: false, 
-        antonym: 'truthful',
-        antonymPositive: true 
-    },
-    hallucination: { 
-        positive: false, 
-        antonym: 'accurate',
-        antonymPositive: true 
-    }
+const TRAIT_PAIRS = {
+    empathetic: 'unempathetic',
+    unempathetic: 'empathetic',
+    encouraging: 'discouraging',
+    discouraging: 'encouraging',
+    social: 'antisocial',
+    antisocial: 'social',
+    casual: 'formal',
+    formal: 'casual',
+    honest: 'sycophantic',
+    sycophantic: 'honest',
+    funny: 'serious',
+    serious: 'funny',
+    accurate: 'hallucinatory',
+    hallucinatory: 'accurate',
+    respectful: 'toxic',
+    toxic: 'respectful'
 };
 
 /**
- * Gets the effective trait name and polarity based on the value
- * @param {string} traitName - Original trait name
- * @param {number} value - Trait value
+ * Trait classification: defines which traits are inherently positive or negative
+ * for categorization in the sunburst visualization
+ */
+const TRAIT_CLASSIFICATION = {
+    // Positive traits (desirable characteristics)
+    empathetic: true,
+    encouraging: true,
+    social: true,
+    casual: true,
+    honest: true,
+    funny: true,
+    accurate: true,
+    respectful: true,
+    
+    // Negative traits (undesirable characteristics)
+    unempathetic: false,
+    discouraging: false,
+    antisocial: false,
+    formal: false,  // Context-dependent, but treating as neutral-negative
+    sycophantic: false,
+    serious: false, // Context-dependent, but treating as neutral-negative
+    hallucinatory: false,
+    toxic: false
+};
+
+/**
+ * Filters trait pairs to keep only the dominant trait from each pair
+ * Works with API format where trait pairs have complementary values (sum to 1.0)
+ * @param {Object} personaData - Raw API data with trait pairs
+ * @returns {Object} - Filtered data with only dominant traits
+ */
+function filterDominantTraits(personaData) {
+    const processed = new Set();
+    const result = {};
+    
+    for (const [traitName, value] of Object.entries(personaData)) {
+        const traitKey = traitName.toLowerCase();
+        
+        // Skip if already processed as part of a pair
+        if (processed.has(traitKey)) {
+            continue;
+        }
+        
+        // Check if this trait has a pair
+        const oppositeTrait = TRAIT_PAIRS[traitKey];
+        
+        if (oppositeTrait && personaData[oppositeTrait] !== undefined) {
+            // This is a trait pair - keep the dominant one (higher value)
+            const oppositeValue = personaData[oppositeTrait];
+            
+            if (value >= oppositeValue) {
+                result[traitName] = value;
+            } else {
+                result[oppositeTrait] = oppositeValue;
+            }
+            
+            // Mark both as processed
+            processed.add(traitKey);
+            processed.add(oppositeTrait.toLowerCase());
+        } else {
+            // Not a paired trait, keep it as-is
+            result[traitName] = value;
+            processed.add(traitKey);
+        }
+    }
+    
+    return result;
+}
+
+/**
+ * Gets the effective trait name and polarity based on the trait
+ * @param {string} traitName - Original trait name from API
+ * @param {number} value - Trait value (0-1 range)
  * @returns {Object} - { name, isPositive, absValue }
  */
 function getEffectiveTrait(traitName, value) {
-    const traitKey = traitName.toLowerCase().replace(/[^a-z]/g, '');
-    const traitInfo = TRAIT_POLARITY[traitKey];
+    const traitKey = traitName.toLowerCase();
     
-    // If trait not in mapping, use default behavior
-    if (!traitInfo) {
-        return {
-            name: traitName,
-            isPositive: value >= 0,
-            absValue: Math.abs(value)
-        };
-    }
+    // Check if trait is in our classification
+    const isPositive = TRAIT_CLASSIFICATION[traitKey];
     
-    // If value is positive, use original trait
-    if (value >= 0) {
-        return {
-            name: formatTraitName(traitName),
-            isPositive: traitInfo.positive,
-            absValue: value
-        };
-    }
-    
-    // If value is negative, use antonym
+    // If trait not in classification, use default (treat as positive)
     return {
-        name: formatTraitName(traitInfo.antonym),
-        isPositive: traitInfo.antonymPositive,
-        absValue: Math.abs(value)
+        name: formatTraitName(traitName),
+        isPositive: isPositive !== undefined ? isPositive : true,
+        absValue: value
     };
 }
 
@@ -592,11 +620,13 @@ if (typeof module !== 'undefined' && module.exports) {
         createPersonaSunburst,
         updatePersonaSunburst,
         transformToCategories,
+        filterDominantTraits,
         normalizeValue,
         getDefaultColor,
         getEffectiveTrait,
         formatTraitName,
-        TRAIT_POLARITY
+        TRAIT_PAIRS,
+        TRAIT_CLASSIFICATION
     };
 }
 

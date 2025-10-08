@@ -170,10 +170,10 @@
         <h1>🌞 Persona Vector Sunburst Visualization Test</h1>
         
         <div class="description">
-            <p>Interactive test page for the D3.js two-ring sunburst visualization with <strong>trait polarity handling</strong>.</p>
+            <p>Interactive test page for the D3.js two-ring sunburst visualization with <strong>trait pair filtering</strong>.</p>
             <p><strong>Green Ring:</strong> Positive Traits • <strong>Red Ring:</strong> Negative Traits</p>
-            <p><strong>Negative activations</strong> automatically convert to antonyms (e.g., -empathy → "Non-Empathic")</p>
-            <p>Hover over segments to see details including original trait names.</p>
+            <p><strong>API Format:</strong> Trait pairs sum to 1.0 (e.g., empathetic: 0.8, unempathetic: 0.2)</p>
+            <p>Only the dominant trait (higher value) from each pair is displayed.</p>
         </div>
         
         <div class="test-buttons">
@@ -200,18 +200,20 @@
         <div id="sunburstContainer"></div>
         
         <div class="info-box">
-            <h3>🔄 How Trait Polarity Works</h3>
+            <h3>🔄 How Trait Pair Filtering Works</h3>
             <ul>
-                <li><strong>Positive Traits</strong> (empathy, sociality, kindness, etc.):
-                    <br>• <span class="positive-label">Positive activation</span> → stays as <span class="code">Empathy</span> (<span class="positive-label">POSITIVE</span>)
-                    <br>• <span class="negative-label">Negative activation</span> → becomes <span class="code">Non-Empathic</span> (<span class="negative-label">NEGATIVE</span>)
+                <li><strong>API Format:</strong> Returns trait pairs where values sum to 1.0
+                    <br>• Example: <span class="code">{empathetic: 0.8, unempathetic: 0.2}</span>
                 </li>
-                <li><strong>Negative Traits</strong> (toxicity, sycophancy, aggression, etc.):
-                    <br>• <span class="positive-label">Positive activation</span> → stays as <span class="code">Toxicity</span> (<span class="negative-label">NEGATIVE</span>)
-                    <br>• <span class="negative-label">Negative activation</span> → becomes <span class="code">Non-Toxic</span> (<span class="positive-label">POSITIVE</span>)
+                <li><strong>Filtering Logic:</strong> Only the dominant trait (higher value) is displayed
+                    <br>• <span class="code">empathetic: 0.8</span> vs <span class="code">unempathetic: 0.2</span> → shows <span class="positive-label">Empathetic (0.8)</span>
+                    <br>• <span class="code">toxic: 0.7</span> vs <span class="code">respectful: 0.3</span> → shows <span class="negative-label">Toxic (0.7)</span>
                 </li>
-                <li><strong>Example:</strong> <span class="code">sociality: -0.5</span> transforms to <span class="code">Antisocial: 0.5</span> in the negative traits ring</li>
-                <li>Check the browser console to see all transformations logged!</li>
+                <li><strong>Categorization:</strong>
+                    <br>• <span class="positive-label">Positive traits</span> (empathetic, encouraging, honest, etc.) → Green ring
+                    <br>• <span class="negative-label">Negative traits</span> (toxic, sycophantic, hallucinatory, etc.) → Red ring
+                </li>
+                <li>Check the browser console to see all trait pairs and filtering!</li>
             </ul>
         </div>
         
@@ -222,58 +224,79 @@
     </div>
     
     <script>
-        // Test data sets with trait polarity
+        // Test data sets matching API format
         
-        // Real API data - demonstrates negative activation handling
+        // Real API data format - trait pairs where values sum to 1.0
         const realAPIData = {
-            empathy: -0.10697905880911046,      // Negative → "Non-Empathic" (negative trait)
-            sociality: 0.07528872169550496,     // Positive → "Sociality" (positive trait)
-            supportiveness: -0.0373792765073818, // Negative → "Unsupportive" (negative trait)
-            sycophancy: 0.13748006791357684,    // Positive → "Sycophancy" (negative trait)
-            toxicity: -0.28841338438788994      // Negative → "Non-Toxic" (positive trait)
+            empathetic: 0.8033,
+            unempathetic: 0.1967,
+            encouraging: 0.6718,
+            discouraging: 0.3282,
+            social: 0.6984,
+            antisocial: 0.3016,
+            formal: 0.0481,
+            casual: 0.9519,
+            sycophantic: 0.7576,
+            honest: 0.2424,
+            funny: 0.7985,
+            serious: 0.2015,
+            hallucinatory: 0.9827,
+            accurate: 0.0173,
+            toxic: 0.9048,
+            respectful: 0.0952
         };
         
-        // Mostly positive traits with varied activations
+        // Mostly positive traits - dominant positive traits
         const positiveTraitsData = {
-            empathy: 0.85,           // Positive → "Empathy" (positive)
-            kindness: 1.2,           // Positive → "Kindness" (positive)
-            compassion: 0.65,        // Positive → "Compassion" (positive)
-            honesty: 1.5,            // Positive → "Honesty" (positive)
-            supportiveness: 0.95,    // Positive → "Supportiveness" (positive)
-            sociality: 0.45,         // Positive → "Sociality" (positive)
-            trustworthiness: 1.1     // Positive → "Trustworthiness" (positive)
+            empathetic: 0.85,
+            unempathetic: 0.15,
+            encouraging: 0.92,
+            discouraging: 0.08,
+            social: 0.78,
+            antisocial: 0.22,
+            honest: 0.88,
+            sycophantic: 0.12,
+            funny: 0.65,
+            serious: 0.35,
+            accurate: 0.91,
+            hallucinatory: 0.09,
+            respectful: 0.94,
+            toxic: 0.06
         };
         
-        // Mostly negative traits with varied activations
+        // Mostly negative traits - dominant negative traits
         const negativeTraitsData = {
-            toxicity: 0.95,          // Positive → "Toxicity" (negative)
-            sycophancy: 1.2,         // Positive → "Sycophancy" (negative)
-            aggression: 0.75,        // Positive → "Aggression" (negative)
-            hostility: 0.55,         // Positive → "Hostility" (negative)
-            manipulation: 1.1,       // Positive → "Manipulation" (negative)
-            empathy: -0.85,          // Negative → "Non-Empathic" (negative)
-            kindness: -0.65          // Negative → "Unkind" (negative)
+            toxic: 0.95,
+            respectful: 0.05,
+            sycophantic: 0.88,
+            honest: 0.12,
+            hallucinatory: 0.75,
+            accurate: 0.25,
+            unempathetic: 0.82,
+            empathetic: 0.18,
+            discouraging: 0.71,
+            encouraging: 0.29,
+            antisocial: 0.65,
+            social: 0.35
         };
         
-        // Mixed polarity - demonstrates full transformation logic
+        // Mixed traits - balanced positive and negative traits
         const mixedPolarityData = {
-            // Positive traits with positive activation → positive category
-            empathy: 0.8,
-            kindness: 1.2,
-            sociality: 0.6,
+            // Some positive traits dominant
+            empathetic: 0.80,
+            unempathetic: 0.20,
+            encouraging: 0.72,
+            discouraging: 0.28,
+            social: 0.60,
+            antisocial: 0.40,
             
-            // Positive traits with negative activation → negative category (becomes antonym)
-            supportiveness: -0.7,    // → "Unsupportive"
-            compassion: -0.9,        // → "Uncompassionate"
-            honesty: -0.5,           // → "Dishonest"
-            
-            // Negative traits with positive activation → negative category
-            toxicity: 0.9,           // → "Toxicity"
-            sycophancy: 1.1,         // → "Sycophancy"
-            
-            // Negative traits with negative activation → positive category (becomes antonym)
-            aggression: -1.2,        // → "Non-Aggressive"
-            hostility: -0.8          // → "Non-Hostile"
+            // Some negative traits dominant
+            toxic: 0.55,
+            respectful: 0.45,
+            sycophantic: 0.68,
+            honest: 0.32,
+            hallucinatory: 0.52,
+            accurate: 0.48
         };
         
         // Custom categories data (bypasses automatic polarity)
@@ -390,18 +413,28 @@
         }
         
         function testRandomize() {
-            // Generate random values with mix of positive and negative traits
+            // Generate random trait pairs where values sum to 1.0
             const randomData = {};
-            const traits = ['empathy', 'sociality', 'supportiveness', 'toxicity', 'sycophancy', 
-                          'kindness', 'aggression', 'compassion', 'hostility'];
+            const traitPairs = [
+                ['empathetic', 'unempathetic'],
+                ['encouraging', 'discouraging'],
+                ['social', 'antisocial'],
+                ['honest', 'sycophantic'],
+                ['funny', 'serious'],
+                ['accurate', 'hallucinatory'],
+                ['respectful', 'toxic']
+            ];
             
-            // Randomly select 5-7 traits
-            const numTraits = 5 + Math.floor(Math.random() * 3);
-            const selectedTraits = traits.sort(() => Math.random() - 0.5).slice(0, numTraits);
+            // Randomly select 4-6 trait pairs
+            const numPairs = 4 + Math.floor(Math.random() * 3);
+            const selectedPairs = traitPairs.sort(() => Math.random() - 0.5).slice(0, numPairs);
             
-            selectedTraits.forEach(trait => {
-                // Random value between -2 and 2
-                randomData[trait] = (Math.random() * 4) - 2;
+            selectedPairs.forEach(([trait1, trait2]) => {
+                // Random value between 0 and 1 for first trait
+                const value1 = Math.random();
+                const value2 = 1 - value1; // Complement to sum to 1.0
+                randomData[trait1] = Math.round(value1 * 1000) / 1000;
+                randomData[trait2] = Math.round(value2 * 1000) / 1000;
             });
             
             currentData = randomData;

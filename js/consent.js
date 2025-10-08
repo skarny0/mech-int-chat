@@ -45,7 +45,7 @@ This file should contain static experimental metadata such as:
 var EXPERIMENT_SUMMARY = `
     This experiment tests how people shape AIs such as ChatGPT's behavior. 
     To test this, we built an interactive experiment that requires users to create AI characters using system prompts.
-    We want to see how users understand the consequences of their system prompts and see if there are ways to help inform them of these AIs prompts priot to interaction.
+    We want to see how users understand the consequences of their system prompts and see if there are ways to help inform them of these AIs prompts prior to interaction.
 `;
 
 /*
