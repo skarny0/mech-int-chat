@@ -200,16 +200,13 @@ $(document).ready(function (){
 
     function submitConsent() {
         /*
-            Consent has been submitted and we can move onto the next page.
-
-            Hide all consent page content and activate (show) instruction
-            page content.
+            Consent has been submitted and we can move onto the instructions page.
         */
         // Hide Consent
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);
         
-        // Show Instructions
+        // Show Instructions (the full overview page)
         $("#instructions-header").attr("hidden", true);
         $("#instructions-main-content").attr("hidden", false);
         $('#instructions-main-content').load("html/instructions.html");

@@ -2,6 +2,9 @@
     <head>
         <link rel="stylesheet" href="css/consent.css">
         <script src="js/instructions.js" type="module"></script>
+        <script>
+            console.log('📄 Instructions.html loaded - Version: Phase 0 Only (No Progress Dots) - ' + new Date().toISOString());
+        </script>
         <style>
             .instruction-phase {
                 display: none;
@@ -40,8 +43,8 @@
     </head>
     <body>
         <div class="col-12 trialbox">
-            <!-- Header -->
-            <div class="row">
+            <!-- Header (hidden - using only Phase 0 content) -->
+            <div class="row" style="display: none;">
                 <div class="col-md-2"></div>
                 <div class="col-md-8">
                     <!-- <div class="block-text">
@@ -52,22 +55,7 @@
                 <div class="col-md-2"></div>
             </div>
 
-            <!-- Progress Indicator -->
-            <div class="row">
-                <div class="col-md-2"></div>
-                <div class="col-md-8">
-                    <div class="progress-indicator">
-                        <div class="progress-dot" data-phase="0"></div>
-                        <div class="progress-dot" data-phase="1"></div>
-                        <div class="progress-dot" data-phase="2"></div>
-                        <div class="progress-dot" data-phase="3"></div>
-                        <div class="progress-dot" data-phase="4"></div>
-                        <div class="progress-dot" data-phase="5"></div>
-                        <div class="progress-dot" data-phase="6"></div>
-                    </div>
-                </div>
-                <div class="col-md-2"></div>
-            </div>
+            <!-- Progress Indicator removed - only showing Phase 0 overview -->
 
             <!-- Instruction Phases Container -->
             <div class="row">
@@ -102,8 +90,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 1: Avatar Selection -->
-                        <div class="instruction-phase" data-phase="1">
+                        <!-- Phase 1: Avatar Selection (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="1" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 1: Avatar Selection</b></h4>
                                 <p>
@@ -123,8 +111,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 2: System Prompt Configuration -->
-                        <div class="instruction-phase" data-phase="2">
+                        <!-- Phase 2: System Prompt Configuration (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="2" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 2: System Prompt Configuration</b></h4>
                                 <p>
@@ -156,8 +144,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 3: Assessment Survey -->
-                        <div class="instruction-phase" data-phase="3">
+                        <!-- Phase 3: Assessment Survey (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="3" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 3: Assessment Survey</b></h4>
                                 <p>
@@ -186,8 +174,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 4: Persona Visualization -->
-                        <div class="instruction-phase" data-phase="4">
+                        <!-- Phase 4: Persona Visualization (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="4" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 4: Persona Visualization</b></h4>
                                 <p>
@@ -213,8 +201,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 5: Chat Interface -->
-                        <div class="instruction-phase" data-phase="5">
+                        <!-- Phase 5: Chat Interface (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="5" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 5: Chat Interface</b></h4>
                                 <p>
@@ -245,8 +233,8 @@
                             </div>
                         </div>
 
-                        <!-- Phase 6: Post-Interaction Survey & Reminders -->
-                        <div class="instruction-phase" data-phase="6">
+                        <!-- Phase 6: Post-Interaction Survey & Reminders (hidden - kept for future use) -->
+                        <div class="instruction-phase" data-phase="6" style="display: none;">
                             <div class="highlight">
                                 <h4><b>Part 6: Post-Interaction Survey</b></h4>
                                 <p>
@@ -286,8 +274,8 @@
 
                     <!-- Navigation Buttons -->
                     <div class="phase-navigation" style="justify-content: center;">
-                        <button class="btn btn-primary" id="next-phase-btn" style="flex: 1; max-width: 400px;">
-                            Next →
+                        <button class="btn btn-primary btn-lg" id="next-phase-btn" style="flex: 1; max-width: 400px;">
+                            I Understand - Start Study →
                         </button>
                         <button class="btn btn-primary" id="proceed-to-task" style="flex: 1; max-width: 400px; display: none;">
                             I Understand - Start Study →

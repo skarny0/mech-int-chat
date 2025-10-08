@@ -51,7 +51,7 @@
                     </button>
                 </div>
                 <!-- Persona Check Buttons - Hidden, survey triggered automatically -->
-                <div class="persona-check-buttons" style="display: none;">
+                <div class="persona-check-buttons" style="display: none; gap: 0.5rem; margin-top: 0.75rem; flex-shrink: 0;">
                     <button type="button" class="btn btn-secondary" id="testPersonaBtn" title="Test with simulated data" style="flex: 1;">
                         <i class="fas fa-flask"></i> Test Persona
                     </button>
@@ -715,6 +715,71 @@
                     </div>
                 </div>
         </div>
+    </div>
+</div>
+
+<!-- ====================================== -->
+<!-- INSTRUCTION MODALS (shown at each phase) -->
+<!-- ====================================== -->
+
+<!-- Avatar Selection Instruction Modal -->
+<div id="avatarInstructionModal" class="instruction-modal" style="display: none;">
+    <div class="instruction-modal-overlay"></div>
+    <div class="instruction-modal-content">
+        <h4>Part 1: Choose Your Avatar</h4>
+        <p>Select an avatar character that will represent your AI assistant throughout the chat.</p>
+        <p>Click on any avatar to select it, then click "Continue with Selected Avatar" to proceed.</p>
+        <button class="btn btn-primary" onclick="window.dismissInstructionModal('avatar')">Got it!</button>
+    </div>
+</div>
+
+<!-- System Prompt Instruction Modal -->
+<div id="promptInstructionModal" class="instruction-modal" style="display: none;">
+    <div class="instruction-modal-overlay"></div>
+    <div class="instruction-modal-content">
+        <h4>Part 2: System Prompt Configuration</h4>
+        <p>Write instructions that define how your AI should behave and what personality it should have.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+            <li>"You are a helpful and friendly assistant who loves to joke around"</li>
+            <li>"You are a professional assistant who is formal and concise"</li>
+        </ul>
+        <p>Write at least 200 characters, then click "Submit Prompt".</p>
+        <button class="btn btn-primary" onclick="window.dismissInstructionModal('prompt')">Got it!</button>
+    </div>
+</div>
+
+<!-- Survey Instruction Modal -->
+<div id="surveyInstructionModal" class="instruction-modal" style="display: none;">
+    <div class="instruction-modal-overlay"></div>
+    <div class="instruction-modal-content">
+        <h4>Part 3: Assessment Survey</h4>
+        <p>Answer questions about your expectations for the AI you configured.</p>
+        <p><strong>Three phases:</strong></p>
+        <ul>
+            <li>Initial questions about predictability</li>
+            <li>Predict personality trait levels (0-10 scale)</li>
+            <li>Rate your trust in the model</li>
+        </ul>
+        <p>Answer honestly based on what you expect from your system prompt.</p>
+        <button class="btn btn-primary" onclick="window.dismissInstructionModal('survey')">Got it!</button>
+    </div>
+</div>
+
+<!-- Chat Instruction Modal -->
+<div id="chatInstructionModal" class="instruction-modal" style="display: none;">
+    <div class="instruction-modal-overlay"></div>
+    <div class="instruction-modal-content">
+        <h4>Part 4: Chat Interface</h4>
+        <p>Chat with the AI assistant you configured. Pay attention to how its personality matches your system prompt.</p>
+        <p><strong>Tips:</strong></p>
+        <ul>
+            <li>Ask questions naturally</li>
+            <li>Try different types of questions</li>
+            <li>Press Enter to send, Shift+Enter for new lines</li>
+        </ul>
+        <p>A timer will track your interaction. A survey will appear when complete.</p>
+        <button class="btn btn-primary" onclick="window.dismissInstructionModal('chat')">Got it!</button>
     </div>
 </div>
 

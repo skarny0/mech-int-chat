@@ -99,6 +99,17 @@ function initializeDynamicInterface() {
     const startChatBtn = $('#startChatBtn');
     const backToConfigBtn = $('#backToConfigBtn');
 
+    // Check for debug mode - clear instruction state to show modals fresh
+    const urlParams = new URLSearchParams(window.location.search);
+    const debugMode = urlParams.get('debug') === 'true';
+    const skipSurvey = urlParams.get('skipSurvey') === 'true';
+    
+    if (debugMode && !skipSurvey) {
+        // In debug mode (but not skipSurvey), clear instruction state so modals show again
+        sessionStorage.removeItem('instructionsShown');
+        console.log('🐛 Debug mode: Cleared instruction modal state');
+    }
+    
     // Initialize avatar selection first
     initializeAvatarSelection();
     
@@ -107,6 +118,11 @@ function initializeDynamicInterface() {
     
     // Initialize chat functionality
     initializeChatFunctionality();
+    
+    // Show avatar instruction modal when interface loads
+    setTimeout(() => {
+        window.showInstructionModal('avatar');
+    }, 500);
 
     function initializeAvatarSelection() {
         const avatarGrid = $('.avatar-grid');
@@ -706,6 +722,9 @@ function initializeDynamicInterface() {
         systemPromptInterface.hide();
         chatInterface.show();
         
+        // Show chat instruction modal
+        window.showInstructionModal('chat');
+        
         // Update initial message avatar with selected avatar
         const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
         if (selectedAvatar) {
@@ -720,6 +739,9 @@ function initializeDynamicInterface() {
         avatarSelectionInterface.hide();
         chatInterface.hide();
         systemPromptInterface.show();
+        
+        // Show prompt instruction modal
+        window.showInstructionModal('prompt');
         
         // Display selected avatar in header
         const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
@@ -1123,6 +1145,9 @@ function setupSurveyEventListeners() {
 function renderInlineSurvey() {
     console.log('🔍 Attempting to render inline survey...');
     
+    // Show survey instruction modal
+    window.showInstructionModal('survey');
+    
     // Get survey phases from hidden source
     const surveySource = $('#surveyPhasesSource .survey-phases-wrapper');
     console.log('Survey source found:', surveySource.length > 0);
@@ -1507,3 +1532,49 @@ function completePostSurvey() {
         // window.location.href = 'html/complete.html';
     }, 500);
 }
+
+/******************************************************************************
+    INSTRUCTION MODALS - SIMPLE IMPLEMENTATION
+******************************************************************************/
+
+// Show instruction modal if not already shown
+window.showInstructionModal = function(type) {
+    // Check if we should skip instructions (only if skipSurvey mode is on)
+    const urlParams = new URLSearchParams(window.location.search);
+    const skipSurvey = urlParams.get('skipSurvey') === 'true';
+    
+    if (skipSurvey) {
+        console.log(`⏭️ skipSurvey mode: Skipping instruction modal '${type}'`);
+        // Mark as shown so it won't appear later
+        const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
+        instructionsShown[type] = true;
+        sessionStorage.setItem('instructionsShown', JSON.stringify(instructionsShown));
+        return;
+    }
+    
+    // Check if already shown
+    const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
+    if (instructionsShown[type]) {
+        console.log(`ℹ️ Instruction modal '${type}' already shown, skipping`);
+        return;
+    }
+    
+    // Show the modal
+    const modalId = type + 'InstructionModal';
+    $('#' + modalId).fadeIn(300);
+    console.log(`📖 Showing instruction modal: ${type}`);
+};
+
+// Dismiss instruction modal
+window.dismissInstructionModal = function(type) {
+    // Hide the modal
+    const modalId = type + 'InstructionModal';
+    $('#' + modalId).fadeOut(300);
+    
+    // Mark as shown
+    const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
+    instructionsShown[type] = true;
+    sessionStorage.setItem('instructionsShown', JSON.stringify(instructionsShown));
+    
+    console.log(`✅ Instruction modal '${type}' dismissed and marked as shown`);
+};

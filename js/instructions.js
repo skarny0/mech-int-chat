@@ -46,15 +46,10 @@ $(document).ready(function() {
             }
         });
         
-        // Update navigation buttons
-        if (currentPhase === totalPhases - 1) {
-            // Last phase - show "Start Study" button instead of "Next"
-            $('#next-phase-btn').hide();
-            $('#proceed-to-task').show();
-        } else {
-            $('#next-phase-btn').show();
-            $('#proceed-to-task').hide();
-        }
+            // Update navigation buttons
+        // Always show "Next" button (Phase 0 will proceed to task)
+        $('#next-phase-btn').show();
+        $('#proceed-to-task').hide();
         
         // Scroll to top of page
         window.scrollTo(0, 0);
@@ -62,9 +57,13 @@ $(document).ready(function() {
     
     function goToNextPhase() {
         /*
-            Navigate to next instruction phase
+            Navigate to next instruction phase.
+            After Phase 0 (overview), proceed directly to task.
         */
-        if (currentPhase < totalPhases - 1) {
+        if (currentPhase === 0) {
+            // After overview, go directly to the experiment
+            proceedToTask();
+        } else if (currentPhase < totalPhases - 1) {
             completedPhases.add(currentPhase);
             currentPhase++;
             updatePhaseDisplay();
@@ -86,7 +85,7 @@ $(document).ready(function() {
         }
         
         // Hide Instructions
-        $("#instructions-header").attr("hidden", true);
+        // $("#instructions-header").attr("hidden", true);
         $("#instructions-main-content").attr("hidden", true);
         
         // Show Task
@@ -114,14 +113,6 @@ $(document).ready(function() {
     // Initialize display
     updatePhaseDisplay();
     
-    // Optional: Keyboard navigation (right arrow or Enter for next)
-    $(document).on('keydown', function(e) {
-        if (e.key === 'ArrowRight' || e.key === 'Enter') {
-            if ($('#next-phase-btn').is(':visible')) {
-                goToNextPhase();
-            } else if ($('#proceed-to-task').is(':visible')) {
-                proceedToTask();
-            }
-        }
-    });
+    // Keyboard navigation disabled to prevent accidental advancement
+    console.log('✅ Instructions.js initialized - Phase 0 only mode');
 });
