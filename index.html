@@ -65,28 +65,16 @@
                 const debugMode = urlParams.get('debug') === 'true';
                 
                 if (debugMode){
-                    // Debug mode - show task content directly
-                    $("#task-header").attr("hidden", false);
-                    $("#task-main-content").attr("hidden", false);
+                    // Debug mode - skip consent, show instructions directly
                     $("#consent-main-content").attr("hidden", true);
- 
-                    // Load Main Experiment - works with Vercel and local development
-                    $('#task-main-content').load('html/chat-content.html'); 
-
-                    // loading an instructional page
-                    // $('#comprehension-quiz-main-content').attr("hidden", false);
-
-                    // $('#comprehension-quiz-main-content').load("html/instructions-gameplay-pg3.html");
-                    // $('#comprehension-quiz-main-content').load("html/competence-test.html"); 
+                    // $("#instructions-header").attr("hidden", false);
+                    $("#instructions-main-content").attr("hidden", false);
+                    
+                    // Load Instructions
+                    $('#instructions-main-content').load('html/instructions.html');
                 } else{
                     // Production mode - start with consent
-                    // $('#consent-main-content').load("html/consent.html");
                     $('#consent-main-content').load("html/consent.html");
-                    // $('#task-main-content').load('html/chat-content.html'); 
-                    // $("#task-main-content").attr("hidden", false);
- 
-                    // // // // // Load Main Experiment
-                    // $('#task-main-content').load('html/game-main-exp.html'); 
                 }
 
                 // Function to hide consent and show chat interface

@@ -209,56 +209,21 @@ $(document).ready(function (){
         $("#consent-header").attr("hidden", true);
         $("#consent-main-content").attr("hidden", true);
         
-        // Show chat interface directly
-        if (typeof window.showChatInterface === 'function') {
-            window.showChatInterface();
-        }
-        
         // Show Instructions
+        $("#instructions-header").attr("hidden", false);
+        $("#instructions-main-content").attr("hidden", false);
+        $('#instructions-main-content').load("html/instructions.html");
         
-
-        if(DEBUG){
-            $("#task-header").attr("hidden", false);
-            $("#task-main-content").attr("hidden", false);
-
-            // Load Chat Interface
-            $('#task-main-content').load('html/chat-content.html');
-
-
-            // Write to Database
-            // writeRealtimeDatabase(INTEGRITY_DB_PATH, INTEGRITY_DATA);
-
-            
-            $("#instructions-header").attr("hidden", false);
-            $("#instructions-main-content").attr("hidden", false);
-
-            $('#instructions-main-content').load("html/instructions.html");
-
-            // $("#exp-survey-header").attr("hidden", false);
-            // $("#survey-main-content").attr("hidden", false);
-
-            // // Show Survey
-            // $('#survey-main-content').load('html/survey-workload.html');
-
-            // Write to Database
-            //let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';
-            // let path = EXPERIMENT_DATABASE_NAME + firebaseUserId + '/consentData';
-            //writeRealtimeDatabase(path, CONSENT_DATA);
-
-            // // Load Instructions
-            
-            
-        }else {
-            $("#task-header").attr("hidden", false);
-            $("#task-main-content").attr("hidden", false);
-
-            // Write to Database
-            //let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';
-            //writeRealtimeDatabase(path, CONSENT_DATA);
-
-            // Load Chat Interface (Local Development version)
-            $('#task-main-content').load("html/chat-content.html");
+        // Log consent data
+        CONSENT_DATA['consentTime'] = Date().toString();
+        
+        if (DEBUG) {
+            console.log("Consent submitted:", CONSENT_DATA);
         }
+        
+        // Optional: Write to Database
+        // let path = EXPERIMENT_DATABASE_NAME + '/participantData/' + firebaseUserId + '/consentData';
+        // writeRealtimeDatabase(path, CONSENT_DATA);
     };
     /*
         Insert METADATA into page appropriately :)

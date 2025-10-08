@@ -6,114 +6,73 @@
     <title>Study Complete</title>
     <style>
         .completion-container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 3rem 2rem;
+            padding: 2rem 1.5rem;
             text-align: center;
         }
 
-        .completion-header {
-            margin-bottom: 2rem;
+        .completion-icon {
+            font-size: 3.5rem;
+            color: var(--success-color);
+            margin-bottom: 1rem;
         }
 
         .completion-header h1 {
-            font-size: 2.5rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: var(--text-primary);
-            margin: 0 0 1rem 0;
-        }
-
-        .completion-icon {
-            font-size: 5rem;
-            color: var(--success-color);
-            margin-bottom: 2rem;
+            margin: 0 0 0.75rem 0;
         }
 
         .completion-message {
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: var(--text-secondary);
-            line-height: 1.8;
-            margin-bottom: 2rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
         }
 
         .completion-details {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            margin: 2rem 0;
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin: 1.5rem 0;
             text-align: left;
-        }
-
-        .completion-details h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
         }
 
         .completion-details p {
-            font-size: 1rem;
             color: var(--text-secondary);
-            line-height: 1.6;
-            margin: 0.5rem 0;
-        }
-
-        .completion-code {
-            background-color: var(--bg-tertiary);
-            border: 2px solid var(--accent-color);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-            color: var(--accent-color);
-            letter-spacing: 2px;
+            line-height: 1.5;
+            margin: 0.4rem 0;
         }
 
         .completion-actions {
-            margin-top: 3rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 1.5rem;
         }
 
         .completion-actions .btn {
-            padding: 0.875rem 2rem;
-            font-size: 1.125rem;
+            padding: 0.75rem 1.75rem;
+            font-size: 1rem;
             font-weight: 600;
             border-radius: var(--radius-md);
             border: none;
             cursor: pointer;
+            background-color: var(--accent-color);
+            color: white;
             transition: all 0.2s ease;
         }
 
-        .btn-primary {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
+        .completion-actions .btn:hover {
             background-color: var(--accent-hover);
         }
 
-        .btn-secondary {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--bg-tertiary);
-        }
-
         .contact-info {
-            margin-top: 3rem;
-            padding-top: 2rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
         }
 
@@ -138,27 +97,13 @@
         </div>
 
         <div class="completion-message">
-            <p>You have successfully completed the MIT Media Lab Chat Study.</p>
-            <p>Your responses have been recorded and will help us understand how people interact with and configure AI systems.</p>
+            <p>You have successfully completed the MIT Media Lab Chat Study. Your responses have been recorded.</p>
         </div>
 
         <div class="completion-details">
-            <h3>What happens next?</h3>
-            <p><strong>• Compensation:</strong> You will receive your base payment of $5.00 USD via Prolific within 7-10 business days.</p>
-            <p><strong>• Bonus Payment:</strong> Bonus payments of up to $2.00 USD will be processed after we complete data collection for this study.</p>
-            <p><strong>• Data Usage:</strong> Your anonymized data will be used for research purposes only and may be shared in academic publications.</p>
+            <p><strong>Compensation:</strong> $5.00 USD base payment + up to $2.00 bonus via Prolific</p>
+            <p><strong>Timeline:</strong> Payments processed within 7-10 business days after data collection completes</p>
         </div>
-
-        <!-- Uncomment this section if you need to provide a completion code -->
-        <!--
-        <div class="completion-details">
-            <h3>Your Completion Code</h3>
-            <p>Please copy and paste this code back to Prolific to receive payment:</p>
-            <div class="completion-code" id="completionCode">
-                C7A9E2F5
-            </div>
-        </div>
-        -->
 
         <div class="completion-actions">
             <button class="btn btn-primary" onclick="redirectToProlific()">
@@ -167,33 +112,18 @@
         </div>
 
         <div class="contact-info">
-            <p>If you have any questions or concerns about this study, please contact:</p>
-            <p>
-                <strong>Sheer Karny</strong><br>
-                MIT Media Lab<br>
-                Email: <a href="mailto:skarny@media.mit.edu">skarny@media.mit.edu</a>
-            </p>
+            <p>Questions? Contact <strong>Sheer Karny</strong> at <a href="mailto:skarny@media.mit.edu">skarny@media.mit.edu</a></p>
         </div>
     </div>
 
     <script>
-        // Function to redirect to Prolific
         function redirectToProlific() {
-            // Replace this URL with your actual Prolific completion URL
-            // You can get this from your Prolific study settings
-            const prolificCompletionURL = 'https://app.prolific.co/submissions/complete?cc=YOUR_COMPLETION_CODE';
-            
-            // For now, just show an alert
             alert('Thank you! You can now close this window and return to Prolific.');
-            
-            // Uncomment this line when you have the actual Prolific URL
-            // window.location.href = prolificCompletionURL;
+            // window.location.href = 'https://app.prolific.co/submissions/complete?cc=YOUR_CODE';
         }
 
-        // Log completion page view
         console.log('✅ Completion page loaded');
         
-        // You could also save a completion flag to Firebase here
         if (typeof writeRealtimeDatabase === 'function' && typeof firebaseUserId !== 'undefined') {
             const completionPath = 'chat-study/participantData/' + firebaseUserId + '/completion';
             writeRealtimeDatabase(completionPath, {
