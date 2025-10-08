@@ -73,12 +73,18 @@ if (typeof window.timerExpired === 'undefined') {
 
 // Note: API configuration is loaded from config-unified.js file
 
+// Avatar selection state
+if (typeof window.selectedAvatar === 'undefined') {
+    window.selectedAvatar = null; // Will store the avatar image path
+}
+
 $(document).ready(function() {
     // Initialize the dynamic interface
     initializeDynamicInterface();
 });
 
 function initializeDynamicInterface() {
+    const avatarSelectionInterface = $('#avatarSelectionInterface');
     const systemPromptInterface = $('#systemPromptInterface');
     const chatInterface = $('#chatInterface');
     const messagesContainer = $('#messagesContainer');
@@ -93,11 +99,90 @@ function initializeDynamicInterface() {
     const startChatBtn = $('#startChatBtn');
     const backToConfigBtn = $('#backToConfigBtn');
 
+    // Initialize avatar selection first
+    initializeAvatarSelection();
+    
     // Initialize system prompt configuration
     initializeSystemPromptConfig();
     
     // Initialize chat functionality
     initializeChatFunctionality();
+
+    function initializeAvatarSelection() {
+        const avatarGrid = $('.avatar-grid');
+        const confirmAvatarBtn = $('#confirmAvatarBtn');
+        
+        // Check if avatar was already selected
+        const savedAvatar = localStorage.getItem('selectedAvatar');
+        if (savedAvatar) {
+            window.selectedAvatar = savedAvatar;
+            // Skip to system prompt interface
+            $('#avatarSelectionInterface').hide();
+            $('#systemPromptInterface').show();
+            console.log('✅ Avatar already selected:', savedAvatar);
+            return;
+        }
+        
+        // Generate 12 avatar options
+        const avatarCount = 12;
+        let avatarHTML = '';
+        
+        for (let i = 1; i <= avatarCount; i++) {
+            const avatarPath = `Avatar/avatar-${i}.jpg`;
+            avatarHTML += `
+                <div class="avatar-option" data-avatar="${avatarPath}" style="cursor: pointer; border: 3px solid transparent; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; position: relative;">
+                    <img src="${avatarPath}" alt="Avatar ${i}" style="width: 100%; height: auto; display: block; aspect-ratio: 1; object-fit: cover;" />
+                    <div class="avatar-check" style="display: none; position: absolute; top: 8px; right: 8px; background: #4caf50; color: white; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center;">
+                        <i class="fas fa-check" style="font-size: 16px;"></i>
+                    </div>
+                </div>
+            `;
+        }
+        
+        avatarGrid.html(avatarHTML);
+        
+        // Handle avatar selection
+        $('.avatar-option').on('click', async function() {
+            // Remove selection from all avatars
+            $('.avatar-option').css('border-color', 'transparent');
+            $('.avatar-check').hide();
+            
+            // Select this avatar
+            $(this).css('border-color', '#2196F3');
+            $(this).find('.avatar-check').css('display', 'flex');
+            
+            // Store selected avatar
+            const avatarPath = $(this).data('avatar');
+            window.selectedAvatar = avatarPath;
+            
+            // Enable confirm button
+            confirmAvatarBtn.prop('disabled', false);
+            
+            console.log('🎭 Avatar selected:', avatarPath);
+        });
+        
+        // Confirm avatar selection
+        confirmAvatarBtn.on('click', async function() {
+            if (!window.selectedAvatar) {
+                alert('Please select an avatar first.');
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('selectedAvatar', window.selectedAvatar);
+            
+            // Log to Firebase
+            const avatarLogPath = studyId + '/participantData/' + firebaseUserId + '/selectedAvatar';
+            await writeRealtimeDatabase(avatarLogPath, {
+                avatar: window.selectedAvatar,
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ Avatar selection saved to Firebase');
+            
+            // Switch to system prompt configuration
+            switchToSystemPromptConfig();
+        });
+    }
 
     function initializeSystemPromptConfig() {
         // Get the system prompt input
@@ -222,11 +307,21 @@ function initializeDynamicInterface() {
                 // Clear chat UI
                 const messagesContainer = $('#messagesContainer');
                 messagesContainer.empty();
+                
+                // Get selected avatar for welcome message
+                const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+                let avatarHtml;
+                if (selectedAvatar) {
+                    avatarHtml = `<img src="${selectedAvatar}" alt="AI Assistant" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+                } else {
+                    avatarHtml = '<i class="fas fa-robot"></i>';
+                }
+                
                 // Add welcome message back
                 const welcomeMessage = `
                     <div class="message assistant-message" data-message-id="1">
                         <div class="message-avatar">
-                            <i class="fas fa-robot"></i>
+                            ${avatarHtml}
                         </div>
                         <div class="message-content">
                             <div class="message-text">
@@ -462,7 +557,6 @@ function initializeDynamicInterface() {
     async function addMessage(text, sender) {
         const messageId = window.messageIdCounter++;
         const messageClass = sender === 'user' ? 'user-message' : 'assistant-message';
-        const avatarIcon = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
         const senderName = sender === 'user' ? 'You' : 'Assistant';
         const currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const timestamp = new Date().toISOString();
@@ -471,10 +565,24 @@ function initializeDynamicInterface() {
         const currentSystemPrompt = localStorage.getItem('customSystemPrompt') || 
             "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
         
+        // Generate avatar HTML based on sender and selected avatar
+        let avatarHtml;
+        if (sender === 'user') {
+            avatarHtml = '<i class="fas fa-user"></i>';
+        } else {
+            // Use selected avatar image for assistant
+            const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+            if (selectedAvatar) {
+                avatarHtml = `<img src="${selectedAvatar}" alt="AI Assistant" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+            } else {
+                avatarHtml = '<i class="fas fa-robot"></i>';
+            }
+        }
+        
         const messageHtml = `
             <div class="message ${messageClass}" data-message-id="${messageId}">
                 <div class="message-avatar">
-                    <i class="${avatarIcon}"></i>
+                    ${avatarHtml}
                 </div>
                 <div class="message-content">
                     <div class="message-text">${text}</div>
@@ -505,11 +613,22 @@ function initializeDynamicInterface() {
 
     // Interface switching functions
     function switchToChat() {
+        avatarSelectionInterface.hide();
         systemPromptInterface.hide();
         chatInterface.show();
+        
+        // Update initial message avatar with selected avatar
+        const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+        if (selectedAvatar) {
+            const initialAvatarDiv = $('#initialMessageAvatar');
+            if (initialAvatarDiv.length > 0) {
+                initialAvatarDiv.html(`<img src="${selectedAvatar}" alt="AI Assistant" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`);
+            }
+        }
     }
 
     function switchToSystemPromptConfig() {
+        avatarSelectionInterface.hide();
         chatInterface.hide();
         systemPromptInterface.show();
     }
@@ -518,11 +637,21 @@ function initializeDynamicInterface() {
     window.clearConversation = function() {
         window.conversationHistory = [];
         messagesContainer.empty();
+        
+        // Get selected avatar for welcome message
+        const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+        let avatarHtml;
+        if (selectedAvatar) {
+            avatarHtml = `<img src="${selectedAvatar}" alt="AI Assistant" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+        } else {
+            avatarHtml = '<i class="fas fa-robot"></i>';
+        }
+        
         // Add welcome message back
         const welcomeMessage = `
             <div class="message assistant-message" data-message-id="1">
                 <div class="message-avatar">
-                    <i class="fas fa-robot"></i>
+                    ${avatarHtml}
                 </div>
                 <div class="message-content">
                     <div class="message-text">

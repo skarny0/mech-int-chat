@@ -22,6 +22,73 @@
     --radius-lg: 0.75rem;
 }
 
+/* Avatar Selection Interface Styles */
+.avatar-selection-interface {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 2rem 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.avatar-option {
+    cursor: pointer;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    background-color: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-option:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+    border-color: var(--text-muted);
+}
+
+.avatar-option img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.avatar-check {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--success-color);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+.avatar-option.selected {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.avatar-selection-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
 * {
     box-sizing: border-box;
 }

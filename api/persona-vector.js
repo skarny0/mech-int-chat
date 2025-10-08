@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       };
   
       // Call Modal API - using the FastAPI endpoint from your friend's code
-      const response = await fetch('https://antbaez9--persona-vector-api-persona-vector-endpoint.modal.run', {
+      const response = await fetch('https://cyborgpsychologylab--persona-vector-api-persona-vector-endpoint.modal.run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

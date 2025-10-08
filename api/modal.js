@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     };
 
     // Call Modal API - using the FastAPI endpoint from your friend's code
-    const response = await fetch('https://antbaez9--gemma-chat-api-chat-endpoint.modal.run', {
+    const response = await fetch('https://cyborgpsychologylab--chat-api-chat-endpoint.modal.run', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

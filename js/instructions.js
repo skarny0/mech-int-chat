@@ -17,7 +17,7 @@ $(document).ready(function() {
     ******************************************************************************/
     
     let currentPhase = 0;
-    const totalPhases = 6; // 0-5
+    const totalPhases = 7; // 0-6 (added avatar selection phase)
     const completedPhases = new Set();
 
     /******************************************************************************
