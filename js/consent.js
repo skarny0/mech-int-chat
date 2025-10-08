@@ -210,7 +210,7 @@ $(document).ready(function (){
         $("#consent-main-content").attr("hidden", true);
         
         // Show Instructions
-        $("#instructions-header").attr("hidden", false);
+        $("#instructions-header").attr("hidden", true);
         $("#instructions-main-content").attr("hidden", false);
         $('#instructions-main-content').load("html/instructions.html");
         
