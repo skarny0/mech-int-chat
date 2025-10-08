@@ -200,6 +200,7 @@ body {
     display: flex;
     gap: 0.75rem;
     max-width: 80%;
+    align-items: flex-start;
 }
 
 .message.user {
@@ -238,7 +239,7 @@ body {
     background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     word-wrap: break-word;
 }
 
@@ -246,13 +247,14 @@ body {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.35rem 1rem;
 }
 
 .message.assistant .message-content {
     background: linear-gradient(to right, rgba(155, 213, 136, 0.4), rgba(255, 143, 139, 0.4));
     border-color: var(--border-color);
     color: var(--text-primary);
+    padding: 0.35rem 1rem;
 }
 
 .chat-input-container {
@@ -347,6 +349,35 @@ body {
 
 .btn-secondary:hover {
     background-color: var(--border-color);
+}
+
+.btn-secondary:active {
+    background-color: var(--text-muted) !important;
+    color: white !important;
+    border-color: var(--text-muted) !important;
+    box-shadow: none !important;
+}
+
+.btn-secondary:focus {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    outline: none;
+    box-shadow: none !important;
+}
+
+.btn-secondary:focus:not(:active) {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-secondary.active,
+.btn-secondary.focus {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: none !important;
 }
 
 .right-button {
@@ -450,6 +481,7 @@ body {
     display: flex;
     gap: 0.75rem;
     max-width: 80%;
+    align-items: flex-start;
     animation: messageSlideIn 0.3s ease-out;
 }
 
@@ -510,13 +542,14 @@ body {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.35rem 1rem;
 }
 
 .message.assistant-message .message-content {
     background: linear-gradient(to right, rgba(155, 213, 136, 0.4), rgba(255, 143, 139, 0.4));
     border-color: var(--border-color);
     color: var(--text-primary);
+    padding: 0.35rem 1rem;
 }
 
 .message-header {
@@ -925,7 +958,18 @@ body {
 }
 
 .persona-check-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
     flex-shrink: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem;
+}
+
+.persona-check-buttons[style*="display: none"] {
+    display: none !important;
 }
 
 .dynamic-chat-container {

@@ -224,10 +224,19 @@ function initializeDynamicInterface() {
 
         // Always start with Check/Test Persona buttons hidden
         $('.persona-check-buttons').hide();
+        
+        // Check for debug mode - hide Test Persona button if not in debug mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugMode = urlParams.get('debug') === 'true';
+        if (!debugMode) {
+            $('#testPersonaBtn').hide();
+            console.log('🐛 Test Persona button hidden (not in debug mode)');
+        } else {
+            console.log('🐛 Debug mode active: Test Persona button available');
+        }
 
         // Character counter functionality
         const MIN_CHAR_LENGTH = 200;
-        const urlParams = new URLSearchParams(window.location.search);
         const shortenPrompt = urlParams.get('shortenPrompt') === 'true';
         
         const updateCharacterCounter = function() {
@@ -444,6 +453,9 @@ function initializeDynamicInterface() {
 
         // Check Persona button - analyze persona with API
         $('#checkPersonaBtn').on('click', async function() {
+            // Remove focus from button to return to default state
+            $(this).blur();
+            
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
             
@@ -466,6 +478,9 @@ function initializeDynamicInterface() {
 
         // Test Persona button - generate mock data
         $('#testPersonaBtn').on('click', async function() {
+            // Remove focus from button to return to default state
+            $(this).blur();
+            
             // Get the current system prompt from the input
             const systemPrompt = $('#systemPromptInput').val();
             
