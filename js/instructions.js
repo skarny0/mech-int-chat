@@ -47,12 +47,6 @@ $(document).ready(function() {
         });
         
         // Update navigation buttons
-        if (currentPhase === 0) {
-            $('#prev-phase-btn').prop('disabled', true);
-        } else {
-            $('#prev-phase-btn').prop('disabled', false);
-        }
-        
         if (currentPhase === totalPhases - 1) {
             // Last phase - show "Start Study" button instead of "Next"
             $('#next-phase-btn').hide();
@@ -79,17 +73,6 @@ $(document).ready(function() {
         }
     }
     
-    function goToPreviousPhase() {
-        /*
-            Navigate to previous instruction phase
-        */
-        if (currentPhase > 0) {
-            currentPhase--;
-            updatePhaseDisplay();
-            
-            console.log(`Returned to phase ${currentPhase}`);
-        }
-    }
     
     function proceedToTask() {
         /*
@@ -123,7 +106,6 @@ $(document).ready(function() {
     ******************************************************************************/
     
     $('#next-phase-btn').click(goToNextPhase);
-    $('#prev-phase-btn').click(goToPreviousPhase);
     $('#proceed-to-task').click(proceedToTask);
     
     // Optional: Track time spent on instructions page
@@ -132,18 +114,13 @@ $(document).ready(function() {
     // Initialize display
     updatePhaseDisplay();
     
-    // Optional: Keyboard navigation (arrow keys)
+    // Optional: Keyboard navigation (right arrow or Enter for next)
     $(document).on('keydown', function(e) {
-        // Right arrow or Enter for next
-        if (e.key === 'ArrowRight' || (e.key === 'Enter' && currentPhase < totalPhases - 1)) {
-            if ($('#next-phase-btn').is(':visible') && !$('#next-phase-btn').prop('disabled')) {
+        if (e.key === 'ArrowRight' || e.key === 'Enter') {
+            if ($('#next-phase-btn').is(':visible')) {
                 goToNextPhase();
-            }
-        }
-        // Left arrow for previous
-        else if (e.key === 'ArrowLeft') {
-            if (!$('#prev-phase-btn').prop('disabled')) {
-                goToPreviousPhase();
+            } else if ($('#proceed-to-task').is(':visible')) {
+                proceedToTask();
             }
         }
     });
