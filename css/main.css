@@ -246,6 +246,7 @@ body {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
+    padding: 0.5rem 1rem;
 }
 
 .message.assistant .message-content {
@@ -509,6 +510,7 @@ body {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: white;
+    padding: 0.5rem 1rem;
 }
 
 .message.assistant-message .message-content {
