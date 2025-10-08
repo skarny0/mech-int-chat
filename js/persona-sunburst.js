@@ -58,6 +58,8 @@
  * @returns {Function} Cleanup function to remove tooltip
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
+    console.log('🎨 createPersonaSunburst called for:', containerId);
+    
     // Default configuration
     const config = {
         width: options.width || 900,
@@ -70,6 +72,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 
     // Clear any existing SVG in the container
     d3.select(`#${containerId}`).selectAll('*').remove();
+    console.log('🧹 Cleared existing sunburst content');
 
     // Transform data into categories structure
     const categories = transformToCategories(personaData);
@@ -263,6 +266,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         });
     });
 
+    console.log('🎯 About to render center circle and avatar');
+    
     // Center circle
     g.append('circle')
         .attr('r', innerRadius)
@@ -270,20 +275,53 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .attr('stroke', '#ccc')
         .attr('stroke-width', Math.max(3, radius * 0.01));
 
-    g.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '-0.5em')
-        .style('font-size', `${Math.max(16, radius * 0.045)}px`)
-        .style('font-weight', 'bold')
-        .style('fill', '#333')
-        .text(config.centerLabel);
+    // Add avatar image in center if available
+    const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+    console.log('🎭 Sunburst: Checking for avatar...', selectedAvatar);
+    
+    if (selectedAvatar) {
+        console.log('✅ Sunburst: Avatar found, rendering:', selectedAvatar);
+        // Create a circular clipping path for the avatar (relative to g's coordinate system)
+        const clipId = `avatar-clip-${containerId}`;
+        svg.append('defs')
+            .append('clipPath')
+            .attr('id', clipId)
+            .append('circle')
+            .attr('cx', 0)
+            .attr('cy', 0)
+            .attr('r', innerRadius * 0.85);
+        
+        // Add the avatar image (positioned relative to g's center which is at 0,0)
+        g.append('image')
+            .attr('href', selectedAvatar)
+            .attr('x', -innerRadius * 0.85)
+            .attr('y', -innerRadius * 0.85)
+            .attr('width', innerRadius * 1.7)
+            .attr('height', innerRadius * 1.7)
+            .attr('clip-path', `url(#${clipId})`)
+            .attr('preserveAspectRatio', 'xMidYMid slice')
+            .style('pointer-events', 'none')
+            .attr('transform', `translate(0, 0)`);
+        
+        console.log('✅ Sunburst: Avatar image added and centered at (0,0)');
+    } else {
+        console.log('⚠️ Sunburst: No avatar found, using text fallback');
+        // Fallback to text if no avatar is selected
+        g.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '-0.5em')
+            .style('font-size', `${Math.max(16, radius * 0.045)}px`)
+            .style('font-weight', 'bold')
+            .style('fill', '#333')
+            .text(config.centerLabel);
 
-    g.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', '1.2em')
-        .style('font-size', `${Math.max(14, radius * 0.038)}px`)
-        .style('fill', '#666')
-        .text(config.centerSubLabel);
+        g.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '1.2em')
+            .style('font-size', `${Math.max(14, radius * 0.038)}px`)
+            .style('fill', '#666')
+            .text(config.centerSubLabel);
+    }
 
     // Add hover instruction
     // g.append('text')

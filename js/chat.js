@@ -115,9 +115,16 @@ function initializeDynamicInterface() {
         // Check for debug mode - clear saved avatar to always show selection
         const urlParams = new URLSearchParams(window.location.search);
         const debugMode = urlParams.get('debug') === 'true';
+        const skipSurvey = urlParams.get('skipSurvey') === 'true';
+        
         if (debugMode) {
             console.log('🐛 Debug mode: Clearing saved avatar to show selection screen');
             localStorage.removeItem('selectedAvatar');
+        }
+        
+        if (skipSurvey) {
+            console.log('⏭️ Skip survey mode: Marking survey as completed');
+            localStorage.setItem('preTaskSurveyCompleted', 'true');
         }
         
         // Check if avatar was already selected
@@ -257,11 +264,19 @@ function initializeDynamicInterface() {
                 return;
             }
             
-            // Check if survey was already completed
+            // Check if survey was already completed OR if skipSurvey mode is on
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+            const urlParams = new URLSearchParams(window.location.search);
+            const skipSurvey = urlParams.get('skipSurvey') === 'true';
             
-            if (surveyCompleted) {
-                console.log('⚠️ Survey already completed, skipping');
+            if (surveyCompleted || skipSurvey) {
+                if (skipSurvey) {
+                    console.log('⏭️ Skip survey mode: Bypassing survey');
+                    localStorage.setItem('preTaskSurveyCompleted', 'true');
+                } else {
+                    console.log('⚠️ Survey already completed, skipping');
+                }
+                
                 // Hide placeholder and Submit button, show Check/Test Persona buttons
                 $('#initialPlaceholder').hide();
                 $('#submitPromptBtn').hide();
@@ -273,6 +288,10 @@ function initializeDynamicInterface() {
                         <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
                     </div>
                 `);
+                
+                // Enable interface buttons
+                enableInterfaceButtons();
+                
                 return;
             }
             
@@ -853,10 +872,15 @@ function renderPersonaChart(personaData) {
         
         // Create container for sunburst
         personaChart.html('<div id="personaChartSunburst"></div>');
+        console.log('📊 Created sunburst container, about to render...');
         
         // Create the sunburst visualization
         setTimeout(() => {
+            console.log('⏰ Timeout fired, checking for createPersonaSunburst function...');
+            console.log('Function exists?', typeof createPersonaSunburst === 'function');
+            
             if (typeof createPersonaSunburst === 'function') {
+                console.log('✅ Calling createPersonaSunburst with personaData:', personaData);
                 createPersonaSunburst(personaData, 'personaChartSunburst', {
                     width: 380,
                     height: 380,
