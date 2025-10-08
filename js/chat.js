@@ -8,7 +8,7 @@ const firebaseConfig = {
     storageBucket: "mech-chat-ee0c5.firebasestorage.app",
     messagingSenderId: "1027129084043",
     appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
-  };
+};
 
 // Import Firebase functions from v1.0 (auto-initializes)
 import { 
