@@ -65,13 +65,8 @@
                 const debugMode = urlParams.get('debug') === 'true';
                 
                 if (debugMode){
-                    // Debug mode - skip consent, show instructions directly
-                    $("#consent-main-content").attr("hidden", true);
-                    // $("#instructions-header").attr("hidden", false);
-                    $("#instructions-main-content").attr("hidden", false);
-                    
-                    // Load Instructions
-                    $('#instructions-main-content').load('html/instructions.html');
+                    // Debug mode - redirect straight to complete page
+                    window.location.href = 'html/complete.html';
                 } else{
                     // Production mode - start with consent
                     $('#consent-main-content').load("html/consent.html");

@@ -4,11 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Complete</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Firebase Configuration - Must be defined before firebasepsych1.0.js loads -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnlqrGcIfgo59WCzure6azGQitEQaGhZg",
+            authDomain: "mech-chat-ee0c5.firebaseapp.com",
+            databaseURL: "https://mech-chat-ee0c5-default-rtdb.firebaseio.com",
+            projectId: "mech-chat-ee0c5",
+            storageBucket: "mech-chat-ee0c5.firebasestorage.app",
+            messagingSenderId: "1027129084043",
+            appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
+        };
+    </script>
+    <script src="../js/complete.js" type="module"></script>
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-muted: #95a5a6;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --accent-hover: #0056b3;
+            --success-color: #28a745;
+            --radius-md: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
         .completion-container {
             max-width: 600px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
+            width: 100%;
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem 2rem;
             text-align: center;
         }
 
@@ -48,24 +95,75 @@
             margin: 0.4rem 0;
         }
 
-        .completion-actions {
-            margin-top: 1.5rem;
+        .feedback-section {
+            margin: 2rem 0;
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .completion-actions .btn {
+        .feedback-section h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        #user-feedback-text {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        #user-feedback-text:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .btn {
             padding: 0.75rem 1.75rem;
             font-size: 1rem;
             font-weight: 600;
             border-radius: var(--radius-md);
             border: none;
             cursor: pointer;
-            background-color: var(--accent-color);
-            color: white;
             transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .completion-actions .btn:hover {
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
             background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--text-muted);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--text-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .completion-actions {
+            margin-top: 1.5rem;
         }
 
         .contact-info {
@@ -105,8 +203,19 @@
             <p><strong>Timeline:</strong> Payments processed within 7-10 business days after data collection completes</p>
         </div>
 
+        <div class="feedback-section">
+            <h4>User Feedback</h4>
+            <textarea 
+                id="user-feedback-text" 
+                rows="4" 
+                placeholder="Thank you for participating in this study! Was there anything unclear?"></textarea>
+            <button id="user-feedback-button" class="btn btn-secondary" disabled>
+                Submit Feedback
+            </button>
+        </div>
+
         <div class="completion-actions">
-            <button class="btn btn-primary" onclick="redirectToProlific()">
+            <button class="btn btn-primary" id="unique-code-copy-button">
                 <i class="fas fa-external-link-alt"></i> Return to Prolific
             </button>
         </div>
@@ -115,27 +224,6 @@
             <p>Questions? Contact <strong>Sheer Karny</strong> at <a href="mailto:skarny@media.mit.edu">skarny@media.mit.edu</a></p>
         </div>
     </div>
-
-    <script>
-        function redirectToProlific() {
-            alert('Thank you! You can now close this window and return to Prolific.');
-            // window.location.href = 'https://app.prolific.co/submissions/complete?cc=YOUR_CODE';
-        }
-
-        console.log('✅ Completion page loaded');
-        
-        if (typeof writeRealtimeDatabase === 'function' && typeof firebaseUserId !== 'undefined') {
-            const completionPath = 'chat-study/participantData/' + firebaseUserId + '/completion';
-            writeRealtimeDatabase(completionPath, {
-                completed: true,
-                timestamp: new Date().toISOString()
-            }).then(() => {
-                console.log('✅ Completion status saved to Firebase');
-            }).catch((error) => {
-                console.error('❌ Error saving completion status:', error);
-            });
-        }
-    </script>
 </body>
 </html>
 
