@@ -65,9 +65,12 @@
                 const debugMode = urlParams.get('debug') === 'true';
                 
                 if (debugMode){
-                    // Debug mode - redirect straight to complete page
-                    // window.location.href = 'html/complete.html';
-                    $('#consent-main-content').load("html/consent.html");
+                    // Debug mode - skip directly to avatar selection / chat interface
+                    console.log('🐛 Debug mode enabled - skipping to chat interface');
+                    $("#consent-main-content").attr("hidden", true);
+                    $("#task-header").attr("hidden", false);
+                    $("#task-main-content").attr("hidden", false);
+                    $('#task-main-content').load('html/chat-content.html');
                 } else{
                     // Production mode - start with consent
                     $('#consent-main-content').load("html/consent.html");

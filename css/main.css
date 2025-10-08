@@ -31,22 +31,32 @@
 
 .avatar-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     padding: 2rem 1rem;
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .avatar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .avatar-option {
     cursor: pointer;
     border: 3px solid transparent;
-    border-radius: 12px;
-    overflow: hidden;
+    border-radius: 50%;
     transition: all 0.3s ease;
     position: relative;
     background-color: var(--bg-secondary);
     box-shadow: var(--shadow-sm);
+    aspect-ratio: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .avatar-option:hover {
@@ -57,25 +67,33 @@
 
 .avatar-option img {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
     aspect-ratio: 1;
     object-fit: cover;
+    border-radius: 50%;
 }
 
 .avatar-check {
     display: none;
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background: var(--success-color);
+    top: -4px;
+    right: -4px;
+    background: var(--accent-color);
     color: white;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-md);
+    z-index: 10;
+}
+
+.avatar-check i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .avatar-option.selected {

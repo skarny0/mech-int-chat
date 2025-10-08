@@ -112,6 +112,14 @@ function initializeDynamicInterface() {
         const avatarGrid = $('.avatar-grid');
         const confirmAvatarBtn = $('#confirmAvatarBtn');
         
+        // Check for debug mode - clear saved avatar to always show selection
+        const urlParams = new URLSearchParams(window.location.search);
+        const debugMode = urlParams.get('debug') === 'true';
+        if (debugMode) {
+            console.log('🐛 Debug mode: Clearing saved avatar to show selection screen');
+            localStorage.removeItem('selectedAvatar');
+        }
+        
         // Check if avatar was already selected
         const savedAvatar = localStorage.getItem('selectedAvatar');
         if (savedAvatar) {
@@ -119,9 +127,17 @@ function initializeDynamicInterface() {
             // Skip to system prompt interface
             $('#avatarSelectionInterface').hide();
             $('#systemPromptInterface').show();
+            
+            // Display avatar in system prompt header
+            $('#selectedAvatarImage').attr('src', savedAvatar);
+            $('#selectedAvatarDisplay').show();
+            
             console.log('✅ Avatar already selected:', savedAvatar);
             return;
         }
+        
+        console.log('🎭 Initializing avatar selection with 12 avatars');
+        console.log('📁 Avatar path example: Avatar/avatar-1.jpg');
         
         // Generate 12 avatar options
         const avatarCount = 12;
@@ -130,16 +146,19 @@ function initializeDynamicInterface() {
         for (let i = 1; i <= avatarCount; i++) {
             const avatarPath = `Avatar/avatar-${i}.jpg`;
             avatarHTML += `
-                <div class="avatar-option" data-avatar="${avatarPath}" style="cursor: pointer; border: 3px solid transparent; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; position: relative;">
-                    <img src="${avatarPath}" alt="Avatar ${i}" style="width: 100%; height: auto; display: block; aspect-ratio: 1; object-fit: cover;" />
-                    <div class="avatar-check" style="display: none; position: absolute; top: 8px; right: 8px; background: #4caf50; color: white; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center;">
-                        <i class="fas fa-check" style="font-size: 16px;"></i>
+                <div class="avatar-option" data-avatar="${avatarPath}">
+                    <img src="${avatarPath}" alt="Avatar ${i}" 
+                         onerror="console.error('❌ Failed to load avatar ${i} from:', this.src); this.style.border='2px solid red';"
+                         onload="console.log('✅ Loaded avatar ${i}');" />
+                    <div class="avatar-check">
+                        <i class="fas fa-check"></i>
                     </div>
                 </div>
             `;
         }
         
         avatarGrid.html(avatarHTML);
+        console.log('✅ Avatar HTML inserted into grid');
         
         // Handle avatar selection
         $('.avatar-option').on('click', async function() {
@@ -631,6 +650,14 @@ function initializeDynamicInterface() {
         avatarSelectionInterface.hide();
         chatInterface.hide();
         systemPromptInterface.show();
+        
+        // Display selected avatar in header
+        const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
+        if (selectedAvatar) {
+            $('#selectedAvatarImage').attr('src', selectedAvatar);
+            $('#selectedAvatarDisplay').show();
+            console.log('🎭 Displaying selected avatar in system prompt header:', selectedAvatar);
+        }
     }
 
     // Add clear conversation function
