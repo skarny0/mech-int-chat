@@ -16,8 +16,6 @@ import {
     blockRandomization, finalizeBlockRandomization, firebaseUserId 
 } from "./firebasepsych1.0.js";
 
-console.log("Firebase UserId=" + firebaseUserId);
-
 // Clear sessionStorage on EVERY load to ensure fresh experience
 // But preserve firebaseUserId which is critical for data collection
 const preservedFirebaseUserId = sessionStorage.getItem('firebaseUserId');
@@ -25,13 +23,11 @@ sessionStorage.clear();
 
 // Store firebaseUserId in sessionStorage for access by other pages (like complete.html)
 sessionStorage.setItem('firebaseUserId', preservedFirebaseUserId || firebaseUserId);
-console.log("✅ SessionStorage cleared for fresh experience, firebaseUserId preserved:", firebaseUserId);
 
 // Clear localStorage states that would prevent fresh experience on reload
 localStorage.removeItem('selectedAvatar');
 localStorage.removeItem('preTaskSurveyCompleted');
 localStorage.removeItem('preTaskSurveyData');
-console.log("✅ LocalStorage cleared for fresh experience on every reload");
 
 // Write a simple test case to the database
 let studyId;
@@ -48,15 +44,11 @@ const testValue = {
     value: 42
 };
 
-console.log('📝 Writing test data to Firebase:', testPath, testValue);
 await writeRealtimeDatabase(testPath, testValue);
-console.log("✅ Test data written to Firebase at path:", testPath);
 
 // Write URL parameters to Firebase
 const urlParamsPath = studyId + '/participantData/' + firebaseUserId + '/urlParameters';
-console.log('📝 Writing URL parameters to Firebase:', urlParamsPath);
 await writeURLParameters(urlParamsPath);
-console.log("✅ URL parameters saved to Firebase");
 
 // Write visualization condition assignment to Firebase
 const conditionPath = studyId + '/participantData/' + firebaseUserId + '/experimentCondition';
@@ -66,9 +58,15 @@ const conditionData = {
     assignmentMethod: sessionStorage.getItem('conditionAssignmentMethod') || 'unknown',
     timestamp: new Date().toISOString()
 };
-console.log('📝 Writing experiment condition to Firebase:', conditionPath, conditionData);
+
+// IMPORTANT: Log experiment condition explicitly
+console.log('=== EXPERIMENT CONDITION ===');
+console.log('Condition:', conditionData.conditionName.toUpperCase());
+console.log('Visualization:', conditionData.visualizationCondition === 0 ? 'DISABLED (Control)' : 'ENABLED (Experimental)');
+console.log('Assignment Method:', conditionData.assignmentMethod);
+console.log('============================');
+
 await writeRealtimeDatabase(conditionPath, conditionData);
-console.log("✅ Experiment condition saved to Firebase");
 
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
@@ -114,7 +112,6 @@ if (typeof window.timerDuration === 'undefined') {
     const urlParams = new URLSearchParams(window.location.search);
     const debugTimer = urlParams.get('debugTimer') === 'true';
     window.timerDuration = debugTimer ? 10 : 600; // 10 seconds for debug, 10 minutes (600s) for production
-    console.log(`⏱️ Timer duration set to: ${window.timerDuration} seconds ${debugTimer ? '(DEBUG MODE)' : ''}`);
 }
 if (typeof window.timerExpired === 'undefined') {
     window.timerExpired = false;
@@ -156,14 +153,11 @@ function initializeDynamicInterface() {
     
     // Fresh mode: Already handled in index.html, but keep for direct navigation to chat
     if (freshMode) {
-        console.log('🆕 Fresh mode detected in chat.js (should have been handled in index.html)');
-        
         // If somehow we got here with fresh=true still in URL, clear it
         const newUrl = new URL(window.location);
         if (newUrl.searchParams.has('fresh')) {
             newUrl.searchParams.delete('fresh');
             window.history.replaceState({}, '', newUrl);
-            console.log('🧹 Cleaned up fresh parameter from URL');
         }
     }
     
@@ -191,15 +185,8 @@ function initializeDynamicInterface() {
         const skipSurvey = window.experimentSettings.skipSurvey;
         
         if (skipSurvey) {
-            console.log('⏭️ Skip survey mode: Marking survey as completed');
             localStorage.setItem('preTaskSurveyCompleted', 'true');
         }
-        
-        // Avatar selection is always shown fresh on every load (localStorage cleared at top of file)
-        console.log('🎭 Showing avatar selection interface');
-        
-        console.log('🎭 Initializing avatar selection with 12 avatars');
-        console.log('📁 Avatar path example: Avatar/avatar-1.jpg');
         
         // Generate 12 avatar options
         const avatarCount = 12;
@@ -209,9 +196,7 @@ function initializeDynamicInterface() {
             const avatarPath = `Avatar/avatar-${i}.jpg`;
             avatarHTML += `
                 <div class="avatar-option" data-avatar="${avatarPath}">
-                    <img src="${avatarPath}" alt="Avatar ${i}" 
-                         onerror="console.error('❌ Failed to load avatar ${i} from:', this.src); this.style.border='2px solid red';"
-                         onload="console.log('✅ Loaded avatar ${i}');" />
+                    <img src="${avatarPath}" alt="Avatar ${i}" />
                     <div class="avatar-check">
                         <i class="fas fa-check"></i>
                     </div>
@@ -220,7 +205,6 @@ function initializeDynamicInterface() {
         }
         
         avatarGrid.html(avatarHTML);
-        console.log('✅ Avatar HTML inserted into grid');
         
         // Handle avatar selection
         $('.avatar-option').on('click', async function() {
@@ -238,8 +222,6 @@ function initializeDynamicInterface() {
             
             // Enable confirm button
             confirmAvatarBtn.prop('disabled', false);
-            
-            console.log('🎭 Avatar selected:', avatarPath);
         });
         
         // Confirm avatar selection
@@ -258,9 +240,7 @@ function initializeDynamicInterface() {
                 avatar: window.selectedAvatar,
                 timestamp: new Date().toISOString()
             };
-            console.log('📝 Writing avatar selection to Firebase:', avatarLogPath, avatarData);
             await writeRealtimeDatabase(avatarLogPath, avatarData);
-            console.log('✅ Avatar selection saved to Firebase');
             
             // Switch to system prompt configuration
             switchToSystemPromptConfig();
@@ -278,7 +258,11 @@ function initializeDynamicInterface() {
         
         // Get visualization condition from settings
         const visualizationCondition = window.experimentSettings.visualizationCondition;
-        console.log('🔬 Initializing config for condition:', visualizationCondition === 0 ? 'CONTROL (no-viz)' : 'EXPERIMENTAL (viz)');
+        
+        // IMPORTANT: Log condition explicitly
+        console.log('=== SYSTEM PROMPT CONFIG INITIALIZATION ===');
+        console.log('Visualization Condition:', visualizationCondition === 0 ? 'CONTROL (no-viz)' : 'EXPERIMENTAL (viz)');
+        console.log('==========================================');
 
         // Always start with Check/Test Persona buttons hidden
         $('.persona-check-buttons').hide();
@@ -291,7 +275,6 @@ function initializeDynamicInterface() {
             $('#visualizationHelpBtn').remove();
             // Hide toggle layout button
             $('#toggleLayoutBtn').remove();
-            console.log('🚫 Visualization UI elements removed (control condition)');
         }
         
         // Check for debug mode - hide Test Persona button if not in debug mode
@@ -299,9 +282,6 @@ function initializeDynamicInterface() {
         const debugMode = urlParams.get('debug') === 'true';
         if (!debugMode) {
             $('#testPersonaBtn').hide();
-            console.log('🐛 Test Persona button hidden (not in debug mode)');
-        } else {
-            console.log('🐛 Debug mode active: Test Persona button available');
         }
 
         // Character counter functionality
@@ -327,8 +307,6 @@ function initializeDynamicInterface() {
                 
                 // Disable Start Chat until new prompt is submitted and persona is checked
                 $('#startChatBtn').prop('disabled', true);
-                
-                console.log('✏️ Prompt edited after submission - requiring re-submission');
             }
             
             // Button is always visible but disabled until character requirement is met
@@ -349,7 +327,6 @@ function initializeDynamicInterface() {
         // Update counter text if bypass is enabled
         if (shortenPrompt) {
             $('#characterCounter').html('<span id="charCount">0</span> characters (minimum bypassed)');
-            console.log('⏭️ Shortened prompt mode: Bypassing 100 character minimum');
         }
         
         // Initialize character counter on page load
@@ -360,7 +337,6 @@ function initializeDynamicInterface() {
 
         // Check if survey has been completed
         const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
-        console.log('🔍 Survey completion status on load:', surveyCompleted);
         
         if (!surveyCompleted) {
             // Disable all buttons except Submit Prompt
@@ -371,7 +347,6 @@ function initializeDynamicInterface() {
             $('#personaVisualization').hide();
             // Explicitly hide Check/Test Persona buttons until survey is complete
             $('.persona-check-buttons').hide();
-            console.log('🔒 Check/Test Persona buttons hidden (survey not completed)');
         } else {
             // Survey already completed - show Submit Prompt initially so user can submit their prompt
             $('#submitPromptBtn').show();
@@ -422,10 +397,7 @@ function initializeDynamicInterface() {
             
             if (surveyCompleted || skipSurvey) {
                 if (skipSurvey) {
-                    console.log('⏭️ Skip survey mode: Bypassing survey');
                     localStorage.setItem('preTaskSurveyCompleted', 'true');
-                } else {
-                    console.log('⚠️ Survey already completed, skipping');
                 }
                 
                 // Hide Submit button
@@ -434,7 +406,6 @@ function initializeDynamicInterface() {
                 // Check visualization condition
                 if (visualizationCondition === 0) {
                     // NO-VIZ: Auto-submit flow
-                    console.log('🔬 Control condition: Auto-submitting persona API call');
                     // Keep placeholder visible for trait definitions
                     $('#initialPlaceholder').show();
                     autoSubmitPersonaCheck(systemPrompt);
@@ -464,8 +435,6 @@ function initializeDynamicInterface() {
             
             // Hide Submit Prompt button after clicking
             $('#submitPromptBtn').prop('disabled', true).hide();
-            
-            console.log('📝 System prompt submitted, showing survey');
         });
 
         // Reset configuration
@@ -506,7 +475,6 @@ function initializeDynamicInterface() {
                 action: 'reset_to_empty',
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt reset logged');
         });
 
         // Start chat
@@ -517,8 +485,6 @@ function initializeDynamicInterface() {
             const promptChanged = window.lastSystemPrompt !== null && window.lastSystemPrompt !== systemPrompt;
             
             if (promptChanged) {
-                console.log('🔄 System prompt changed - clearing chat history');
-                
                 // Log the chat history clear event to Firebase
                 const clearLogPath = studyId + '/participantData/' + firebaseUserId + '/chatHistoryClearLog/' + Date.now();
                 await writeRealtimeDatabase(clearLogPath, {
@@ -527,7 +493,6 @@ function initializeDynamicInterface() {
                     timestamp: new Date().toISOString(),
                     reason: 'system_prompt_changed'
                 });
-                console.log('✅ Chat history clear logged');
                 
                 // Clear conversation history
                 window.conversationHistory = [];
@@ -567,7 +532,6 @@ function initializeDynamicInterface() {
             
             // Store system prompt in localStorage for the chat interface
             localStorage.setItem('customSystemPrompt', systemPrompt);
-            console.log('📝 System prompt saved to localStorage:', systemPrompt.substring(0, 50) + '...');
             
             // Log this system prompt attempt to Firebase
             const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
@@ -576,7 +540,6 @@ function initializeDynamicInterface() {
                 action: 'start_chat',
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt logged (start chat)');
             
             // Save system prompt to Firebase
             const systemPromptPath = studyId + '/participantData/' + firebaseUserId + '/systemPrompt';
@@ -584,7 +547,6 @@ function initializeDynamicInterface() {
                 prompt: systemPrompt,
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt saved to Firebase');
             
             // Start timer if not already started
             if (window.timerStartTime === null) {
@@ -610,14 +572,12 @@ function initializeDynamicInterface() {
                 action: 'check_persona',
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt logged (check persona)');
             
             // Mark that persona has been checked for current prompt
             window.personaCheckedForCurrentPrompt = true;
             
             // Enable Start Chat button now that persona is checked
             $('#startChatBtn').prop('disabled', false);
-            console.log('🔓 Start Chat button enabled after persona check');
             
             // Hide placeholder, show persona visualization area
             $('#initialPlaceholder').hide();
@@ -645,14 +605,12 @@ function initializeDynamicInterface() {
                 action: 'test_persona',
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt logged (test persona)');
             
             // Mark that persona has been checked for current prompt (test counts as check)
             window.personaCheckedForCurrentPrompt = true;
             
             // Enable Start Chat button now that persona is checked
             $('#startChatBtn').prop('disabled', false);
-            console.log('🔓 Start Chat button enabled after persona test');
             
             // Hide placeholder, show persona visualization area
             $('#initialPlaceholder').hide();
@@ -697,8 +655,6 @@ function initializeDynamicInterface() {
             // Update button text
             const modeText = window.sunburstOppositeLayout ? 'Opposite' : 'Mirrored';
             $('#layoutModeText').text(modeText);
-            
-            console.log(`🔄 Layout toggled to: ${modeText} mode`);
             
             // Redraw the sunburst if we have persona data
             if (window.currentPersonaData && typeof createPersonaSunburst === 'function') {
@@ -795,8 +751,6 @@ function initializeDynamicInterface() {
             // Get custom system prompt from localStorage, fallback to default
             const customSystemPrompt = localStorage.getItem('customSystemPrompt') || 
                 "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
-
-            console.log('💬 Sending message with system prompt:', customSystemPrompt.substring(0, 50) + '...');
 
             const requestData = {
                 model: API_CONFIG.model,
@@ -902,14 +856,11 @@ function initializeDynamicInterface() {
             timestamp: timestamp,
             systemPrompt: currentSystemPrompt
         };
-        console.log('📝 Writing message to Firebase:', messagePath, 'Role:', sender, 'MessageID:', messageId);
         await writeRealtimeDatabase(messagePath, messageData);
         
         // Also save the full conversation history after each message
         const conversationPath = studyId + '/participantData/' + firebaseUserId + '/conversationHistory';
-        console.log('📝 Writing conversation history to Firebase:', conversationPath, 'Messages:', window.conversationHistory.length);
         await writeRealtimeDatabase(conversationPath, window.conversationHistory);
-        console.log('✅ Message and conversation history saved to Firebase');
         
         return messageId;
     }
@@ -952,7 +903,6 @@ function initializeDynamicInterface() {
         if (selectedAvatar) {
             $('#selectedAvatarImage').attr('src', selectedAvatar);
             $('#selectedAvatarDisplay').show();
-            console.log('🎭 Displaying selected avatar in system prompt header:', selectedAvatar);
         }
         
         // Check if prompt has changed since submission
@@ -961,7 +911,6 @@ function initializeDynamicInterface() {
         
         if (window.promptHasChangedSinceSubmit) {
             // Prompt was edited - require re-submission
-            console.log('✏️ Prompt changed - showing Submit Prompt button');
             $('#submitPromptBtn').show();
             $('.persona-check-buttons').hide();
             $('#startChatBtn').prop('disabled', true);
@@ -1201,8 +1150,6 @@ function showTraitDefinitionsNoViz() {
 
 // Auto-submit persona check for no-viz condition
 async function autoSubmitPersonaCheck(systemPrompt) {
-    console.log('🤖 Auto-submitting persona check for control condition');
-    
     // Use provided system prompt or get from localStorage
     const promptToUse = systemPrompt || 
         localStorage.getItem('customSystemPrompt') || 
@@ -1212,12 +1159,9 @@ async function autoSubmitPersonaCheck(systemPrompt) {
     window.personaCheckedForCurrentPrompt = true;
     $('#startChatBtn').prop('disabled', false);
     showTraitDefinitionsNoViz();
-    console.log('🔓 Start Chat button enabled (no-viz)');
 
     // Try to call API in background for data collection (don't block user on API errors)
     try {
-        console.log('📡 Calling persona-vector endpoint in background (no-viz)');
-
         const response = await fetch('/api/persona-vector', {
             method: 'POST',
             headers: {
@@ -1230,7 +1174,12 @@ async function autoSubmitPersonaCheck(systemPrompt) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('✅ Persona Vector API Response (no-viz):', data);
+            
+            // IMPORTANT: Log persona vector response for control condition
+            console.log('=== PERSONA VECTOR (CONTROL) ===');
+            console.log('Condition: CONTROL (no visualization)');
+            console.log('Persona Vector:', data.content);
+            console.log('================================');
             
             // Save persona vector to history log
             const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
@@ -1240,7 +1189,6 @@ async function autoSubmitPersonaCheck(systemPrompt) {
                 timestamp: new Date().toISOString(),
                 condition: 'control_no_visualization'
             });
-            console.log('✅ Persona vector logged to history (no-viz)');
             
             // Save system prompt to log
             const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
@@ -1249,15 +1197,12 @@ async function autoSubmitPersonaCheck(systemPrompt) {
                 action: 'auto_check_persona_no_viz',
                 timestamp: new Date().toISOString()
             });
-            console.log('✅ System prompt logged (no-viz)');
         } else {
-            // Log error but don't show to user (API is just for data collection)
             const errorText = await response.text();
-            console.error('⚠️ Persona Vector API Error (no-viz, non-blocking):', response.status, errorText);
+            console.error('Persona Vector API Error (no-viz):', response.status, errorText);
         }
     } catch (error) {
-        // Log error but don't show to user (API is just for data collection)
-        console.error('⚠️ Error calling persona-vector endpoint (no-viz, non-blocking):', error);
+        console.error('Error calling persona-vector endpoint (no-viz):', error);
     }
 }
 
@@ -1268,8 +1213,6 @@ async function checkPersona(systemPrompt) {
         const promptToUse = systemPrompt || 
             localStorage.getItem('customSystemPrompt') || 
             "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
-
-        console.log('Calling persona-vector endpoint with system prompt:', promptToUse);
 
         // Show loading state
         showPersonaVisualization();
@@ -1289,11 +1232,12 @@ async function checkPersona(systemPrompt) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('📊 Persona Vector API Response (full):', data);
-            console.log('📊 Persona Vector API Response (content only):', data.content);
-            console.log('📊 Data type:', typeof data.content);
-            console.log('📊 Data keys:', data.content ? Object.keys(data.content) : 'No keys');
-            console.log('📊 Sample values:', data.content ? Object.entries(data.content).slice(0, 3) : 'No values');
+            
+            // IMPORTANT: Log persona vector response for experimental condition
+            console.log('=== PERSONA VECTOR (EXPERIMENTAL) ===');
+            console.log('Condition: EXPERIMENTAL (with visualization)');
+            console.log('Persona Vector:', data.content);
+            console.log('=====================================');
             
             // Save persona vector to history log
             const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
@@ -1303,7 +1247,6 @@ async function checkPersona(systemPrompt) {
                 timestamp: new Date().toISOString(),
                 condition: 'experimental_with_visualization'
             });
-            console.log('✅ Persona vector logged to history (viz condition)');
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
@@ -1322,19 +1265,13 @@ async function checkPersona(systemPrompt) {
 // Render persona vector chart (sunburst or bar chart based on URL parameter)
 // Uses ?sunburst=true or ?sunburst=false URL parameter (defaults to true if not specified)
 function renderPersonaChart(personaData) {
-    console.log('🎨 renderPersonaChart called with data:', personaData);
-    console.log('🎨 Data type:', typeof personaData);
-    console.log('🎨 Is object?', typeof personaData === 'object');
-    console.log('🎨 Keys:', personaData ? Object.keys(personaData) : 'null/undefined');
-    
     const personaChart = $('#personaChart');
     
     // Use URL parameter to determine display mode (defaults to true if not specified)
     const useSunburst = typeof useSunburstDisplay === 'function' ? useSunburstDisplay() : true;
-    console.log('🎨 Using sunburst?', useSunburst);
     
     if (!personaData || typeof personaData !== 'object') {
-        console.error('❌ Invalid persona data:', personaData);
+        console.error('Invalid persona data:', personaData);
         personaChart.html('<div style="text-align: center; color: var(--text-muted);">No persona data available</div>');
         return;
     }
@@ -1350,15 +1287,10 @@ function renderPersonaChart(personaData) {
         
         // Create container for sunburst
         personaChart.html('<div id="personaChartSunburst"></div>');
-        console.log('📊 Created sunburst container, about to render...');
         
         // Create the sunburst visualization
         setTimeout(() => {
-            console.log('⏰ Timeout fired, checking for createPersonaSunburst function...');
-            console.log('Function exists?', typeof createPersonaSunburst === 'function');
-            
             if (typeof createPersonaSunburst === 'function') {
-                console.log('✅ Calling createPersonaSunburst with personaData:', personaData);
                 // Store persona data for toggling
                 window.currentPersonaData = personaData;
                 createPersonaSunburst(personaData, 'personaChartSunburst', {
@@ -1375,8 +1307,6 @@ function renderPersonaChart(personaData) {
             }
         }, 100);
     } else {
-        // Use original bar chart
-        console.log('Using bar chart (sunburst disabled via URL parameter or config)');
         renderPersonaBarChart(personaData);
     }
 }
@@ -1468,17 +1398,6 @@ function testPersonaWithMockData() {
             }
         };
         
-        console.log('🧪 Hardcoded Test Persona Data (NEW HIERARCHICAL format):', mockData);
-        console.log('📊 Categories:', Object.keys(mockData).length);
-        
-        // Log each category's traits with formatted values
-        for (const [category, traits] of Object.entries(mockData)) {
-            const traitEntries = Object.entries(traits);
-            const trait1 = `${traitEntries[0][0]}: ${(traitEntries[0][1] * 100).toFixed(0)}%`;
-            const trait2 = `${traitEntries[1][0]}: ${(traitEntries[1][1] * 100).toFixed(0)}%`;
-            console.log(`  📁 ${category}: ${trait1} | ${trait2}`);
-        }
-        
         renderPersonaChart(mockData);
     }, 800); // Simulate network delay
 }
@@ -1491,13 +1410,10 @@ function testPersonaWithMockData() {
 function initializePreTaskSurvey() {
     // This is now just a placeholder - actual event listeners are set up
     // in setupSurveyEventListeners() after HTML is inserted
-    console.log('Survey initialization ready');
 }
 
 // Set up survey event listeners (called after HTML is inserted)
 function setupSurveyEventListeners() {
-    console.log('🔧 Setting up survey event listeners...');
-    
     const phase1 = $('#surveyPhase1');
     const phase2 = $('#surveyPhase2');
     const phase3 = $('#surveyPhase3');
@@ -1506,22 +1422,16 @@ function setupSurveyEventListeners() {
     const phase2ProceedBtn = $('#phase2ProceedBtn');
     const phase3ProceedBtn = $('#phase3ProceedBtn');
     
-    console.log('Phase 1 button found:', phase1ProceedBtn.length > 0);
-    console.log('Phase 2 button found:', phase2ProceedBtn.length > 0);
-    console.log('Phase 3 button found:', phase3ProceedBtn.length > 0);
-    
     // Phase 1: Listen to radio button changes
     $('input[name="phase1_q1"], input[name="phase1_q2"]').on('change', function() {
         const q1Answered = $('input[name="phase1_q1"]:checked').length > 0;
         const q2Answered = $('input[name="phase1_q2"]:checked').length > 0;
         const bothAnswered = q1Answered && q2Answered;
-        console.log('Phase 1 validation - Q1:', q1Answered, 'Q2:', q2Answered, 'Both:', bothAnswered);
         phase1ProceedBtn.prop('disabled', !bothAnswered);
     });
     
     // Phase 1 Proceed button
     phase1ProceedBtn.on('click', async function() {
-        console.log('Phase 1 Proceed clicked');
         
         // Save Phase 1 data to Firebase
         await savePhase1Data();
@@ -1555,8 +1465,6 @@ function setupSurveyEventListeners() {
     
     // Phase 2 Proceed button
     phase2ProceedBtn.on('click', async function() {
-        console.log('Phase 2 Proceed clicked');
-        
         // Save Phase 2 data to Firebase
         await savePhase2Data();
         
@@ -1572,55 +1480,40 @@ function setupSurveyEventListeners() {
     
     // Phase 3 Proceed button - save data and close
     phase3ProceedBtn.on('click', async function() {
-        console.log('Phase 3 Proceed clicked');
-        
         // Save Phase 3 data to Firebase
         await savePhase3Data();
         
         closePreTaskSurvey();
-        
-        // Survey complete - buttons are now enabled, user can proceed
-        console.log('📝 Survey complete. User can now interact with the interface.');
     });
-    
-    console.log('✅ Survey event listeners set up successfully');
 }
 
 // Render survey inline in the right column
 function renderInlineSurvey() {
-    console.log('🔍 Attempting to render inline survey...');
-    
     // Show survey instruction modal
     window.showInstructionModal('survey');
     
     // Get survey phases from hidden source
     const surveySource = $('#surveyPhasesSource .survey-phases-wrapper');
-    console.log('Survey source found:', surveySource.length > 0);
     
     if (surveySource.length > 0) {
         const surveyHTML = surveySource.html();
-        console.log('Survey HTML length:', surveyHTML ? surveyHTML.length : 0);
         $('#surveyPhasesContainer').html(surveyHTML);
         
         // NOW set up event listeners after HTML is in place
         setupSurveyEventListeners();
     } else {
-        console.error('❌ Survey source not found!');
+        console.error('Survey source not found!');
     }
     
     // Show survey container
     $('#preTaskSurveyContainer').show();
-    console.log('Survey container visibility:', $('#preTaskSurveyContainer').is(':visible'));
     
     // Reset to phase 1
     setTimeout(() => {
         $('#surveyPhase1').show();
         $('#surveyPhase2').hide();
         $('#surveyPhase3').hide();
-        console.log('Phase 1 visible:', $('#surveyPhase1').is(':visible'));
     }, 100);
-    
-    console.log('📋 Pre-task survey displayed inline');
 }
 
 // Close/hide inline survey
@@ -1637,10 +1530,13 @@ function closePreTaskSurvey() {
     // Check visualization condition to determine next step
     const visualizationCondition = window.experimentSettings.visualizationCondition;
     
+    // Log the condition being applied after survey
+    console.log('=== POST-SURVEY: APPLYING CONDITION ===');
+    console.log('Condition:', visualizationCondition === 0 ? 'CONTROL (no-viz)' : 'EXPERIMENTAL (viz)');
+    console.log('======================================');
+    
     if (visualizationCondition === 0) {
         // NO-VIZ CONDITION: Auto-submit persona check
-        console.log('🔬 Control condition: Auto-submitting persona API call after survey');
-        
         // Show placeholder while processing
         $('#initialPlaceholder').show();
         $('#initialPlaceholder').html(`
@@ -1656,8 +1552,6 @@ function closePreTaskSurvey() {
         
     } else {
         // VIZ CONDITION: Show Check Persona buttons
-        console.log('🔬 Experimental condition: Showing Check Persona buttons');
-        
         // Show placeholder in persona area with instructions
         $('#personaVisualization').hide();
         $('#initialPlaceholder').show();
@@ -1670,15 +1564,10 @@ function closePreTaskSurvey() {
         
         // But keep Start Chat disabled until persona is checked
         $('#startChatBtn').prop('disabled', true);
-        console.log('🔒 Start Chat disabled until persona check');
         
         // Show Check Persona and Test Persona buttons
         $('.persona-check-buttons').show();
-        
-        console.log('👉 Check Persona and Test Persona buttons now available');
     }
-    
-    console.log('✅ Pre-task survey completed and closed');
 }
 
 // Disable interface buttons (called before survey)
@@ -1689,7 +1578,6 @@ function disableInterfaceButtons() {
     $('#testPersonaBtn').prop('disabled', true);
     // Submit Prompt button state is controlled by character counter
     // Don't override it here - let updateCharacterCounter() handle it
-    console.log('🔒 Interface buttons disabled until survey completion');
 }
 
 // Enable interface buttons (called after survey)
@@ -1699,7 +1587,6 @@ function enableInterfaceButtons() {
     $('#checkPersonaBtn').prop('disabled', false);
     $('#testPersonaBtn').prop('disabled', false);
     // Submit Prompt button already hidden/disabled after use
-    console.log('🔓 Interface buttons enabled');
 }
 
 // Save Phase 1 data to Firebase
@@ -1714,26 +1601,20 @@ async function savePhase1Data() {
             "How well could you predict negative unintended behaviors from your system prompt?": parseInt($('input[name="phase1_q2"]:checked').val())
         };
         
-        console.log('📊 Phase 1 data collected:', phase1Data);
-        
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
         const phase1WriteData = {
             responses: phase1Data,
             timestamp: timestamp
         };
-        console.log('📝 Writing Phase 1 data to Firebase:', `${basePath}/phase1`, phase1WriteData);
         await writeRealtimeDatabase(`${basePath}/phase1`, phase1WriteData);
-        console.log('✅ Phase 1 data saved to Firebase');
         
         // Save metadata on first phase
         const metadataWriteData = {
             system_prompt: systemPrompt,
             start_timestamp: timestamp
         };
-        console.log('📝 Writing survey metadata to Firebase:', `${basePath}/metadata`, metadataWriteData);
         await writeRealtimeDatabase(`${basePath}/metadata`, metadataWriteData);
-        console.log('✅ Survey metadata initialized');
         
     } catch (error) {
         console.error('❌ Error saving Phase 1 data:', error);
@@ -1757,17 +1638,13 @@ async function savePhase2Data() {
             "Formality": parseInt($('input[name="trait_formality"]:checked').val())
         };
         
-        console.log('📊 Phase 2 data collected:', phase2Data);
-        
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
         const phase2WriteData = {
             responses: phase2Data,
             timestamp: timestamp
         };
-        console.log('📝 Writing Phase 2 data to Firebase:', `${basePath}/phase2`, phase2WriteData);
         await writeRealtimeDatabase(`${basePath}/phase2`, phase2WriteData);
-        console.log('✅ Phase 2 data saved to Firebase');
         
     } catch (error) {
         console.error('❌ Error saving Phase 2 data:', error);
@@ -1784,24 +1661,17 @@ async function savePhase3Data() {
             "Given the relevant background about unintended model behaviors, how much do you trust this model?": parseInt($('input[name="phase3_trust"]:checked').val())
         };
         
-        console.log('📊 Phase 3 data collected:', phase3Data);
-        
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
         const phase3WriteData = {
             responses: phase3Data,
             timestamp: timestamp
         };
-        console.log('📝 Writing Phase 3 data to Firebase:', `${basePath}/phase3`, phase3WriteData);
         await writeRealtimeDatabase(`${basePath}/phase3`, phase3WriteData);
-        console.log('✅ Phase 3 data saved to Firebase');
         
         // Update metadata with completion time
-        console.log('📝 Writing survey completion timestamp to Firebase:', `${basePath}/metadata/completion_timestamp`, timestamp);
         await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
-        console.log('📝 Writing survey completion time to Firebase:', `${basePath}/metadata/completion_time`, Date.now());
         await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
-        console.log('✅ Survey completion metadata saved');
         
         // Mark survey as completed
         localStorage.setItem('preTaskSurveyCompleted', 'true');
@@ -1818,22 +1688,16 @@ async function savePhase3Data() {
 // Start the timer
 async function startTimer() {
     if (window.timerStartTime !== null) {
-        console.log('⚠️ Timer already started');
         return;
     }
     
     window.timerStartTime = Date.now();
     const startTimeISO = new Date().toISOString();
     
-    console.log(`⏱️ Timer started at ${startTimeISO} for ${window.timerDuration} seconds`);
-    
     // Save timer start to Firebase
     const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
-    console.log('📝 Writing timer start to Firebase:', timerPath + '/startTime', startTimeISO);
     await writeRealtimeDatabase(timerPath + '/startTime', startTimeISO);
-    console.log('📝 Writing timer duration to Firebase:', timerPath + '/duration', window.timerDuration);
     await writeRealtimeDatabase(timerPath + '/duration', window.timerDuration);
-    console.log('✅ Timer data saved to Firebase');
     
     // Show timer display
     $('#timerDisplay').show();
@@ -1877,14 +1741,10 @@ async function timerExpired() {
         window.timerInterval = null;
     }
     
-    console.log('⏰ Timer expired!');
-    
     // Save timer end to Firebase
     const endTimeISO = new Date().toISOString();
     const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
-    console.log('📝 Writing timer end to Firebase:', timerPath + '/endTime', endTimeISO);
     await writeRealtimeDatabase(timerPath + '/endTime', endTimeISO);
-    console.log('✅ Timer end saved to Firebase');
     
     // Show post-survey modal
     showPostSurvey();
@@ -1896,8 +1756,6 @@ async function timerExpired() {
 
 // Show post-survey modal
 function showPostSurvey() {
-    console.log('📋 Showing post-survey modal');
-    
     // Disable chat interface
     $('#messageInput').prop('disabled', true);
     $('#sendBtn').prop('disabled', true);
@@ -1911,14 +1769,12 @@ function showPostSurvey() {
         // Viz condition: show questions 5 and 6
         $('#post_q5_container').show();
         $('#post_q6_container').show();
-        console.log('📊 Showing visualization-specific questions (experimental condition)');
     } else {
         // Control condition: hide and clear questions 5 and 6
         $('#post_q5_container').hide();
         $('#post_q6_container').hide();
         $('input[name="post_q5"]').prop('checked', false);
         $('input[name="post_q6"]').prop('checked', false);
-        console.log('🔬 Hiding visualization-specific questions (control condition)');
     }
     
     // Show modal
@@ -1930,7 +1786,6 @@ function showPostSurvey() {
 
 // Initialize post-survey event listeners
 function initializePostSurvey() {
-    console.log('🔧 Setting up post-survey event listeners');
     
     const visualizationCondition = window.experimentSettings.visualizationCondition;
     
@@ -1955,7 +1810,6 @@ function initializePostSurvey() {
     
     // Phase 1 Proceed button
     $('#postPhase1ProceedBtn').off('click').on('click', async function() {
-        console.log('Post-survey Phase 1 Proceed clicked');
         await savePostPhase1Data();
         $('#postSurveyPhase1').hide();
         $('#postSurveyPhase2').show();
@@ -1975,7 +1829,6 @@ function initializePostSurvey() {
     
     // Phase 2 Submit button
     $('#postPhase2SubmitBtn').off('click').on('click', async function() {
-        console.log('Post-survey Phase 2 Submit clicked');
         await savePostPhase2Data();
         completePostSurvey();
     });
@@ -2000,17 +1853,13 @@ async function savePostPhase1Data() {
             phase1Data["Would you like to see this visualization again in future interactions?"] = parseInt($('input[name="post_q6"]:checked').val());
         }
         
-        console.log('📊 Post-survey Phase 1 data collected:', phase1Data);
-        
         const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
         const postPhase1WriteData = {
             responses: phase1Data,
             timestamp: timestamp,
             condition: visualizationCondition === 0 ? 'control' : 'experimental'
         };
-        console.log('📝 Writing Post-survey Phase 1 data to Firebase:', `${basePath}/phase1`, postPhase1WriteData);
         await writeRealtimeDatabase(`${basePath}/phase1`, postPhase1WriteData);
-        console.log('✅ Post-survey Phase 1 data saved to Firebase');
         
     } catch (error) {
         console.error('❌ Error saving post-survey Phase 1 data:', error);
@@ -2026,22 +1875,16 @@ async function savePostPhase2Data() {
             "openEndedFeedback": $('#postOpenEndedResponse').val().trim()
         };
         
-        console.log('📊 Post-survey Phase 2 data collected:', phase2Data);
-        
         const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
         const postPhase2WriteData = {
             responses: phase2Data,
             timestamp: timestamp
         };
-        console.log('📝 Writing Post-survey Phase 2 data to Firebase:', `${basePath}/phase2`, postPhase2WriteData);
         await writeRealtimeDatabase(`${basePath}/phase2`, postPhase2WriteData);
         
         // Update metadata with completion time
-        console.log('📝 Writing post-survey completion timestamp to Firebase:', `${basePath}/metadata/completion_timestamp`, timestamp);
         await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
-        console.log('📝 Writing post-survey completion time to Firebase:', `${basePath}/metadata/completion_time`, Date.now());
         await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
-        console.log('✅ Post-survey Phase 2 data saved to Firebase');
         
     } catch (error) {
         console.error('❌ Error saving post-survey Phase 2 data:', error);
@@ -2050,8 +1893,6 @@ async function savePostPhase2Data() {
 
 // Complete post-survey and redirect to completion page
 function completePostSurvey() {
-    console.log('✅ Post-survey completed, redirecting to completion page');
-    
     // Hide modal
     $('#postSurveyModal').fadeOut(300);
     
@@ -2076,7 +1917,6 @@ window.showInstructionModal = function(type) {
     const skipSurvey = urlParams.get('skipSurvey') === 'true';
     
     if (skipSurvey) {
-        console.log(`⏭️ skipSurvey mode: Skipping instruction modal '${type}'`);
         // Mark as shown so it won't appear later
         const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
         instructionsShown[type] = true;
@@ -2087,14 +1927,12 @@ window.showInstructionModal = function(type) {
     // Check if already shown
     const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
     if (instructionsShown[type]) {
-        console.log(`ℹ️ Instruction modal '${type}' already shown, skipping`);
         return;
     }
     
     // Show the modal
     const modalId = type + 'InstructionModal';
     $('#' + modalId).fadeIn(300);
-    console.log(`📖 Showing instruction modal: ${type}`);
 };
 
 // Dismiss instruction modal
@@ -2107,8 +1945,6 @@ window.dismissInstructionModal = function(type) {
     const instructionsShown = JSON.parse(sessionStorage.getItem('instructionsShown') || '{}');
     instructionsShown[type] = true;
     sessionStorage.setItem('instructionsShown', JSON.stringify(instructionsShown));
-    
-    console.log(`✅ Instruction modal '${type}' dismissed and marked as shown`);
 };
 
 // Show visualization explanation modal
@@ -2116,7 +1952,6 @@ window.showVisualizationExplanation = function(forceShow = false) {
     // Don't show in no-viz condition
     const visualizationCondition = window.experimentSettings.visualizationCondition;
     if (visualizationCondition === 0) {
-        console.log('🔬 Control condition: Skipping visualization explanation modal');
         return;
     }
     
@@ -2124,12 +1959,10 @@ window.showVisualizationExplanation = function(forceShow = false) {
     const hasShown = sessionStorage.getItem('visualizationExplanationShown');
     
     if (hasShown && !forceShow) {
-        console.log('⏭️ Visualization explanation already shown, skipping');
         return;
     }
     
     $('#visualizationExplanationModal').fadeIn(600);
-    console.log('📊 Showing visualization explanation modal');
     
     // Mark as shown
     if (!hasShown) {
@@ -2140,7 +1973,6 @@ window.showVisualizationExplanation = function(forceShow = false) {
 // Dismiss visualization explanation modal
 window.dismissVisualizationExplanation = function() {
     $('#visualizationExplanationModal').fadeOut(400);
-    console.log('✅ Visualization explanation modal dismissed');
 };
 
 // Show prompt refinement reminder modal
@@ -2149,7 +1981,6 @@ window.showPromptRefinementModal = function() {
     const hasShown = sessionStorage.getItem('promptRefinementShown');
     
     if (hasShown) {
-        console.log('⏭️ Prompt refinement reminder already shown, skipping');
         return;
     }
     
@@ -2163,7 +1994,6 @@ window.showPromptRefinementModal = function() {
     }
     
     $('#promptRefinementModal').fadeIn(600);
-    console.log('💡 Showing prompt refinement reminder modal');
     
     // Mark as shown
     sessionStorage.setItem('promptRefinementShown', 'true');
@@ -2172,5 +2002,4 @@ window.showPromptRefinementModal = function() {
 // Dismiss prompt refinement modal
 window.dismissPromptRefinementModal = function() {
     $('#promptRefinementModal').fadeOut(400);
-    console.log('✅ Prompt refinement modal dismissed');
 };

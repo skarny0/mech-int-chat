@@ -68,12 +68,6 @@
  * @returns {Function} Cleanup function to remove tooltip
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
-    console.log('🎨 createPersonaSunburst called for:', containerId);
-    console.log('🎨 Received personaData:', personaData);
-    console.log('🎨 Data type:', typeof personaData);
-    console.log('🎨 Data keys:', personaData ? Object.keys(personaData) : 'null/undefined');
-    console.log('🎨 First 3 entries:', personaData ? Object.entries(personaData).slice(0, 3) : 'none');
-    
     // Default configuration
     const config = {
         width: options.width || 900,
