@@ -109,24 +109,28 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .attr('preserveAspectRatio', 'xMidYMid meet')
         .attr('style', 'max-width: 100%; max-height: 100%;');
 
-    // Create a group for the sunburst, offset to reduce top margin and increase bottom margin
-    // Move center up in viewBox coordinates (reduces top space, increases bottom space)
+    // Create a group for the sunburst, positioned for visual centering
+    // Account for labels extending outward and visual weight distribution
     const g = svg.append('g')
-        .attr('transform', `translate(${width / 2},${height * 0.42})`);
+        .attr('transform', `translate(${width / 2},${height * 0.44})`);
 
     // Define ring radii with better proportions
     // Smaller inner circles give bars more room to grow and show activation differences
     const innerRadius = radius * 0.18;
     const middleRadius = radius * 0.35;
-    const maxOuterRadius = radius * 0.80; // Maximum extent to keep within view
+    const maxOuterRadius = radius * 0.85; // Maximum extent for arc growth
 
-    // Add tooltip div - positioned in top-right corner
+    // Get container position to calculate tooltip placement
+    const container = document.getElementById(containerId);
+    const containerRect = container.getBoundingClientRect();
+    
+    // Add tooltip div - positioned just to the right of the visualization
     const tooltip = d3.select('body').append('div')
         .attr('class', 'persona-sunburst-tooltip')
         .style('opacity', 0)
         .style('position', 'fixed')
-        .style('top', '20px')
-        .style('right', '20px')
+        .style('top', `${containerRect.top + 20}px`)
+        .style('left', `${containerRect.right + 20}px`)
         .style('background-color', 'rgba(0, 0, 0, 0.9)')
         .style('color', 'white')
         .style('padding', '12px 16px')
@@ -361,10 +365,10 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     // Convert to HSL for better color control
     const baseHSL = d3.hsl(baseColorToUse);
     
-    // Adjust lightness based on value: higher value = much darker, lower value = much lighter
-    // More extreme range for dramatic color differences
-    const minLightness = 0.85; // Very light (almost white) at 0% activation
-    const maxLightness = 0.35; // Very dark at 100% activation
+    // Adjust lightness based on value: higher value = matches inner ring color, lower value = much lighter
+    // Extreme range for very dramatic color differences
+    const minLightness = 0.92; // Almost white at 0% activation
+    const maxLightness = baseHSL.l; // Use the lightness of the inner ring color at 100% activation
     const lightness = minLightness - (item.value * (minLightness - maxLightness));
     
     const fillColor = d3.hsl(baseHSL.h, baseHSL.s, lightness);
@@ -406,9 +410,9 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 })
                 .transition()
                 .duration(200)
-                .attr('stroke', '#FFD700')
+                .attr('stroke', '#2196F3')
                 .attr('stroke-width', 4)
-                .style('opacity', 1);
+                .style('opacity', 0.5);
         }
         
         tooltip.transition()
@@ -433,18 +437,13 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .attr('stroke-width', 2)
             .style('filter', 'none');
         
-        // Reset opposite trait highlighting
-        if (item.oppositeTrait) {
-            g.selectAll('path[data-trait-name]')
-                .filter(function() {
-                    return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
-                })
-                .transition()
-                .duration(200)
-                .attr('stroke', 'white')
-                .attr('stroke-width', 2)
-                .style('opacity', 0.9);
-        }
+        // Reset ALL item arcs to white stroke (clears any lingering highlights)
+        g.selectAll('path[data-trait-name]')
+            .transition()
+            .duration(200)
+            .attr('stroke', 'white')
+            .attr('stroke-width', 2)
+            .style('opacity', 0.9);
         
         tooltip.transition()
             .duration(200)
@@ -522,9 +521,9 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                     })
                     .transition()
                     .duration(200)
-                    .attr('stroke', '#FFD700')
+                    .attr('stroke', '#2196F3')
                     .attr('stroke-width', 4)
-                    .style('opacity', 1);
+                    .style('opacity', 0.5);
             }
             
             // Show tooltip
@@ -550,18 +549,13 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 .attr('stroke-width', 2)
                 .style('filter', 'none');
             
-            // Reset opposite trait highlighting
-            if (item.oppositeTrait) {
-                g.selectAll('path[data-trait-name]')
-                    .filter(function() {
-                        return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
-                    })
-                    .transition()
-                    .duration(200)
-                    .attr('stroke', 'white')
-                    .attr('stroke-width', 2)
-                    .style('opacity', 0.9);
-            }
+            // Reset ALL item arcs to white stroke (clears any lingering highlights)
+            g.selectAll('path[data-trait-name]')
+                .transition()
+                .duration(200)
+                .attr('stroke', 'white')
+                .attr('stroke-width', 2)
+                .style('opacity', 0.9);
             
             // Hide tooltip
             tooltip.transition()
@@ -748,32 +742,27 @@ function transformHierarchicalData(hierarchicalData) {
     const positiveItems = [];
     const negativeItems = [];
     
-    // Split at 90° vertical axis:
-    // - Positive traits: right side of vertical (angles 0° to 90° and 270° to 360°)
-    // - Negative traits: left side of vertical (angles 90° to 270°)
-    // - Pairs are mirrored equidistant from 90°
+    // Opposite traits positioned π radians (180°) apart:
+    // - Positive traits: right semicircle (0° to 180°), evenly distributed
+    // - Negative traits: left semicircle (180° to 360°), each exactly opposite its pair
     //
-    // Example: if pair has 15° offset:
-    //   - Positive at 90° - 15° = 75° (right side, top)
-    //   - Negative at 90° + 15° = 105° (left side, top)
+    // Example with 8 pairs:
+    //   - Positive at ~11°, ~34°, ~56°, ~79°, ~101°, ~124°, ~146°, ~169°
+    //   - Negative at ~191°, ~214°, ~236°, ~259°, ~281°, ~304°, ~326°, ~349°
     
     const totalPairs = traitPairs.length;
-    const mirrorAxis = Math.PI / 2; // 90° vertical axis
     
-    // Calculate the angular spacing - distribute pairs from top (90°) downward
-    // We'll use 180° total (half circle from 0° to 180°), split evenly
-    const maxOffset = Math.PI / 2; // Maximum 90° offset from vertical
-    const offsetStep = maxOffset / (totalPairs + 1); // Space them evenly
+    // Distribute positive traits evenly across right semicircle (0° to 180°)
+    // Each negative trait is positioned exactly π radians (180°) opposite its positive pair
+    const angleStep = Math.PI / totalPairs;
     
     traitPairs.forEach((pair, index) => {
-        // Calculate offset from 90° for this pair (starting small, getting larger)
-        const offset = offsetStep * (index + 1);
+        // Positive trait: evenly distributed on right side (0° to 180°)
+        // Center each trait in its angular slice
+        const positiveAngle = angleStep * (index + 0.5);
         
-        // Positive trait: right side of 90° (clockwise, so subtract)
-        const positiveAngle = mirrorAxis - offset;
-        
-        // Negative trait: left side of 90° (counter-clockwise, so add)
-        const negativeAngle = mirrorAxis + offset;
+        // Negative trait: exactly π radians opposite (180° away)
+        const negativeAngle = positiveAngle + Math.PI;
         
         positiveItems.push({
             name: pair.positive.name,
@@ -799,7 +788,7 @@ function transformHierarchicalData(hierarchicalData) {
             angle: negativeAngle
         });
         
-        console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (offset: ${(offset * 180 / Math.PI).toFixed(1)}°)`);
+        console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
     });
     
     // Sort items by angle for proper rendering order
@@ -831,7 +820,7 @@ function transformHierarchicalData(hierarchicalData) {
         }
     ];
     
-    console.log(`✅ Created 2 mirrored super-categories: ${positiveItems.length} positive traits (right) and ${negativeItems.length} negative traits (left), split at 90° vertical axis`);
+    console.log(`✅ Created 2 super-categories with opposite pairs π radians apart: ${positiveItems.length} positive traits (right semicircle, 0-180°) and ${negativeItems.length} negative traits (left semicircle, 180-360°)`);
     return categories;
 }
 
