@@ -1095,9 +1095,11 @@ function classifyTrait(traitName) {
         return 'neutral';
     }
     
-    // Negative trait indicators (prefixes/contains)
+    // Negative trait prefixes (must be at start of word)
+    const negativePrefixes = ['un', 'dis', 'anti', 'in'];
+    
+    // Negative trait indicators (can appear anywhere)
     const negativeIndicators = [
-        'un', 'dis', 'anti', 'in', // Negative prefixes
         'toxic', 'harmful', 'rude', 'aggressive', 'hostile',
         'sycophant', 'deceptive', 'dishonest', 'fake',
         'hallucinat', 'inaccurate', 'wrong', 'false',
@@ -1117,7 +1119,14 @@ function classifyTrait(traitName) {
         'relaxed', 'easy'
     ];
     
-    // Check for negative indicators
+    // Check for negative prefixes (must be at start)
+    for (const prefix of negativePrefixes) {
+        if (trait.startsWith(prefix)) {
+            return 'negative';
+        }
+    }
+    
+    // Check for negative indicators (can be anywhere)
     for (const indicator of negativeIndicators) {
         if (trait.includes(indicator)) {
             return 'negative';
