@@ -9,6 +9,19 @@
                 script.type = 'module';
                 document.head.appendChild(script);
             })();
+            
+            // Update instruction text based on visualization condition
+            $(document).ready(function() {
+                const visualizationCondition = window.experimentSettings ? window.experimentSettings.visualizationCondition : 0;
+                
+                if (visualizationCondition === 0) {
+                    // NO-VIZ: Remove visualization-specific language
+                    console.log('📖 Updating instructions for control condition (no-viz)');
+                    
+                    // Update Phase 3 text
+                    $('#phase3-after-survey-text').text('After completing the survey, your system prompt will be processed and you\'ll be ready to chat with your AI companion.');
+                }
+            });
         </script>
         <style>
             .instruction-phase {
@@ -171,6 +184,10 @@
                                     <li><b>Phase 2:</b> Predict how strongly certain personality traits will appear (0-10 scale)</li>
                                     <li><b>Phase 3:</b> Rate your trust in the AI model</li>
                                 </ul>
+                                
+                                <p id="phase3-after-survey-text" style="margin-top: 1rem;">
+                                    After completing the survey, your system prompt will be processed and you'll be ready to chat with your AI companion.
+                                </p>
 
                                 <h5><b>Personality Traits</b></h5>
                                 <p>In Phase 2, you'll rate traits like:</p>

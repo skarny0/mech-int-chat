@@ -19,6 +19,14 @@ $(document).ready(function() {
     let currentPhase = 0;
     const totalPhases = 7; // 0-6 (added avatar selection phase)
     const completedPhases = new Set();
+    
+    // Check visualization condition
+    const visualizationCondition = window.experimentSettings ? window.experimentSettings.visualizationCondition : 0;
+    const phasesToSkip = visualizationCondition === 0 ? [4] : []; // Skip phase 4 (Persona Visualization) in no-viz
+    console.log('📖 Instructions condition:', visualizationCondition === 0 ? 'CONTROL (no-viz)' : 'EXPERIMENTAL (viz)');
+    if (phasesToSkip.length > 0) {
+        console.log('⏭️ Skipping phases:', phasesToSkip);
+    }
 
     /******************************************************************************
         NAVIGATION FUNCTIONS
@@ -30,6 +38,11 @@ $(document).ready(function() {
         */
         // Hide all phases
         $('.instruction-phase').removeClass('active');
+        
+        // Hide phases that should be skipped
+        phasesToSkip.forEach(phaseNum => {
+            $(`.instruction-phase[data-phase="${phaseNum}"]`).hide();
+        });
         
         // Show current phase
         $(`.instruction-phase[data-phase="${currentPhase}"]`).addClass('active');
@@ -66,6 +79,14 @@ $(document).ready(function() {
         } else if (currentPhase < totalPhases - 1) {
             completedPhases.add(currentPhase);
             currentPhase++;
+            
+            // Skip phases that should be skipped
+            while (phasesToSkip.includes(currentPhase) && currentPhase < totalPhases - 1) {
+                console.log(`⏭️ Skipping phase ${currentPhase}`);
+                completedPhases.add(currentPhase);
+                currentPhase++;
+            }
+            
             updatePhaseDisplay();
             
             console.log(`Advanced to phase ${currentPhase}`);

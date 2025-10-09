@@ -64,6 +64,47 @@ function getExperimentSettingsFromURL() {
             }
             return sunburstParam.toLowerCase() === 'true' || sunburstParam === '1';
         })(),
+        
+        /**
+         * Visualization condition - experimental control setting
+         * 0 = Control condition (no visualization)
+         * 1 = Experimental condition (with visualization)
+         * URL: ?visualizationCondition=0 or ?visualizationCondition=1
+         * Default: 0 (control) - random assignment commented out for manual enabling
+         */
+        visualizationCondition: (() => {
+            const conditionParam = urlParams.get('visualizationCondition');
+            
+            // Check for URL parameter override first
+            if (conditionParam !== null) {
+                const value = parseInt(conditionParam, 10);
+                if (value === 0 || value === 1) {
+                    // Store in sessionStorage to maintain across navigations
+                    sessionStorage.setItem('visualizationCondition', value.toString());
+                    sessionStorage.setItem('conditionAssignmentMethod', 'manual_url');
+                    return value;
+                }
+            }
+            
+            // Check if already assigned in this session
+            const storedCondition = sessionStorage.getItem('visualizationCondition');
+            if (storedCondition !== null) {
+                return parseInt(storedCondition, 10);
+            }
+            
+            // Default assignment (random assignment commented out)
+            // Uncomment the following lines to enable random 50/50 assignment:
+            // const randomCondition = Math.random() < 0.5 ? 0 : 1;
+            // sessionStorage.setItem('visualizationCondition', randomCondition.toString());
+            // sessionStorage.setItem('conditionAssignmentMethod', 'random');
+            // return randomCondition;
+            
+            // Default to control (0) for now
+            const defaultCondition = 1;
+            sessionStorage.setItem('visualizationCondition', defaultCondition.toString());
+            sessionStorage.setItem('conditionAssignmentMethod', 'default');
+            return defaultCondition;
+        })(),
     };
     
     return settings;
@@ -80,6 +121,7 @@ let defaultSettings = {
     skipSurvey: false,
     shortenPrompt: false,
     sunburst: false,
+    visualizationCondition: 0,
 };
 
 // ============================================
@@ -91,6 +133,11 @@ window.experimentSettings = getExperimentSettingsFromURL();
 
 // Log settings on load (helpful for debugging)
 console.log('⚙️ Experiment Settings Loaded:', window.experimentSettings);
+
+// Log visualization condition prominently
+const conditionName = window.experimentSettings.visualizationCondition === 0 ? 'CONTROL (No Visualization)' : 'EXPERIMENTAL (With Visualization)';
+const conditionMethod = sessionStorage.getItem('conditionAssignmentMethod') || 'unknown';
+console.log(`🔬 Visualization Condition: ${conditionName} (${conditionMethod})`);
 
 // Log which settings were overridden by URL parameters
 const urlParams = new URLSearchParams(window.location.search);

@@ -58,6 +58,18 @@ console.log('📝 Writing URL parameters to Firebase:', urlParamsPath);
 await writeURLParameters(urlParamsPath);
 console.log("✅ URL parameters saved to Firebase");
 
+// Write visualization condition assignment to Firebase
+const conditionPath = studyId + '/participantData/' + firebaseUserId + '/experimentCondition';
+const conditionData = {
+    visualizationCondition: window.experimentSettings.visualizationCondition,
+    conditionName: window.experimentSettings.visualizationCondition === 0 ? 'control' : 'experimental',
+    assignmentMethod: sessionStorage.getItem('conditionAssignmentMethod') || 'unknown',
+    timestamp: new Date().toISOString()
+};
+console.log('📝 Writing experiment condition to Firebase:', conditionPath, conditionData);
+await writeRealtimeDatabase(conditionPath, conditionData);
+console.log("✅ Experiment condition saved to Firebase");
+
 // Enhanced Chat Interface JavaScript with System Prompt Configuration
 // Initialize global variables if they don't exist
 if (typeof window.messageIdCounter === 'undefined') {
@@ -84,6 +96,10 @@ if (typeof window.systemPromptSubmitted === 'undefined') {
 // Track if persona has been checked for current system prompt
 if (typeof window.personaCheckedForCurrentPrompt === 'undefined') {
     window.personaCheckedForCurrentPrompt = false;
+}
+// Track if prompt has been edited since last submission
+if (typeof window.promptHasChangedSinceSubmit === 'undefined') {
+    window.promptHasChangedSinceSubmit = false;
 }
 
 // Timer variables
@@ -259,9 +275,24 @@ function initializeDynamicInterface() {
         initializePreTaskSurvey();
 
         // LocalStorage already cleared at the top of this file for fresh experience
+        
+        // Get visualization condition from settings
+        const visualizationCondition = window.experimentSettings.visualizationCondition;
+        console.log('🔬 Initializing config for condition:', visualizationCondition === 0 ? 'CONTROL (no-viz)' : 'EXPERIMENTAL (viz)');
 
         // Always start with Check/Test Persona buttons hidden
         $('.persona-check-buttons').hide();
+        
+        // Hide visualization elements if in control condition
+        if (visualizationCondition === 0) {
+            // Hide persona visualization container permanently
+            $('#personaVisualization').remove();
+            // Hide visualization help button
+            $('#visualizationHelpBtn').remove();
+            // Hide toggle layout button
+            $('#toggleLayoutBtn').remove();
+            console.log('🚫 Visualization UI elements removed (control condition)');
+        }
         
         // Check for debug mode - hide Test Persona button if not in debug mode
         const urlParams = new URLSearchParams(window.location.search);
@@ -286,12 +317,18 @@ function initializeDynamicInterface() {
                 // System prompt has changed after submission, require resubmission
                 window.systemPromptSubmitted = false;
                 window.personaCheckedForCurrentPrompt = false;
+                window.promptHasChangedSinceSubmit = true;
                 
-                // Disable Check/Test Persona buttons
+                // Show Submit Prompt button
+                $('#submitPromptBtn').show();
+                
+                // Disable Check/Test Persona buttons (viz condition only)
                 $('.persona-check-buttons').hide();
                 
                 // Disable Start Chat until new prompt is submitted and persona is checked
                 $('#startChatBtn').prop('disabled', true);
+                
+                console.log('✏️ Prompt edited after submission - requiring re-submission');
             }
             
             // Button is always visible but disabled until character requirement is met
@@ -370,16 +407,18 @@ function initializeDynamicInterface() {
             
             // Mark system prompt as submitted
             window.systemPromptSubmitted = true;
+            window.promptHasChangedSinceSubmit = false; // Reset change tracking
             
             // Reset persona checked flag since we have a new/updated prompt
             window.personaCheckedForCurrentPrompt = false;
             
-            // Keep Start Chat disabled until persona is checked
+            // Keep Start Chat disabled until persona is checked (or auto-unlocked in no-viz)
             $('#startChatBtn').prop('disabled', true);
             
             // Check if survey was already completed OR if skipSurvey mode is on
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
             const skipSurvey = urlParams.get('skipSurvey') === 'true';
+            const visualizationCondition = window.experimentSettings.visualizationCondition;
             
             if (surveyCompleted || skipSurvey) {
                 if (skipSurvey) {
@@ -389,21 +428,32 @@ function initializeDynamicInterface() {
                     console.log('⚠️ Survey already completed, skipping');
                 }
                 
-                // Hide placeholder and Submit button, show Check/Test Persona buttons
-                $('#initialPlaceholder').hide();
+                // Hide Submit button
                 $('#submitPromptBtn').hide();
-                $('.persona-check-buttons').show();
-                $('#initialPlaceholder').show();
-                $('#initialPlaceholder').html(`
-                    <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
-                        <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                        <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
-                    </div>
-                `);
                 
-                // Enable interface buttons (except Start Chat which requires persona check)
-                enableInterfaceButtons();
-                $('#startChatBtn').prop('disabled', true); // Keep disabled until persona check
+                // Check visualization condition
+                if (visualizationCondition === 0) {
+                    // NO-VIZ: Auto-submit flow
+                    console.log('🔬 Control condition: Auto-submitting persona API call');
+                    // Keep placeholder visible for trait definitions
+                    $('#initialPlaceholder').show();
+                    autoSubmitPersonaCheck(systemPrompt);
+                    // Enable interface buttons (autoSubmitPersonaCheck handles Start Chat)
+                    enableInterfaceButtons();
+                } else {
+                    // VIZ: Show Check Persona buttons
+                    $('.persona-check-buttons').show();
+                    $('#initialPlaceholder').show();
+                    $('#initialPlaceholder').html(`
+                        <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
+                        </div>
+                    `);
+                    // Enable interface buttons (except Start Chat which requires persona check)
+                    enableInterfaceButtons();
+                    $('#startChatBtn').prop('disabled', true); // Keep disabled until persona check
+                }
                 
                 return;
             }
@@ -426,6 +476,7 @@ function initializeDynamicInterface() {
             // Reset state flags
             window.systemPromptSubmitted = false;
             window.personaCheckedForCurrentPrompt = false;
+            window.promptHasChangedSinceSubmit = false;
             
             // Hide Check/Test Persona buttons and show Submit Prompt
             $('.persona-check-buttons').hide();
@@ -434,8 +485,12 @@ function initializeDynamicInterface() {
             // Disable Start Chat button
             $('#startChatBtn').prop('disabled', true);
             
-            // Reset visualizations
-            $('#personaVisualization').hide();
+            // Reset visualizations (only if in viz condition)
+            const visualizationCondition = window.experimentSettings.visualizationCondition;
+            if (visualizationCondition === 1) {
+                $('#personaVisualization').hide();
+            }
+            
             $('#initialPlaceholder').show();
             $('#initialPlaceholder').html(`
                 <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
@@ -900,19 +955,44 @@ function initializeDynamicInterface() {
             console.log('🎭 Displaying selected avatar in system prompt header:', selectedAvatar);
         }
         
-        // If returning from chat and system prompt is submitted, show the Check Persona buttons
-        // If the prompt hasn't been submitted yet or has been changed, show Submit Prompt
+        // Check if prompt has changed since submission
         const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
-        if (surveyCompleted && window.systemPromptSubmitted) {
-            // Survey done and prompt was submitted, show Check/Test Persona
-            $('#submitPromptBtn').hide();
-            $('.persona-check-buttons').show();
+        const visualizationCondition = window.experimentSettings.visualizationCondition;
+        
+        if (window.promptHasChangedSinceSubmit) {
+            // Prompt was edited - require re-submission
+            console.log('✏️ Prompt changed - showing Submit Prompt button');
+            $('#submitPromptBtn').show();
+            $('.persona-check-buttons').hide();
+            $('#startChatBtn').prop('disabled', true);
+        } else if (surveyCompleted && window.systemPromptSubmitted) {
+            // Survey done and prompt was submitted without changes
             
-            // If persona was already checked, keep Start Chat enabled, otherwise disable it
-            if (window.personaCheckedForCurrentPrompt) {
-                $('#startChatBtn').prop('disabled', false);
+            if (visualizationCondition === 0) {
+                // NO-VIZ: No buttons to show, just keep Start Chat state
+                $('#submitPromptBtn').hide();
+                $('.persona-check-buttons').hide();
+                
+                // If persona was already checked, keep Start Chat enabled
+                if (window.personaCheckedForCurrentPrompt) {
+                    $('#startChatBtn').prop('disabled', false);
+                    // Show trait definitions placeholder (same as after survey)
+                    $('#initialPlaceholder').show();
+                    showTraitDefinitionsNoViz();
+                } else {
+                    $('#startChatBtn').prop('disabled', true);
+                }
             } else {
-                $('#startChatBtn').prop('disabled', true);
+                // VIZ: Show Check Persona buttons
+                $('#submitPromptBtn').hide();
+                $('.persona-check-buttons').show();
+                
+                // If persona was already checked, keep Start Chat enabled, otherwise disable it
+                if (window.personaCheckedForCurrentPrompt) {
+                    $('#startChatBtn').prop('disabled', false);
+                } else {
+                    $('#startChatBtn').prop('disabled', true);
+                }
             }
         }
     }
@@ -1033,6 +1113,154 @@ function likeMessage(messageId) {
     }
 }
 
+// Show trait definitions for no-viz condition
+function showTraitDefinitionsNoViz() {
+    $('#initialPlaceholder').html(`
+        <div style="padding: 1.25rem; overflow-y: auto; max-height: 600px;">
+            <h4 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 1rem; color: var(--primary-color);">
+                <i class="fas fa-info-circle"></i> Personality Traits Reference
+            </h4>
+            <p style="font-size: 0.75rem; margin-bottom: 1rem; color: var(--text-secondary); line-height: 1.3;">
+                Keep these personality dimensions in mind as you interact with your AI companion:
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                <!-- Empathy -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #4caf50; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Empathy</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Unempathetic ↔ Empathetic:</strong> Ranges from lacking understanding of others' feelings to deeply understanding and sharing emotional experiences.
+                    </p>
+                </div>
+                
+                <!-- Encouraging -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #4caf50; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Encouraging</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Discouraging ↔ Encouraging:</strong> Ranges from causing loss of confidence to inspiring confidence and hope.
+                    </p>
+                </div>
+                
+                <!-- Sociality -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #4caf50; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Sociality</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Antisocial ↔ Social:</strong> Ranges from avoiding social interaction to actively seeking and enjoying it.
+                    </p>
+                </div>
+                
+                <!-- Honesty -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #4caf50; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Honesty</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Sycophantic ↔ Honest:</strong> Ranges from excessive flattery to gain favor to being truthful and genuine.
+                    </p>
+                </div>
+                
+                <!-- Factual -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #f44336; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Factual Accuracy</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Hallucinatory ↔ Factual:</strong> Ranges from generating false information to providing accurate, verifiable information.
+                    </p>
+                </div>
+                
+                <!-- Respectful -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #f44336; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Respectfulness</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Toxic ↔ Respectful:</strong> Ranges from harmful and offensive behavior to showing consideration and courtesy.
+                    </p>
+                </div>
+                
+                <!-- Funniness -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #9e9e9e; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Funniness</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Serious ↔ Funny:</strong> Ranges from thoughtful and earnest to using wit and humor to entertain.
+                    </p>
+                </div>
+                
+                <!-- Formality -->
+                <div style="padding: 0.5rem 0.6rem; border-left: 3px solid #9e9e9e; background: #f8f9fa;">
+                    <h5 style="margin: 0 0 0.25rem 0; font-size: 0.8rem; color: #2c3e50;">Formality</h5>
+                    <p style="margin: 0; font-size: 0.7rem; color: #555; line-height: 1.3;">
+                        <strong>Formal ↔ Casual:</strong> Ranges from following proper conventions and structure to being relaxed and informal.
+                    </p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1rem; padding: 0.75rem; background: #e8f5e9; border-radius: 8px;">
+                <i class="fas fa-check-circle" style="color: #4caf50; font-size: 1.5rem; margin-bottom: 0.25rem;"></i>
+                <p style="margin: 0; font-weight: 600; font-size: 0.9rem; color: #2c3e50;">Ready to start chatting!</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: #555;">Click "Start Chat" below to begin.</p>
+            </div>
+        </div>
+    `);
+}
+
+// Auto-submit persona check for no-viz condition
+async function autoSubmitPersonaCheck(systemPrompt) {
+    console.log('🤖 Auto-submitting persona check for control condition');
+    
+    // Use provided system prompt or get from localStorage
+    const promptToUse = systemPrompt || 
+        localStorage.getItem('customSystemPrompt') || 
+        "You are a helpful research assistant for the MIT Media Lab Chat Study. Provide thoughtful, informative responses to help participants with their research questions. Be conversational and engaging while maintaining a professional tone.";
+
+    // Always enable Start Chat and show trait definitions (API is just for background data collection)
+    window.personaCheckedForCurrentPrompt = true;
+    $('#startChatBtn').prop('disabled', false);
+    showTraitDefinitionsNoViz();
+    console.log('🔓 Start Chat button enabled (no-viz)');
+
+    // Try to call API in background for data collection (don't block user on API errors)
+    try {
+        console.log('📡 Calling persona-vector endpoint in background (no-viz)');
+
+        const response = await fetch('/api/persona-vector', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                system: promptToUse
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Persona Vector API Response (no-viz):', data);
+            
+            // Save persona vector to history log
+            const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
+            await writeRealtimeDatabase(personaLogPath, {
+                personaVector: data.content,
+                systemPrompt: promptToUse,
+                timestamp: new Date().toISOString(),
+                condition: 'control_no_visualization'
+            });
+            console.log('✅ Persona vector logged to history (no-viz)');
+            
+            // Save system prompt to log
+            const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
+            await writeRealtimeDatabase(promptLogPath, {
+                prompt: promptToUse,
+                action: 'auto_check_persona_no_viz',
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ System prompt logged (no-viz)');
+        } else {
+            // Log error but don't show to user (API is just for data collection)
+            const errorText = await response.text();
+            console.error('⚠️ Persona Vector API Error (no-viz, non-blocking):', response.status, errorText);
+        }
+    } catch (error) {
+        // Log error but don't show to user (API is just for data collection)
+        console.error('⚠️ Error calling persona-vector endpoint (no-viz, non-blocking):', error);
+    }
+}
+
 // Check Persona function - calls persona-vector endpoint
 async function checkPersona(systemPrompt) {
     try {
@@ -1072,9 +1300,10 @@ async function checkPersona(systemPrompt) {
             await writeRealtimeDatabase(personaLogPath, {
                 personaVector: data.content,
                 systemPrompt: promptToUse,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                condition: 'experimental_with_visualization'
             });
-            console.log('✅ Persona vector logged to history');
+            console.log('✅ Persona vector logged to history (viz condition)');
             
             // Render the persona vector bar chart
             renderPersonaChart(data.content);
@@ -1399,31 +1628,57 @@ function closePreTaskSurvey() {
     // Hide survey container
     $('#preTaskSurveyContainer').hide();
     
-    // Show placeholder in persona area with instructions
-    $('#personaVisualization').hide();
-    $('#initialPlaceholder').show();
-    $('#initialPlaceholder').html(`
-        <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
-            <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-            <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
-        </div>
-    `);
-    
     // Mark survey as completed
     localStorage.setItem('preTaskSurveyCompleted', 'true');
     
     // Enable interface buttons now that survey is complete
     enableInterfaceButtons();
     
-    // But keep Start Chat disabled until persona is checked
-    $('#startChatBtn').prop('disabled', true);
-    console.log('🔒 Start Chat disabled until persona check');
+    // Check visualization condition to determine next step
+    const visualizationCondition = window.experimentSettings.visualizationCondition;
     
-    // Show Check Persona and Test Persona buttons
-    $('.persona-check-buttons').show();
+    if (visualizationCondition === 0) {
+        // NO-VIZ CONDITION: Auto-submit persona check
+        console.log('🔬 Control condition: Auto-submitting persona API call after survey');
+        
+        // Show placeholder while processing
+        $('#initialPlaceholder').show();
+        $('#initialPlaceholder').html(`
+            <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p style="margin: 0; font-size: 1.1rem;">Processing your system prompt...</p>
+            </div>
+        `);
+        
+        // Get the system prompt and auto-submit
+        const systemPrompt = $('#systemPromptInput').val();
+        autoSubmitPersonaCheck(systemPrompt);
+        
+    } else {
+        // VIZ CONDITION: Show Check Persona buttons
+        console.log('🔬 Experimental condition: Showing Check Persona buttons');
+        
+        // Show placeholder in persona area with instructions
+        $('#personaVisualization').hide();
+        $('#initialPlaceholder').show();
+        $('#initialPlaceholder').html(`
+            <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
+            </div>
+        `);
+        
+        // But keep Start Chat disabled until persona is checked
+        $('#startChatBtn').prop('disabled', true);
+        console.log('🔒 Start Chat disabled until persona check');
+        
+        // Show Check Persona and Test Persona buttons
+        $('.persona-check-buttons').show();
+        
+        console.log('👉 Check Persona and Test Persona buttons now available');
+    }
     
     console.log('✅ Pre-task survey completed and closed');
-    console.log('👉 Check Persona and Test Persona buttons now available');
 }
 
 // Disable interface buttons (called before survey)
@@ -1650,6 +1905,22 @@ function showPostSurvey() {
     $('#imageBtn').prop('disabled', true);
     $('#backToConfigBtn').prop('disabled', true);
     
+    // Show/hide viz-specific questions based on condition
+    const visualizationCondition = window.experimentSettings.visualizationCondition;
+    if (visualizationCondition === 1) {
+        // Viz condition: show questions 5 and 6
+        $('#post_q5_container').show();
+        $('#post_q6_container').show();
+        console.log('📊 Showing visualization-specific questions (experimental condition)');
+    } else {
+        // Control condition: hide and clear questions 5 and 6
+        $('#post_q5_container').hide();
+        $('#post_q6_container').hide();
+        $('input[name="post_q5"]').prop('checked', false);
+        $('input[name="post_q6"]').prop('checked', false);
+        console.log('🔬 Hiding visualization-specific questions (control condition)');
+    }
+    
     // Show modal
     $('#postSurveyModal').fadeIn(300);
     
@@ -1661,12 +1932,24 @@ function showPostSurvey() {
 function initializePostSurvey() {
     console.log('🔧 Setting up post-survey event listeners');
     
+    const visualizationCondition = window.experimentSettings.visualizationCondition;
+    
     // Phase 1: Listen to radio button changes
-    $('input[name="post_q1"], input[name="post_q2"], input[name="post_q3"]').on('change', function() {
+    $('input[name="post_q1"], input[name="post_q2"], input[name="post_q3"], input[name="post_q4"], input[name="post_q5"], input[name="post_q6"]').on('change', function() {
         const q1Answered = $('input[name="post_q1"]:checked').length > 0;
         const q2Answered = $('input[name="post_q2"]:checked').length > 0;
         const q3Answered = $('input[name="post_q3"]:checked').length > 0;
-        const allAnswered = q1Answered && q2Answered && q3Answered;
+        const q4Answered = $('input[name="post_q4"]:checked').length > 0;
+        
+        let allAnswered = q1Answered && q2Answered && q3Answered && q4Answered;
+        
+        // For viz condition, also require q5 and q6
+        if (visualizationCondition === 1) {
+            const q5Answered = $('input[name="post_q5"]:checked').length > 0;
+            const q6Answered = $('input[name="post_q6"]:checked').length > 0;
+            allAnswered = allAnswered && q5Answered && q6Answered;
+        }
+        
         $('#postPhase1ProceedBtn').prop('disabled', !allAnswered);
     });
     
@@ -1702,19 +1985,28 @@ function initializePostSurvey() {
 async function savePostPhase1Data() {
     try {
         const timestamp = new Date().toISOString();
+        const visualizationCondition = window.experimentSettings.visualizationCondition;
         
         const phase1Data = {
             "How well could you predict unintended behaviors from your system prompt?": parseInt($('input[name="post_q1"]:checked').val()),
             "How well could you predict negative unintended behaviors from your system prompt?": parseInt($('input[name="post_q2"]:checked').val()),
-            "Given the {relevant background abt unintended model behaviors}, how much do you trust this model?": parseInt($('input[name="post_q3"]:checked').val())
+            "Given the {relevant background abt unintended model behaviors}, how much do you trust this model?": parseInt($('input[name="post_q3"]:checked').val()),
+            "Did you arrive at your desired character?": parseInt($('input[name="post_q4"]:checked').val())
         };
+        
+        // Add viz-specific questions if in experimental condition
+        if (visualizationCondition === 1) {
+            phase1Data["Did the visualization help you understand model behavior?"] = parseInt($('input[name="post_q5"]:checked').val());
+            phase1Data["Would you like to see this visualization again in future interactions?"] = parseInt($('input[name="post_q6"]:checked').val());
+        }
         
         console.log('📊 Post-survey Phase 1 data collected:', phase1Data);
         
         const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
         const postPhase1WriteData = {
             responses: phase1Data,
-            timestamp: timestamp
+            timestamp: timestamp,
+            condition: visualizationCondition === 0 ? 'control' : 'experimental'
         };
         console.log('📝 Writing Post-survey Phase 1 data to Firebase:', `${basePath}/phase1`, postPhase1WriteData);
         await writeRealtimeDatabase(`${basePath}/phase1`, postPhase1WriteData);
@@ -1821,6 +2113,13 @@ window.dismissInstructionModal = function(type) {
 
 // Show visualization explanation modal
 window.showVisualizationExplanation = function(forceShow = false) {
+    // Don't show in no-viz condition
+    const visualizationCondition = window.experimentSettings.visualizationCondition;
+    if (visualizationCondition === 0) {
+        console.log('🔬 Control condition: Skipping visualization explanation modal');
+        return;
+    }
+    
     // Check if already shown (unless forced via ? button)
     const hasShown = sessionStorage.getItem('visualizationExplanationShown');
     
@@ -1852,6 +2151,15 @@ window.showPromptRefinementModal = function() {
     if (hasShown) {
         console.log('⏭️ Prompt refinement reminder already shown, skipping');
         return;
+    }
+    
+    // Update text based on visualization condition
+    const visualizationCondition = window.experimentSettings.visualizationCondition;
+    const modalContent = $('#promptRefinementModal .instruction-modal-content');
+    
+    if (visualizationCondition === 0) {
+        // NO-VIZ: Remove visualization mention
+        modalContent.find('p').eq(1).html('<strong>How to refine:</strong> Click "Back to Configuration" to adjust your prompt and test the updated behavior.');
     }
     
     $('#promptRefinementModal').fadeIn(600);
