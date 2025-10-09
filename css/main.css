@@ -1621,6 +1621,36 @@ body {
     color: var(--text-primary);
 }
 
+/* Trait Header Wrapper (contains endpoints and tooltip) */
+.trait-header-wrapper {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+/* Trait Endpoints Container (left and right labels) */
+.trait-endpoints {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Trait Endpoint Labels (for polar scales) */
+.trait-endpoint-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Position tooltip icon centered above the scale */
+.trait-header-wrapper .trait-tooltip {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
 /* Trait Tooltip */
 .trait-tooltip {
     position: relative;

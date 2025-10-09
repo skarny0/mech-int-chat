@@ -1205,14 +1205,13 @@ function setupSurveyEventListeners() {
     // Phase 2: Listen to all trait radio buttons
     const traitNames = [
         'trait_empathy',
+        'trait_encouraging',
         'trait_sociality',
-        'trait_supportiveness',
-        'trait_humor',
-        'trait_warmth',
+        'trait_honesty',
+        'trait_hallucination',
         'trait_toxicity',
-        'trait_sycophancy',
-        'trait_deceptiveness',
-        'trait_hallucination'
+        'trait_funniness',
+        'trait_formality'
     ];
     
     traitNames.forEach(traitName => {
@@ -1387,14 +1386,13 @@ async function savePhase2Data() {
         // Collect Phase 2 responses (trait predictions)
         const phase2Data = {
             "Empathy": parseInt($('input[name="trait_empathy"]:checked').val()),
+            "Encouraging": parseInt($('input[name="trait_encouraging"]:checked').val()),
             "Sociality": parseInt($('input[name="trait_sociality"]:checked').val()),
-            "Supportiveness": parseInt($('input[name="trait_supportiveness"]:checked').val()),
-            "Humor": parseInt($('input[name="trait_humor"]:checked').val()),
-            "Warmth": parseInt($('input[name="trait_warmth"]:checked').val()),
+            "Honesty": parseInt($('input[name="trait_honesty"]:checked').val()),
+            "Hallucination": parseInt($('input[name="trait_hallucination"]:checked').val()),
             "Toxicity": parseInt($('input[name="trait_toxicity"]:checked').val()),
-            "Sycophancy": parseInt($('input[name="trait_sycophancy"]:checked').val()),
-            "Deceptiveness": parseInt($('input[name="trait_deceptiveness"]:checked').val()),
-            "Hallucination": parseInt($('input[name="trait_hallucination"]:checked').val())
+            "Funniness": parseInt($('input[name="trait_funniness"]:checked').val()),
+            "Formality": parseInt($('input[name="trait_formality"]:checked').val())
         };
         
         console.log('📊 Phase 2 data collected:', phase2Data);

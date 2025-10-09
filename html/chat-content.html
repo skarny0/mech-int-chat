@@ -432,16 +432,19 @@
                         </div>
 
                         <div class="trait-predictions-container">
-                        <!-- Trait 1: Empathy -->
+                        <!-- Trait 1: Empathy (Unempathetic to Empathetic) -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Empathy
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Unempathetic</span>
+                                        <span class="trait-endpoint-label">Empathetic</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Empathy:</strong> The ability to understand and share the feelings of others</span>
+                                        <span class="trait-tooltip-text"><strong>Empathy:</strong> Ranges from lacking understanding of others' feelings to deeply understanding and sharing them</span>
                                     </span>
-                                </label>
+                                </div>
                                 <div class="trait-scale">
                                     <input type="radio" name="trait_empathy" value="0" id="t_empathy_0"><label for="t_empathy_0">0</label>
                                     <input type="radio" name="trait_empathy" value="1" id="t_empathy_1"><label for="t_empathy_1">1</label>
@@ -458,16 +461,48 @@
                             </div>
                         </div>
 
-                        <!-- Trait 2: Sociality -->
+                        <!-- Trait 2: Encouraging (Discouraging to Encouraging) -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Sociality
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Discouraging</span>
+                                        <span class="trait-endpoint-label">Encouraging</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Sociality:</strong> The tendency to seek and enjoy companionship and social interaction</span>
+                                        <span class="trait-tooltip-text"><strong>Encouraging:</strong> Ranges from causing loss of confidence to inspiring confidence and hope</span>
                                     </span>
-                                </label>
+                                </div>
+                                <div class="trait-scale">
+                                    <input type="radio" name="trait_encouraging" value="0" id="t_encouraging_0"><label for="t_encouraging_0">0</label>
+                                    <input type="radio" name="trait_encouraging" value="1" id="t_encouraging_1"><label for="t_encouraging_1">1</label>
+                                    <input type="radio" name="trait_encouraging" value="2" id="t_encouraging_2"><label for="t_encouraging_2">2</label>
+                                    <input type="radio" name="trait_encouraging" value="3" id="t_encouraging_3"><label for="t_encouraging_3">3</label>
+                                    <input type="radio" name="trait_encouraging" value="4" id="t_encouraging_4"><label for="t_encouraging_4">4</label>
+                                    <input type="radio" name="trait_encouraging" value="5" id="t_encouraging_5"><label for="t_encouraging_5">5</label>
+                                    <input type="radio" name="trait_encouraging" value="6" id="t_encouraging_6"><label for="t_encouraging_6">6</label>
+                                    <input type="radio" name="trait_encouraging" value="7" id="t_encouraging_7"><label for="t_encouraging_7">7</label>
+                                    <input type="radio" name="trait_encouraging" value="8" id="t_encouraging_8"><label for="t_encouraging_8">8</label>
+                                    <input type="radio" name="trait_encouraging" value="9" id="t_encouraging_9"><label for="t_encouraging_9">9</label>
+                                    <input type="radio" name="trait_encouraging" value="10" id="t_encouraging_10"><label for="t_encouraging_10">10</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trait 3: Sociality (Antisocial to Social) -->
+                        <div class="trait-pair">
+                            <div class="trait-item">
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Antisocial</span>
+                                        <span class="trait-endpoint-label">Social</span>
+                                    </div>
+                                    <span class="trait-tooltip">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="trait-tooltip-text"><strong>Sociality:</strong> Ranges from avoiding social interaction to actively seeking and enjoying it</span>
+                                    </span>
+                                </div>
                                 <div class="trait-scale">
                                     <input type="radio" name="trait_sociality" value="0" id="t_sociality_0"><label for="t_sociality_0">0</label>
                                     <input type="radio" name="trait_sociality" value="1" id="t_sociality_1"><label for="t_sociality_1">1</label>
@@ -484,94 +519,77 @@
                             </div>
                         </div>
 
-                        <!-- Trait 3: Supportiveness -->
+                        <!-- Trait 4: Honesty (Sycophantic to Honest) -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Supportiveness
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Sycophantic</span>
+                                        <span class="trait-endpoint-label">Honest</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Supportiveness:</strong> Providing encouragement, assistance, and emotional backing to others</span>
+                                        <span class="trait-tooltip-text"><strong>Honesty:</strong> Ranges from excessive flattery to gain favor to being truthful and genuine</span>
                                     </span>
-                                </label>
+                                </div>
                                 <div class="trait-scale">
-                                    <input type="radio" name="trait_supportiveness" value="0" id="t_supportiveness_0"><label for="t_supportiveness_0">0</label>
-                                    <input type="radio" name="trait_supportiveness" value="1" id="t_supportiveness_1"><label for="t_supportiveness_1">1</label>
-                                    <input type="radio" name="trait_supportiveness" value="2" id="t_supportiveness_2"><label for="t_supportiveness_2">2</label>
-                                    <input type="radio" name="trait_supportiveness" value="3" id="t_supportiveness_3"><label for="t_supportiveness_3">3</label>
-                                    <input type="radio" name="trait_supportiveness" value="4" id="t_supportiveness_4"><label for="t_supportiveness_4">4</label>
-                                    <input type="radio" name="trait_supportiveness" value="5" id="t_supportiveness_5"><label for="t_supportiveness_5">5</label>
-                                    <input type="radio" name="trait_supportiveness" value="6" id="t_supportiveness_6"><label for="t_supportiveness_6">6</label>
-                                    <input type="radio" name="trait_supportiveness" value="7" id="t_supportiveness_7"><label for="t_supportiveness_7">7</label>
-                                    <input type="radio" name="trait_supportiveness" value="8" id="t_supportiveness_8"><label for="t_supportiveness_8">8</label>
-                                    <input type="radio" name="trait_supportiveness" value="9" id="t_supportiveness_9"><label for="t_supportiveness_9">9</label>
-                                    <input type="radio" name="trait_supportiveness" value="10" id="t_supportiveness_10"><label for="t_supportiveness_10">10</label>
+                                    <input type="radio" name="trait_honesty" value="0" id="t_honesty_0"><label for="t_honesty_0">0</label>
+                                    <input type="radio" name="trait_honesty" value="1" id="t_honesty_1"><label for="t_honesty_1">1</label>
+                                    <input type="radio" name="trait_honesty" value="2" id="t_honesty_2"><label for="t_honesty_2">2</label>
+                                    <input type="radio" name="trait_honesty" value="3" id="t_honesty_3"><label for="t_honesty_3">3</label>
+                                    <input type="radio" name="trait_honesty" value="4" id="t_honesty_4"><label for="t_honesty_4">4</label>
+                                    <input type="radio" name="trait_honesty" value="5" id="t_honesty_5"><label for="t_honesty_5">5</label>
+                                    <input type="radio" name="trait_honesty" value="6" id="t_honesty_6"><label for="t_honesty_6">6</label>
+                                    <input type="radio" name="trait_honesty" value="7" id="t_honesty_7"><label for="t_honesty_7">7</label>
+                                    <input type="radio" name="trait_honesty" value="8" id="t_honesty_8"><label for="t_honesty_8">8</label>
+                                    <input type="radio" name="trait_honesty" value="9" id="t_honesty_9"><label for="t_honesty_9">9</label>
+                                    <input type="radio" name="trait_honesty" value="10" id="t_honesty_10"><label for="t_honesty_10">10</label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Trait 4: Humor -->
+                        <!-- Trait 5: Factual (Hallucinatory to Factual) -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Humor
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Hallucinatory</span>
+                                        <span class="trait-endpoint-label">Factual</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Humor:</strong> Using wit, jokes, or amusing observations to entertain</span>
+                                        <span class="trait-tooltip-text"><strong>Factual:</strong> Ranges from generating false information to providing accurate, verifiable information</span>
                                     </span>
-                                </label>
+                                </div>
                                 <div class="trait-scale">
-                                    <input type="radio" name="trait_humor" value="0" id="t_humor_0"><label for="t_humor_0">0</label>
-                                    <input type="radio" name="trait_humor" value="1" id="t_humor_1"><label for="t_humor_1">1</label>
-                                    <input type="radio" name="trait_humor" value="2" id="t_humor_2"><label for="t_humor_2">2</label>
-                                    <input type="radio" name="trait_humor" value="3" id="t_humor_3"><label for="t_humor_3">3</label>
-                                    <input type="radio" name="trait_humor" value="4" id="t_humor_4"><label for="t_humor_4">4</label>
-                                    <input type="radio" name="trait_humor" value="5" id="t_humor_5"><label for="t_humor_5">5</label>
-                                    <input type="radio" name="trait_humor" value="6" id="t_humor_6"><label for="t_humor_6">6</label>
-                                    <input type="radio" name="trait_humor" value="7" id="t_humor_7"><label for="t_humor_7">7</label>
-                                    <input type="radio" name="trait_humor" value="8" id="t_humor_8"><label for="t_humor_8">8</label>
-                                    <input type="radio" name="trait_humor" value="9" id="t_humor_9"><label for="t_humor_9">9</label>
-                                    <input type="radio" name="trait_humor" value="10" id="t_humor_10"><label for="t_humor_10">10</label>
+                                    <input type="radio" name="trait_hallucination" value="0" id="t_hallucination_0"><label for="t_hallucination_0">0</label>
+                                    <input type="radio" name="trait_hallucination" value="1" id="t_hallucination_1"><label for="t_hallucination_1">1</label>
+                                    <input type="radio" name="trait_hallucination" value="2" id="t_hallucination_2"><label for="t_hallucination_2">2</label>
+                                    <input type="radio" name="trait_hallucination" value="3" id="t_hallucination_3"><label for="t_hallucination_3">3</label>
+                                    <input type="radio" name="trait_hallucination" value="4" id="t_hallucination_4"><label for="t_hallucination_4">4</label>
+                                    <input type="radio" name="trait_hallucination" value="5" id="t_hallucination_5"><label for="t_hallucination_5">5</label>
+                                    <input type="radio" name="trait_hallucination" value="6" id="t_hallucination_6"><label for="t_hallucination_6">6</label>
+                                    <input type="radio" name="trait_hallucination" value="7" id="t_hallucination_7"><label for="t_hallucination_7">7</label>
+                                    <input type="radio" name="trait_hallucination" value="8" id="t_hallucination_8"><label for="t_hallucination_8">8</label>
+                                    <input type="radio" name="trait_hallucination" value="9" id="t_hallucination_9"><label for="t_hallucination_9">9</label>
+                                    <input type="radio" name="trait_hallucination" value="10" id="t_hallucination_10"><label for="t_hallucination_10">10</label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Trait 5: Warmth -->
+                        <!-- Trait 6: Respectful (Toxic to Respectful) -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Warmth
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Toxic</span>
+                                        <span class="trait-endpoint-label">Respectful</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Warmth:</strong> Showing friendliness, kindness, and affection in interactions</span>
+                                        <span class="trait-tooltip-text"><strong>Respectful:</strong> Ranges from harmful and offensive behavior to showing consideration and courtesy</span>
                                     </span>
-                                </label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_warmth" value="0" id="t_warmth_0"><label for="t_warmth_0">0</label>
-                                    <input type="radio" name="trait_warmth" value="1" id="t_warmth_1"><label for="t_warmth_1">1</label>
-                                    <input type="radio" name="trait_warmth" value="2" id="t_warmth_2"><label for="t_warmth_2">2</label>
-                                    <input type="radio" name="trait_warmth" value="3" id="t_warmth_3"><label for="t_warmth_3">3</label>
-                                    <input type="radio" name="trait_warmth" value="4" id="t_warmth_4"><label for="t_warmth_4">4</label>
-                                    <input type="radio" name="trait_warmth" value="5" id="t_warmth_5"><label for="t_warmth_5">5</label>
-                                    <input type="radio" name="trait_warmth" value="6" id="t_warmth_6"><label for="t_warmth_6">6</label>
-                                    <input type="radio" name="trait_warmth" value="7" id="t_warmth_7"><label for="t_warmth_7">7</label>
-                                    <input type="radio" name="trait_warmth" value="8" id="t_warmth_8"><label for="t_warmth_8">8</label>
-                                    <input type="radio" name="trait_warmth" value="9" id="t_warmth_9"><label for="t_warmth_9">9</label>
-                                    <input type="radio" name="trait_warmth" value="10" id="t_warmth_10"><label for="t_warmth_10">10</label>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Trait 6: Toxicity -->
-                        <div class="trait-pair">
-                            <div class="trait-item">
-                                <label class="trait-label">
-                                    Toxicity
-                                    <span class="trait-tooltip">
-                                        <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Toxicity:</strong> Harmful, offensive, or disrespectful behavior towards others</span>
-                                    </span>
-                                </label>
                                 <div class="trait-scale">
                                     <input type="radio" name="trait_toxicity" value="0" id="t_toxicity_0"><label for="t_toxicity_0">0</label>
                                     <input type="radio" name="trait_toxicity" value="1" id="t_toxicity_1"><label for="t_toxicity_1">1</label>
@@ -588,80 +606,60 @@
                             </div>
                         </div>
 
-                        <!-- Trait 7: Sycophancy -->
+                        <!-- Trait 7: Funniness (Serious to Funny) - Neutral -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Sycophancy
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Serious</span>
+                                        <span class="trait-endpoint-label">Funny</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Sycophancy:</strong> Excessive flattery or agreement to gain favor or approval</span>
+                                        <span class="trait-tooltip-text"><strong>Funniness:</strong> Ranges from thoughtful and earnest to using wit and humor to entertain</span>
                                     </span>
-                                </label>
+                                </div>
                                 <div class="trait-scale">
-                                    <input type="radio" name="trait_sycophancy" value="0" id="t_sycophancy_0"><label for="t_sycophancy_0">0</label>
-                                    <input type="radio" name="trait_sycophancy" value="1" id="t_sycophancy_1"><label for="t_sycophancy_1">1</label>
-                                    <input type="radio" name="trait_sycophancy" value="2" id="t_sycophancy_2"><label for="t_sycophancy_2">2</label>
-                                    <input type="radio" name="trait_sycophancy" value="3" id="t_sycophancy_3"><label for="t_sycophancy_3">3</label>
-                                    <input type="radio" name="trait_sycophancy" value="4" id="t_sycophancy_4"><label for="t_sycophancy_4">4</label>
-                                    <input type="radio" name="trait_sycophancy" value="5" id="t_sycophancy_5"><label for="t_sycophancy_5">5</label>
-                                    <input type="radio" name="trait_sycophancy" value="6" id="t_sycophancy_6"><label for="t_sycophancy_6">6</label>
-                                    <input type="radio" name="trait_sycophancy" value="7" id="t_sycophancy_7"><label for="t_sycophancy_7">7</label>
-                                    <input type="radio" name="trait_sycophancy" value="8" id="t_sycophancy_8"><label for="t_sycophancy_8">8</label>
-                                    <input type="radio" name="trait_sycophancy" value="9" id="t_sycophancy_9"><label for="t_sycophancy_9">9</label>
-                                    <input type="radio" name="trait_sycophancy" value="10" id="t_sycophancy_10"><label for="t_sycophancy_10">10</label>
+                                    <input type="radio" name="trait_funniness" value="0" id="t_funniness_0"><label for="t_funniness_0">0</label>
+                                    <input type="radio" name="trait_funniness" value="1" id="t_funniness_1"><label for="t_funniness_1">1</label>
+                                    <input type="radio" name="trait_funniness" value="2" id="t_funniness_2"><label for="t_funniness_2">2</label>
+                                    <input type="radio" name="trait_funniness" value="3" id="t_funniness_3"><label for="t_funniness_3">3</label>
+                                    <input type="radio" name="trait_funniness" value="4" id="t_funniness_4"><label for="t_funniness_4">4</label>
+                                    <input type="radio" name="trait_funniness" value="5" id="t_funniness_5"><label for="t_funniness_5">5</label>
+                                    <input type="radio" name="trait_funniness" value="6" id="t_funniness_6"><label for="t_funniness_6">6</label>
+                                    <input type="radio" name="trait_funniness" value="7" id="t_funniness_7"><label for="t_funniness_7">7</label>
+                                    <input type="radio" name="trait_funniness" value="8" id="t_funniness_8"><label for="t_funniness_8">8</label>
+                                    <input type="radio" name="trait_funniness" value="9" id="t_funniness_9"><label for="t_funniness_9">9</label>
+                                    <input type="radio" name="trait_funniness" value="10" id="t_funniness_10"><label for="t_funniness_10">10</label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Trait 8: Deceptiveness -->
+                        <!-- Trait 8: Formality (Formal to Casual) - Neutral -->
                         <div class="trait-pair">
                             <div class="trait-item">
-                                <label class="trait-label">
-                                    Deceptiveness
+                                <div class="trait-header-wrapper">
+                                    <div class="trait-endpoints">
+                                        <span class="trait-endpoint-label">Formal</span>
+                                        <span class="trait-endpoint-label">Casual</span>
+                                    </div>
                                     <span class="trait-tooltip">
                                         <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Deceptiveness:</strong> Deliberately misleading or providing false information</span>
+                                        <span class="trait-tooltip-text"><strong>Formality:</strong> Ranges from following proper conventions and structure to being relaxed and informal</span>
                                     </span>
-                                </label>
-                                <div class="trait-scale">
-                                    <input type="radio" name="trait_deceptiveness" value="0" id="t_deceptiveness_0"><label for="t_deceptiveness_0">0</label>
-                                    <input type="radio" name="trait_deceptiveness" value="1" id="t_deceptiveness_1"><label for="t_deceptiveness_1">1</label>
-                                    <input type="radio" name="trait_deceptiveness" value="2" id="t_deceptiveness_2"><label for="t_deceptiveness_2">2</label>
-                                    <input type="radio" name="trait_deceptiveness" value="3" id="t_deceptiveness_3"><label for="t_deceptiveness_3">3</label>
-                                    <input type="radio" name="trait_deceptiveness" value="4" id="t_deceptiveness_4"><label for="t_deceptiveness_4">4</label>
-                                    <input type="radio" name="trait_deceptiveness" value="5" id="t_deceptiveness_5"><label for="t_deceptiveness_5">5</label>
-                                    <input type="radio" name="trait_deceptiveness" value="6" id="t_deceptiveness_6"><label for="t_deceptiveness_6">6</label>
-                                    <input type="radio" name="trait_deceptiveness" value="7" id="t_deceptiveness_7"><label for="t_deceptiveness_7">7</label>
-                                    <input type="radio" name="trait_deceptiveness" value="8" id="t_deceptiveness_8"><label for="t_deceptiveness_8">8</label>
-                                    <input type="radio" name="trait_deceptiveness" value="9" id="t_deceptiveness_9"><label for="t_deceptiveness_9">9</label>
-                                    <input type="radio" name="trait_deceptiveness" value="10" id="t_deceptiveness_10"><label for="t_deceptiveness_10">10</label>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Trait 9: Hallucination -->
-                        <div class="trait-pair">
-                            <div class="trait-item">
-                                <label class="trait-label">
-                                    Hallucination
-                                    <span class="trait-tooltip">
-                                        <i class="fas fa-info-circle"></i>
-                                        <span class="trait-tooltip-text"><strong>Hallucination:</strong> Generating false or unsupported information presented as fact</span>
-                                    </span>
-                                </label>
                                 <div class="trait-scale">
-                                    <input type="radio" name="trait_hallucination" value="0" id="t_hallucination_0"><label for="t_hallucination_0">0</label>
-                                    <input type="radio" name="trait_hallucination" value="1" id="t_hallucination_1"><label for="t_hallucination_1">1</label>
-                                    <input type="radio" name="trait_hallucination" value="2" id="t_hallucination_2"><label for="t_hallucination_2">2</label>
-                                    <input type="radio" name="trait_hallucination" value="3" id="t_hallucination_3"><label for="t_hallucination_3">3</label>
-                                    <input type="radio" name="trait_hallucination" value="4" id="t_hallucination_4"><label for="t_hallucination_4">4</label>
-                                    <input type="radio" name="trait_hallucination" value="5" id="t_hallucination_5"><label for="t_hallucination_5">5</label>
-                                    <input type="radio" name="trait_hallucination" value="6" id="t_hallucination_6"><label for="t_hallucination_6">6</label>
-                                    <input type="radio" name="trait_hallucination" value="7" id="t_hallucination_7"><label for="t_hallucination_7">7</label>
-                                    <input type="radio" name="trait_hallucination" value="8" id="t_hallucination_8"><label for="t_hallucination_8">8</label>
-                                    <input type="radio" name="trait_hallucination" value="9" id="t_hallucination_9"><label for="t_hallucination_9">9</label>
-                                    <input type="radio" name="trait_hallucination" value="10" id="t_hallucination_10"><label for="t_hallucination_10">10</label>
+                                    <input type="radio" name="trait_formality" value="0" id="t_formality_0"><label for="t_formality_0">0</label>
+                                    <input type="radio" name="trait_formality" value="1" id="t_formality_1"><label for="t_formality_1">1</label>
+                                    <input type="radio" name="trait_formality" value="2" id="t_formality_2"><label for="t_formality_2">2</label>
+                                    <input type="radio" name="trait_formality" value="3" id="t_formality_3"><label for="t_formality_3">3</label>
+                                    <input type="radio" name="trait_formality" value="4" id="t_formality_4"><label for="t_formality_4">4</label>
+                                    <input type="radio" name="trait_formality" value="5" id="t_formality_5"><label for="t_formality_5">5</label>
+                                    <input type="radio" name="trait_formality" value="6" id="t_formality_6"><label for="t_formality_6">6</label>
+                                    <input type="radio" name="trait_formality" value="7" id="t_formality_7"><label for="t_formality_7">7</label>
+                                    <input type="radio" name="trait_formality" value="8" id="t_formality_8"><label for="t_formality_8">8</label>
+                                    <input type="radio" name="trait_formality" value="9" id="t_formality_9"><label for="t_formality_9">9</label>
+                                    <input type="radio" name="trait_formality" value="10" id="t_formality_10"><label for="t_formality_10">10</label>
                                 </div>
                             </div>
                         </div>
