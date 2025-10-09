@@ -64,7 +64,7 @@
  * @param {boolean} [options.showPercentages=true] - Whether to show percentages in labels
  * @param {number} [options.growthMultiplier=1.25] - Multiplier for bar extension (1.25 = bars grow 1.25x faster)
  * @param {boolean} [options.showLabels=true] - Whether to show perpendicular labels
- * @param {boolean} [options.oppositeLayout=true] - true = opposite traits π radians apart, false = mirrored along vertical
+ * @param {boolean} [options.oppositeLayout=false] - false = mirrored with neutral category (default), true = opposite traits π radians apart
  * @returns {Function} Cleanup function to remove tooltip
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
@@ -84,7 +84,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         showPercentages: options.showPercentages !== false,
         growthMultiplier: options.growthMultiplier !== undefined ? options.growthMultiplier : 1.25,
         showLabels: options.showLabels !== false,
-        oppositeLayout: options.oppositeLayout !== false // true = π radians apart, false = mirrored along vertical
+        oppositeLayout: options.oppositeLayout === true // default false = mirrored (shows neutral), true = opposite
     };
 
     // Clear any existing SVG in the container
@@ -245,7 +245,14 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                 const itemEndAngle = index === 0 ? midAngle : category.endAngle;
                 
                 // Color based on trait polarity
-                const baseColor = item.isPositive ? '#4CAF50' : '#F44336';
+                let baseColor;
+                if (item.isNeutral) {
+                    baseColor = '#9E9E9E'; // Grey for neutral traits
+                } else if (item.isPositive) {
+                    baseColor = '#4CAF50'; // Green for positive traits
+                } else {
+                    baseColor = '#F44336'; // Red for negative traits
+                }
                 
                 drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOuterRadius, radius, config, category, tooltip, index, baseColor);
             });
@@ -697,15 +704,15 @@ function isHierarchicalFormat(data) {
 }
 
 /**
- * Transforms hierarchical data into two super-categories: Positive and Negative
- * All positive traits on one side, all negative traits on the other
+ * Transforms hierarchical data into super-categories: Positive, Negative, and optionally Neutral
+ * All positive traits on one side, all negative traits on another, neutral at bottom (mirror mode only)
  * @param {Object} hierarchicalData - Data in format { category: { trait1: val1, trait2: val2 } }
  * @param {Object} config - Configuration object with layout options
- * @returns {Array} - Array with 2 super-categories (Positive and Negative)
+ * @returns {Array} - Array with 2 or 3 super-categories (Positive, Negative, and optionally Neutral)
  */
 function transformHierarchicalData(hierarchicalData, config = {}) {
     console.log('🔄 Transforming hierarchical data...');
-    const useOppositeLayout = config.oppositeLayout !== false; // default true
+    const useOppositeLayout = config.oppositeLayout === true; // default false (mirrored with neutral)
     
     const traitPairs = [];
     
@@ -721,36 +728,44 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
         const [trait1Name, trait1Value] = traitEntries[0];
         const [trait2Name, trait2Value] = traitEntries[1];
         
-        // Classify traits
-        const trait1IsPositive = classifyTrait(trait1Name);
-        const trait2IsPositive = classifyTrait(trait2Name);
+        // Classify traits (returns 'positive', 'negative', or 'neutral')
+        const trait1Classification = classifyTrait(trait1Name);
+        const trait2Classification = classifyTrait(trait2Name);
         
-        // Store as a pair
-        const positiveTrait = trait1IsPositive ? 
-            { name: formatTraitName(trait1Name), value: trait1Value, originalTrait: trait1Name } :
-            { name: formatTraitName(trait2Name), value: trait2Value, originalTrait: trait2Name };
+        // Store trait information with classification
+        const trait1 = { 
+            name: formatTraitName(trait1Name), 
+            value: trait1Value, 
+            originalTrait: trait1Name,
+            classification: trait1Classification
+        };
         
-        const negativeTrait = !trait1IsPositive ? 
-            { name: formatTraitName(trait1Name), value: trait1Value, originalTrait: trait1Name } :
-            { name: formatTraitName(trait2Name), value: trait2Value, originalTrait: trait2Name };
+        const trait2 = { 
+            name: formatTraitName(trait2Name), 
+            value: trait2Value, 
+            originalTrait: trait2Name,
+            classification: trait2Classification
+        };
         
         traitPairs.push({
             category: formatTraitName(categoryName),
-            positive: positiveTrait,
-            negative: negativeTrait
+            trait1: trait1,
+            trait2: trait2
         });
         
-        console.log(`  📁 ${categoryName}: ${positiveTrait.name}=${positiveTrait.value.toFixed(3)} (✅) ↔ ${negativeTrait.name}=${negativeTrait.value.toFixed(3)} (❌)`);
+        const classIcon = (c) => c === 'positive' ? '✅' : c === 'negative' ? '❌' : '⚪';
+        console.log(`  📁 ${categoryName}: ${trait1.name}=${trait1.value.toFixed(3)} (${classIcon(trait1Classification)}) ↔ ${trait2.name}=${trait2.value.toFixed(3)} (${classIcon(trait2Classification)})`);
     }
     
-    // Separate positive and negative items with configurable positioning
+    // Separate positive, negative, and neutral items with configurable positioning
     const positiveItems = [];
     const negativeItems = [];
+    const neutralItems = [];
     
     const totalPairs = traitPairs.length;
     
     if (useOppositeLayout) {
-        // OPPOSITE LAYOUT: Traits positioned π radians (180°) apart
+        // OPPOSITE LAYOUT: Traits positioned π radians (180°) apart (2 categories only: pos/neg)
         // - Positive traits: right semicircle (0° to 180°), evenly distributed
         // - Negative traits: left semicircle (180° to 360°), each exactly opposite its pair
         //
@@ -761,6 +776,14 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
         const angleStep = Math.PI / totalPairs;
         
         traitPairs.forEach((pair, index) => {
+            // For opposite layout, we still use the old 2-category system (positive/negative only)
+            // Neutral traits are treated as positive in this mode
+            const trait1IsPositive = pair.trait1.classification !== 'negative';
+            const trait2IsPositive = pair.trait2.classification !== 'negative';
+            
+            const positiveTrait = trait1IsPositive ? pair.trait1 : pair.trait2;
+            const negativeTrait = !trait1IsPositive ? pair.trait1 : pair.trait2;
+            
             // Positive trait: evenly distributed on right side (0° to 180°)
             const positiveAngle = angleStep * (index + 0.5);
             
@@ -768,11 +791,11 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
             const negativeAngle = positiveAngle + Math.PI;
         
         positiveItems.push({
-            name: pair.positive.name,
-            value: pair.positive.value,
-            rawValue: pair.positive.value,
-            originalTrait: pair.positive.originalTrait,
-            oppositeTrait: pair.negative.name,  // Store opposite trait
+            name: positiveTrait.name,
+            value: positiveTrait.value,
+            rawValue: positiveTrait.value,
+            originalTrait: positiveTrait.originalTrait,
+            oppositeTrait: negativeTrait.name,  // Store opposite trait
             category: pair.category,
             isPositive: true,
             pairIndex: index,
@@ -780,102 +803,222 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
         });
         
         negativeItems.push({
-            name: pair.negative.name,
-            value: pair.negative.value,
-            rawValue: pair.negative.value,
-            originalTrait: pair.negative.originalTrait,
-            oppositeTrait: pair.positive.name,  // Store opposite trait
+            name: negativeTrait.name,
+            value: negativeTrait.value,
+            rawValue: negativeTrait.value,
+            originalTrait: negativeTrait.originalTrait,
+            oppositeTrait: positiveTrait.name,  // Store opposite trait
             category: pair.category,
             isPositive: false,
             pairIndex: index,
             angle: negativeAngle
         });
         
-            console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
+            console.log(`  🔄 Pair ${index + 1}: ${positiveTrait.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${negativeTrait.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
         });
     } else {
-        // MIRRORED LAYOUT: Traits mirrored along 90° vertical axis
-        // - Positive traits: right side of vertical (mirrored from 90°)
-        // - Negative traits: left side of vertical (mirrored from 90°)
+        // MIRRORED LAYOUT: 3 categories - Positive (right), Negative (left), Neutral (bottom)
+        // - Positive traits: right side of vertical
+        // - Negative traits: left side of vertical
+        // - Neutral traits: bottom section (centered at 270°)
         //
-        // Example: if pair has 15° offset:
-        //   - Positive at 90° - 15° = 75° (right side)
-        //   - Negative at 90° + 15° = 105° (left side)
-        
-        const mirrorAxis = Math.PI / 2; // 90° vertical axis
-        const maxOffset = Math.PI / 2; // Maximum 90° offset from vertical
-        const offsetStep = maxOffset / (totalPairs + 1);
+        // Layout:
+        //   - Positive: right side, mirrored from 45° (upper right)
+        //   - Negative: left side, mirrored from 135° (upper left)
+        //   - Neutral: bottom, centered around 270° (bottom center)
         
         traitPairs.forEach((pair, index) => {
-            const offset = offsetStep * (index + 1);
+            const trait1Class = pair.trait1.classification;
+            const trait2Class = pair.trait2.classification;
             
-            // Positive trait: right side of 90° (clockwise, so subtract)
-            const positiveAngle = mirrorAxis - offset;
+            // Helper to add trait item
+            const addItem = (trait, oppositeTrait, targetArray, classification, angle) => {
+                const isPositive = classification === 'positive';
+                const isNeutral = classification === 'neutral';
+                
+                targetArray.push({
+                    name: trait.name,
+                    value: trait.value,
+                    rawValue: trait.value,
+                    originalTrait: trait.originalTrait,
+                    oppositeTrait: oppositeTrait.name,
+                    category: pair.category,
+                    isPositive: isPositive,
+                    isNeutral: isNeutral,
+                    pairIndex: index,
+                    angle: angle
+                });
+            };
             
-            // Negative trait: left side of 90° (counter-clockwise, so add)
-            const negativeAngle = mirrorAxis + offset;
-            
-            positiveItems.push({
-                name: pair.positive.name,
-                value: pair.positive.value,
-                rawValue: pair.positive.value,
-                originalTrait: pair.positive.originalTrait,
-                oppositeTrait: pair.negative.name,
-                category: pair.category,
-                isPositive: true,
-                pairIndex: index,
-                angle: positiveAngle
-            });
-            
-            negativeItems.push({
-                name: pair.negative.name,
-                value: pair.negative.value,
-                rawValue: pair.negative.value,
-                originalTrait: pair.negative.originalTrait,
-                oppositeTrait: pair.positive.name,
-                category: pair.category,
-                isPositive: false,
-                pairIndex: index,
-                angle: negativeAngle
-            });
-            
-            console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (offset: ${(offset * 180 / Math.PI).toFixed(1)}°)`);
+            // Determine angles based on classification
+            if (trait1Class === 'neutral' || trait2Class === 'neutral') {
+                // Both traits in a neutral pair go to neutral section
+                // Neutral is centered at π (270° standard = bottom)
+                // Position opposite traits on OPPOSITE SIDES of the midline (mirrored)
+                const neutralCenter = Math.PI; // 270° standard = bottom
+                const totalNeutralPairs = traitPairs.filter(p => 
+                    p.trait1.classification === 'neutral' || p.trait2.classification === 'neutral'
+                ).length;
+                
+                // Calculate how many neutral pairs have been processed
+                const neutralPairIndex = neutralItems.length / 2;
+                
+                // Neutral section size will be proportional, estimated here
+                // Use a reasonable spread for neutral traits
+                const neutralSectionSpread = Math.PI / 3; // About 60° spread
+                const halfSpread = neutralSectionSpread / 2;
+                
+                // Position pairs with offset from center
+                // Each pair gets a position offset from the midline
+                const offsetStep = halfSpread / (totalNeutralPairs + 1);
+                const pairOffset = offsetStep * (neutralPairIndex + 1);
+                
+                // Mirror across the center: one trait on left, one on right
+                const angle1 = neutralCenter - pairOffset; // Left side of midline
+                const angle2 = neutralCenter + pairOffset; // Right side of midline (mirrored)
+                
+                addItem(pair.trait1, pair.trait2, neutralItems, trait1Class, angle1);
+                addItem(pair.trait2, pair.trait1, neutralItems, trait2Class, angle2);
+                
+                console.log(`  ⚪ Neutral Pair ${neutralPairIndex + 1}: ${pair.trait1.name} at ${(angle1 * 180 / Math.PI + 90).toFixed(1)}° ↔ ${pair.trait2.name} at ${(angle2 * 180 / Math.PI + 90).toFixed(1)}° (mirrored across 270°)`);
+            } else {
+                // Standard positive/negative pair
+                // Mirror axis at 0 radians (90° standard = top of circle)
+                // Positive: right side (clockwise from top)
+                // Negative: left side (counter-clockwise from top)
+                const mirrorAxis = 0; // Top in D3 coords (90° standard)
+                const nonNeutralPairs = traitPairs.filter(p => 
+                    p.trait1.classification !== 'neutral' && p.trait2.classification !== 'neutral'
+                ).length;
+                
+                // Calculate how many pos/neg pairs have been processed so far
+                const pairNumber = (positiveItems.length + negativeItems.length) / 2;
+                
+                // Distribute pairs symmetrically around the top
+                // Available arc excludes neutral section
+                const maxOffset = Math.PI / 2; // Up to 90° on each side of top
+                const offsetStep = maxOffset / (nonNeutralPairs + 1);
+                const pairOffset = offsetStep * (pairNumber + 1);
+                
+                // Positive trait: right side (positive offset from mirror axis)
+                const positiveAngle = mirrorAxis + pairOffset;
+                
+                // Negative trait: left side (negative offset from mirror axis)
+                const negativeAngle = mirrorAxis - pairOffset;
+                // Normalize to 0-2π range
+                const normalizedNegativeAngle = negativeAngle < 0 ? negativeAngle + 2 * Math.PI : negativeAngle;
+                
+                if (trait1Class === 'positive') {
+                    addItem(pair.trait1, pair.trait2, positiveItems, trait1Class, positiveAngle);
+                    addItem(pair.trait2, pair.trait1, negativeItems, trait2Class, normalizedNegativeAngle);
+                } else {
+                    addItem(pair.trait2, pair.trait1, positiveItems, trait2Class, positiveAngle);
+                    addItem(pair.trait1, pair.trait2, negativeItems, trait1Class, normalizedNegativeAngle);
+                }
+                
+                console.log(`  🔄 Pair ${pairNumber + 1}: positive at ${(positiveAngle * 180 / Math.PI + 90).toFixed(1)}° ↔ negative at ${(normalizedNegativeAngle * 180 / Math.PI + 90).toFixed(1)}° (standard, mirrored)`);
+            }
         });
     }
     
     // Sort items by angle for proper rendering order
     positiveItems.sort((a, b) => a.angle - b.angle);
     negativeItems.sort((a, b) => a.angle - b.angle);
+    neutralItems.sort((a, b) => a.angle - b.angle);
     
     // Remove the temporary angle property before creating categories
     const cleanPositiveItems = positiveItems.map(({angle, ...item}) => item);
     const cleanNegativeItems = negativeItems.map(({angle, ...item}) => item);
+    const cleanNeutralItems = neutralItems.map(({angle, ...item}) => item);
     
-    // Create two super-categories with clean split at vertical axis
-    // Positive occupies right side, negative occupies left side
-    const categories = [
-        {
-            name: 'Positive Traits',
-            color: '#4CAF50', // Green
-            startAngle: 0,
-            endAngle: Math.PI, // Right side: 0° to 180°
-            items: cleanPositiveItems,
-            isHierarchical: false
-        },
-        {
-            name: 'Negative Traits',
-            color: '#F44336', // Red  
-            startAngle: Math.PI,
-            endAngle: 2 * Math.PI, // Left side: 180° to 360°
-            items: cleanNegativeItems,
-            isHierarchical: false
-        }
-    ];
+    // Create categories based on layout mode
+    let categories;
     
-    const layoutDescription = useOppositeLayout 
-        ? 'opposite pairs π radians apart'
-        : 'pairs mirrored along 90° vertical axis';
-    console.log(`✅ Created 2 super-categories with ${layoutDescription}: ${positiveItems.length} positive traits (right side) and ${negativeItems.length} negative traits (left side)`);
+    if (useOppositeLayout || neutralItems.length === 0) {
+        // OPPOSITE LAYOUT or NO NEUTRAL TRAITS: 2 categories (positive and negative)
+        // Positive occupies right side, negative occupies left side
+        categories = [
+            {
+                name: 'Positive Traits',
+                color: '#4CAF50', // Green
+                startAngle: 0,
+                endAngle: Math.PI, // Right side: 0° to 180°
+                items: cleanPositiveItems,
+                isHierarchical: false
+            },
+            {
+                name: 'Negative Traits',
+                color: '#F44336', // Red  
+                startAngle: Math.PI,
+                endAngle: 2 * Math.PI, // Left side: 180° to 360°
+                items: cleanNegativeItems,
+                isHierarchical: false
+            }
+        ];
+        
+        console.log(`✅ Created 2 super-categories: ${positiveItems.length} positive traits and ${negativeItems.length} negative traits`);
+    } else {
+        // MIRRORED LAYOUT with NEUTRAL TRAITS: 3 categories (positive, negative, neutral)
+        // Arc sizes are PROPORTIONAL to number of traits in each category
+        // Neutral category centered at 270° (standard coords) = 3π/2 (bottom of circle)
+        // Note: D3 uses angle 0 at right (3 o'clock) with angles increasing clockwise
+        // To convert standard degrees to D3 radians: D3_radians = (standard_degrees - 90) * π/180
+        
+        const totalItems = cleanPositiveItems.length + cleanNegativeItems.length + cleanNeutralItems.length;
+        const fullCircle = 2 * Math.PI;
+        
+        // Calculate arc sizes proportional to item counts
+        const neutralArcSize = (cleanNeutralItems.length / totalItems) * fullCircle;
+        const positiveArcSize = (cleanPositiveItems.length / totalItems) * fullCircle;
+        const negativeArcSize = (cleanNegativeItems.length / totalItems) * fullCircle;
+        
+        // Position neutral centered at 270° standard = bottom of circle
+        // 270° standard = (270 - 90) = 180° in D3 = π radians
+        const neutralCenter = Math.PI; // 270° standard coords = bottom
+        const neutralStart = neutralCenter - neutralArcSize / 2;
+        const neutralEnd = neutralCenter + neutralArcSize / 2;
+        
+        // Positive goes from end of neutral, clockwise (right side going up)
+        const positiveStart = neutralEnd;
+        const positiveEnd = positiveStart + positiveArcSize;
+        
+        // Negative goes from end of positive, clockwise (left side going down)
+        const negativeStart = positiveEnd;
+        const negativeEnd = negativeStart + negativeArcSize;
+        
+        categories = [
+            {
+                name: 'Neutral Traits',
+                color: '#9E9E9E', // Grey
+                startAngle: neutralStart,
+                endAngle: neutralEnd,
+                items: cleanNeutralItems,
+                isHierarchical: false
+            },
+            {
+                name: 'Positive Traits',
+                color: '#4CAF50', // Green
+                startAngle: positiveStart,
+                endAngle: positiveEnd,
+                items: cleanPositiveItems,
+                isHierarchical: false
+            },
+            {
+                name: 'Negative Traits',
+                color: '#F44336', // Red  
+                startAngle: negativeStart,
+                endAngle: negativeEnd,
+                items: cleanNegativeItems,
+                isHierarchical: false
+            }
+        ];
+        
+        console.log(`✅ Created 3 super-categories (mirror mode, proportional sizing):`);
+        console.log(`   Neutral: ${neutralItems.length} traits (${(neutralArcSize * 180 / Math.PI).toFixed(1)}° arc, centered at 270°)`);
+        console.log(`   Positive: ${positiveItems.length} traits (${(positiveArcSize * 180 / Math.PI).toFixed(1)}° arc)`);
+        console.log(`   Negative: ${negativeItems.length} traits (${(negativeArcSize * 180 / Math.PI).toFixed(1)}° arc)`);
+    }
+    
     return categories;
 }
 
@@ -934,13 +1077,19 @@ function detectTraitPairs(personaData) {
 }
 
 /**
- * Dynamically classify traits as positive or negative based on common patterns
- * Uses heuristics to determine if a trait is generally positive or negative
+ * Dynamically classify traits as positive, negative, or neutral based on common patterns
+ * Uses heuristics to determine if a trait is generally positive, negative, or neutral
  * @param {string} traitName - Name of the trait
- * @returns {boolean} - true if positive, false if negative
+ * @returns {string} - 'positive', 'negative', or 'neutral'
  */
 function classifyTrait(traitName) {
     const trait = traitName.toLowerCase();
+    
+    // Neutral traits (funny/serious, casual/formal)
+    const neutralTraits = ['funny', 'serious', 'casual', 'formal'];
+    if (neutralTraits.some(nt => trait.includes(nt))) {
+        return 'neutral';
+    }
     
     // Negative trait indicators (prefixes/contains)
     const negativeIndicators = [
@@ -957,29 +1106,29 @@ function classifyTrait(traitName) {
         'encourag', 'support', 'help', 'positive',
         'social', 'outgoing', 'engaging',
         'honest', 'truthful', 'genuine', 'authentic',
-        'funny', 'humorous', 'witty', 'playful',
+        'humorous', 'witty', 'playful',
         'accurate', 'correct', 'precise', 'factual',
         'respectful', 'polite', 'courteous',
         'creative', 'innovative', 'original',
-        'casual', 'relaxed', 'easy'
+        'relaxed', 'easy'
     ];
     
     // Check for negative indicators
     for (const indicator of negativeIndicators) {
         if (trait.includes(indicator)) {
-            return false;
+            return 'negative';
         }
     }
     
     // Check for positive indicators
     for (const indicator of positiveIndicators) {
         if (trait.includes(indicator)) {
-            return true;
+            return 'positive';
         }
     }
     
-    // Default to positive if no clear indicators (neutral traits)
-    return true;
+    // Default to positive if no clear indicators
+    return 'positive';
 }
 
 /**

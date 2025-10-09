@@ -51,7 +51,7 @@ if (typeof window.conversationHistory === 'undefined') {
 }
 // Track sunburst layout mode
 if (typeof window.sunburstOppositeLayout === 'undefined') {
-    window.sunburstOppositeLayout = true; // Default: opposite (π radians apart)
+    window.sunburstOppositeLayout = false; // Default: mirrored (shows neutral category at bottom)
 }
 // Store current persona data for redrawing
 if (typeof window.currentPersonaData === 'undefined') {

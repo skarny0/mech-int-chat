@@ -171,7 +171,8 @@
         
         <div class="description">
             <p>Interactive test page for the D3.js sunburst visualization with <strong>hierarchical data format</strong>.</p>
-            <p><strong>Top Half:</strong> All Positive Traits (Green) • <strong>Bottom Half:</strong> All Negative Traits (Red)</p>
+            <p><strong>Categories:</strong> Positive Traits (Green) • Negative Traits (Red) • <strong>⚪ Neutral Traits (Grey)</strong></p>
+            <p><strong>Mirror Mode:</strong> Neutral traits (funny/serious, casual/formal) appear in grey section at bottom</p>
             <p><strong>Exact API Format:</strong> One trait has value [0,1], opposite is 0</p>
             <p>Example: <code>{ empathy: { empathetic: 0.8, unempathetic: 0 } }</code></p>
         </div>
@@ -189,6 +190,9 @@
             <button class="btn btn-primary" onclick="testMixedTraits()">
                 Test Mixed Polarity
             </button>
+            <button class="btn btn-secondary" onclick="testNeutralCategory()">
+                ⚪ Test Neutral Category
+            </button>
             <button class="btn btn-secondary" onclick="testCustomCategories()">
                 Test Custom Categories
             </button>
@@ -199,7 +203,7 @@
         
         <div style="text-align: center; margin-bottom: 1rem;">
             <button id="layoutToggle" class="btn btn-primary" onclick="toggleLayout()" style="background: #9C27B0;">
-                Toggle Layout: <span id="layoutMode">Opposite (π apart)</span>
+                Toggle Layout: <span id="layoutMode">Mirrored (90° axis)</span>
             </button>
         </div>
         
@@ -215,10 +219,12 @@
                     <br>• <span class="code">empathetic: 0.8</span> and <span class="code">unempathetic: 0</span> → shows <span class="positive-label">Empathetic (0.8)</span>
                     <br>• <span class="code">toxic: 0.7</span> and <span class="code">respectful: 0</span> → shows <span class="negative-label">Toxic (0.7)</span>
                 </li>
-                <li><strong>Categorization:</strong>
-                    <br>• <span class="positive-label">Positive traits</span> (empathetic, encouraging, honest, etc.) → Top half (Green)
-                    <br>• <span class="negative-label">Negative traits</span> (toxic, sycophantic, hallucinatory, etc.) → Bottom half (Red)
+                <li><strong>Categorization (Mirror Mode):</strong>
+                    <br>• <span class="positive-label">Positive traits</span> (empathetic, encouraging, honest, etc.) → Right side (Green)
+                    <br>• <span class="negative-label">Negative traits</span> (toxic, sycophantic, hallucinatory, etc.) → Left side (Red)
+                    <br>• <strong>⚪ Neutral traits</strong> (funny, serious, casual, formal) → Bottom section (Grey)
                 </li>
+                <li><strong>Opposite Mode:</strong> Positive and negative only (no neutral category)</li>
                 <li>Check the browser console to see all trait pairs and processing!</li>
             </ul>
         </div>
@@ -396,7 +402,7 @@
         };
         
         let currentData = realAPIData;
-        let useOppositeLayout = true; // Track current layout mode
+        let useOppositeLayout = false; // Track current layout mode - default to mirror (shows neutral)
         
         function toggleLayout() {
             useOppositeLayout = !useOppositeLayout;
@@ -486,6 +492,65 @@
                 oppositeLayout: useOppositeLayout
             });
             displayData(mixedPolarityData);
+        }
+        
+        function testNeutralCategory() {
+            // Test data with neutral traits (funny/serious, casual/formal) to verify grey category
+            const neutralTestData = {
+                empathy: {
+                    empathetic: 0.82,
+                    unempathetic: 0
+                },
+                encouraging: {
+                    encouraging: 0.75,
+                    discouraging: 0
+                },
+                sociality: {
+                    social: 0.68,
+                    antisocial: 0
+                },
+                formality: {
+                    formal: 0,
+                    casual: 0.88  // Neutral trait
+                },
+                sycophancy: {
+                    sycophantic: 0.45,
+                    honest: 0
+                },
+                funniness: {
+                    funny: 0.92,  // Neutral trait
+                    serious: 0
+                },
+                hallucination: {
+                    hallucinatory: 0,
+                    factual: 0.95
+                },
+                toxicity: {
+                    toxic: 0,
+                    respectful: 0.87
+                }
+            };
+            
+            // Force mirror mode for neutral category test
+            useOppositeLayout = false;
+            document.getElementById('layoutMode').textContent = 'Mirrored (90° axis)';
+            
+            currentData = neutralTestData;
+            createPersonaSunburst(neutralTestData, 'sunburstContainer', {
+                width: 900,
+                height: 900,
+                centerLabel: 'Neutral',
+                centerSubLabel: 'Test',
+                animate: true,
+                oppositeLayout: false  // Force mirror mode
+            });
+            displayData(neutralTestData);
+            
+            console.log('⚪ Testing Neutral Category:');
+            console.log('- Funny and Casual should appear in GREY section at BOTTOM');
+            console.log('- Positive traits (empathetic, encouraging, social, factual, respectful) should be on RIGHT');
+            console.log('- Negative trait (sycophantic) should be on LEFT');
+            console.log('- Layout should be symmetrically mirrored around vertical axis');
         }
         
         function testCustomCategories() {
