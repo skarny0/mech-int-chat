@@ -58,6 +58,9 @@
  * @param {string} [options.centerSubLabel='Vector'] - Sub-label in center
  * @param {boolean} [options.animate=true] - Whether to animate on load
  * @param {boolean} [options.showPercentages=true] - Whether to show percentages in labels
+ * @param {number} [options.minExtension=0.3] - Minimum extension for non-zero values (0-1 range)
+ * @param {boolean} [options.useSqrtScaling=true] - Whether to use square root scaling for values
+ * @param {boolean} [options.showLabels=true] - Whether to show perpendicular labels
  * @returns {Function} Cleanup function to remove tooltip
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
@@ -74,7 +77,10 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         centerLabel: options.centerLabel || 'Persona',
         centerSubLabel: options.centerSubLabel || 'Vector',
         animate: options.animate !== false,
-        showPercentages: options.showPercentages !== false
+        showPercentages: options.showPercentages !== false,
+        minExtension: options.minExtension !== undefined ? options.minExtension : 0.3,
+        useSqrtScaling: options.useSqrtScaling !== false,
+        showLabels: options.showLabels !== false
     };
 
     // Clear any existing SVG in the container
@@ -211,68 +217,39 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
     // Draw item arcs (outer ring)
     categories.forEach(category => {
         const angleRange = category.endAngle - category.startAngle;
-        const itemAngle = angleRange / category.items.length;
-
-        category.items.forEach((item, index) => {
-            const itemStartAngle = category.startAngle + index * itemAngle;
-            const itemEndAngle = itemStartAngle + itemAngle;
-            // Use raw values (0-1 range) directly for extension
-            const extension = item.value * (maxOuterRadius - middleRadius);
-            const outerRadius = middleRadius + extension;
-
-            // Item arc
-            const itemArc = g.append('path')
-                .attr('d', d3.arc()
-                    .innerRadius(middleRadius)
-                    .outerRadius(outerRadius)
-                    .startAngle(itemStartAngle)
-                    .endAngle(itemEndAngle)
-                )
-                .attr('fill', d3.color(category.color).brighter(index * 0.15))
-                .attr('stroke', 'white')
-                .attr('stroke-width', 2)
-                .style('opacity', 0.9)
-                .style('cursor', 'pointer');
-
-            // Add hover effects to items with enhanced visual feedback
-            itemArc.on('mouseenter', function(event) {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .style('opacity', 1)
-                    .attr('stroke-width', 4)
-                    .style('filter', 'brightness(1.1)');
+        
+        // Check if this is a hierarchical category with mirrored items
+        const isHierarchical = category.isHierarchical && category.items.length === 2;
+        
+        if (isHierarchical) {
+            // Mirrored layout: split the category angle in half
+            // Positive trait (left half) | Negative trait (right half)
+            // They extend outward in complementary/opposing positions
+            const halfAngle = angleRange / 2;
+            const midAngle = category.startAngle + halfAngle;
+            
+            category.items.forEach((item, index) => {
+                // Index 0 (positive): left half of category (from start to mid)
+                // Index 1 (negative): right half of category (from mid to end)
+                const itemStartAngle = index === 0 ? category.startAngle : midAngle;
+                const itemEndAngle = index === 0 ? midAngle : category.endAngle;
                 
-                tooltip.transition()
-                    .duration(200)
-                    .style('opacity', 1);
+                // Color based on trait polarity
+                const baseColor = item.isPositive ? '#4CAF50' : '#F44336';
                 
-                const originalTraitInfo = item.originalTrait ? 
-                    `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
-                
-                tooltip.html(`
-                    <strong style="font-size: 16px;">${item.name}</strong><br/>
-                    <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
-                `)
-                    .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 28) + 'px');
-            })
-            .on('mouseleave', function() {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .style('opacity', 0.9)
-                    .attr('stroke-width', 2)
-                    .style('filter', 'none');
-                
-                tooltip.transition()
-                    .duration(200)
-                    .style('opacity', 0);
-            })
-            .on('click', function() {
-                console.log('Clicked:', item.name, 'Value:', item.value);
+                drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOuterRadius, radius, config, category, tooltip, index, baseColor);
             });
-        });
+        } else {
+            // Standard layout: divide angle equally among items
+            const itemAngle = angleRange / category.items.length;
+            
+            category.items.forEach((item, index) => {
+                const itemStartAngle = category.startAngle + index * itemAngle;
+                const itemEndAngle = itemStartAngle + itemAngle;
+                
+                drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOuterRadius, radius, config, category, tooltip, index);
+            });
+        }
     });
 
     console.log('🎯 About to render center circle and avatar');
@@ -332,15 +309,6 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
             .text(config.centerSubLabel);
     }
 
-    // Add hover instruction
-    // g.append('text')
-    //     .attr('text-anchor', 'lower')
-    //     .attr('dy', '2.8em')
-    //     .style('font-size', `${Math.max(11, radius * 0.028)}px`)
-    //     .style('fill', '#999')
-    //     .style('font-style', 'italic')
-    //     .text('Hover to explore');
-
     // Animate on load
     if (config.animate) {
         g.selectAll('path')
@@ -357,12 +325,157 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 }
 
 /**
+ * Draws a single item arc with all its interactions and labels
+ * @param {Object} g - D3 group element
+ * @param {Object} item - Item data
+ * @param {number} itemStartAngle - Start angle
+ * @param {number} itemEndAngle - End angle
+ * @param {number} middleRadius - Middle radius
+ * @param {number} maxOuterRadius - Maximum outer radius
+ * @param {number} radius - Base radius
+ * @param {Object} config - Configuration object
+ * @param {Object} category - Parent category
+ * @param {Object} tooltip - D3 tooltip element
+ * @param {number} index - Item index within category
+ * @param {string} baseColor - Optional override for item color (for mirrored traits)
+ */
+function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOuterRadius, radius, config, category, tooltip, index, baseColor) {
+    
+    // Scale values to make activations more visible
+    let scaledValue = item.value;
+    if (scaledValue > 0) {
+        // Apply square root scaling if enabled (compresses high values, expands low values)
+        if (config.useSqrtScaling) {
+            scaledValue = Math.sqrt(scaledValue);
+        }
+        // Ensure minimum visibility for non-zero values
+        scaledValue = Math.max(scaledValue, config.minExtension);
+    }
+    
+    const extension = scaledValue * (maxOuterRadius - middleRadius);
+    const outerRadius = middleRadius + extension;
+    
+    console.log(`  ${item.name}: raw=${item.value.toFixed(3)}, scaled=${scaledValue.toFixed(3)}, extension=${extension.toFixed(1)}px`);
+
+    // Determine fill color
+    // If baseColor provided (for mirrored traits), use it; otherwise use category color
+    const fillColor = baseColor ? baseColor : d3.color(category.color).brighter(index * 0.15);
+    
+    // Item arc
+    const itemArc = g.append('path')
+        .attr('d', d3.arc()
+            .innerRadius(middleRadius)
+            .outerRadius(outerRadius)
+            .startAngle(itemStartAngle)
+            .endAngle(itemEndAngle)
+        )
+        .attr('fill', fillColor)
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2)
+        .style('opacity', 0.9)
+        .style('cursor', 'pointer');
+
+    // Add hover effects to items with enhanced visual feedback
+    itemArc.on('mouseenter', function(event) {
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .style('opacity', 1)
+            .attr('stroke-width', 4)
+            .style('filter', 'brightness(1.1)');
+        
+        tooltip.transition()
+            .duration(200)
+            .style('opacity', 1);
+        
+        const originalTraitInfo = item.originalTrait ? 
+            `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
+        
+        tooltip.html(`
+            <strong style="font-size: 16px;">${item.name}</strong><br/>
+            <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
+        `)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+    })
+    .on('mouseleave', function() {
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .style('opacity', 0.9)
+            .attr('stroke-width', 2)
+            .style('filter', 'none');
+        
+        tooltip.transition()
+            .duration(200)
+            .style('opacity', 0);
+    })
+    .on('click', function() {
+        console.log('Clicked:', item.name, 'Value:', item.value);
+    });
+    
+    // Add perpendicular label for this trait (if enabled)
+    if (config.showLabels) {
+        const midAngle = (itemStartAngle + itemEndAngle) / 2;
+        const labelRadius = outerRadius + (radius * 0.08); // Position label slightly beyond the segment
+        const labelX = Math.sin(midAngle) * labelRadius;
+        const labelY = -Math.cos(midAngle) * labelRadius;
+        
+        // Calculate rotation for perpendicular label
+        // Convert angle to degrees and adjust so text is perpendicular to radius
+        let rotation = (midAngle * 180 / Math.PI);
+        
+        // Flip text on left side so it's always readable
+        if (midAngle > Math.PI / 2 && midAngle < (3 * Math.PI / 2)) {
+            rotation += 180;
+        }
+        
+        // Add the label text
+        const label = g.append('text')
+            .attr('x', labelX)
+            .attr('y', labelY)
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .attr('transform', `rotate(${rotation}, ${labelX}, ${labelY})`)
+            .style('font-size', `${Math.max(9, radius * 0.025)}px`)
+            .style('font-weight', '500')
+            .style('fill', '#333')
+            .style('pointer-events', 'none')
+            .style('user-select', 'none')
+            .text(item.name);
+        
+        // Add percentage value next to label
+        if (config.showPercentages && item.value > 0) {
+            const percentText = `${(item.value * 100).toFixed(0)}%`;
+            g.append('text')
+                .attr('x', labelX)
+                .attr('y', labelY + (radius * 0.035))
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'middle')
+                .attr('transform', `rotate(${rotation}, ${labelX}, ${labelY + (radius * 0.035)})`)
+                .style('font-size', `${Math.max(7, radius * 0.02)}px`)
+                .style('font-weight', '400')
+                .style('fill', '#666')
+                .style('pointer-events', 'none')
+                .style('user-select', 'none')
+                .text(percentText);
+        }
+    }
+}
+
+/**
  * Transforms persona vector data into categories structure for two-ring sunburst
  * @param {Object} personaData - Object with categorized persona ratings or flat ratings
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData) {
     console.log('🔍 transformToCategories called with:', personaData);
+    
+    // Check if data is in new hierarchical format (categories with sub-traits)
+    if (isHierarchicalFormat(personaData)) {
+        console.log('✅ Data is in hierarchical format (categories with sub-traits)');
+        return transformHierarchicalData(personaData);
+    }
     
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
@@ -460,6 +573,123 @@ function transformToCategories(personaData) {
         currentAngle += angleRange;
     });
 
+    return categories;
+}
+
+/**
+ * Checks if data is in hierarchical format (categories with sub-traits)
+ * New API format: { empathy: { empathetic: 0.5, unempathetic: 0.3 }, ... }
+ * @param {Object} data - Persona data
+ * @returns {boolean} - True if hierarchical format
+ */
+function isHierarchicalFormat(data) {
+    if (!data || typeof data !== 'object') return false;
+    
+    // Check if first-level values are objects (not numbers)
+    const firstValue = Object.values(data)[0];
+    return firstValue && typeof firstValue === 'object' && !Array.isArray(firstValue);
+}
+
+/**
+ * Transforms hierarchical data into mirrored categories structure
+ * @param {Object} hierarchicalData - Data in format { category: { trait1: val1, trait2: val2 } }
+ * @returns {Array} - Array of category objects with mirrored items
+ */
+function transformHierarchicalData(hierarchicalData) {
+    console.log('🔄 Transforming hierarchical data...');
+    
+    const categories = [];
+    let currentAngle = 0;
+    const totalCategories = Object.keys(hierarchicalData).length;
+    const anglePerCategory = (2 * Math.PI) / totalCategories;
+    
+    for (const [categoryName, traits] of Object.entries(hierarchicalData)) {
+        const traitEntries = Object.entries(traits);
+        
+        if (traitEntries.length !== 2) {
+            console.warn(`⚠️ Category "${categoryName}" doesn't have exactly 2 traits, skipping`);
+            continue;
+        }
+        
+        const [trait1Name, trait1Value] = traitEntries[0];
+        const [trait2Name, trait2Value] = traitEntries[1];
+        
+        // Classify traits
+        const trait1IsPositive = classifyTrait(trait1Name);
+        const trait2IsPositive = classifyTrait(trait2Name);
+        
+        // Determine category color based on dominant trait type
+        let categoryColor;
+        if (trait1Value > trait2Value) {
+            categoryColor = trait1IsPositive ? '#4CAF50' : '#F44336';
+        } else if (trait2Value > trait1Value) {
+            categoryColor = trait2IsPositive ? '#4CAF50' : '#F44336';
+        } else {
+            categoryColor = '#9E9E9E'; // Gray for equal values
+        }
+        
+        // Create items array with positive trait first, negative trait second
+        // This ensures positive is always on the left side, negative on the right side
+        let positiveItem, negativeItem;
+        
+        if (trait1IsPositive) {
+            positiveItem = {
+                name: formatTraitName(trait1Name),
+                value: trait1Value,
+                rawValue: trait1Value,
+                originalTrait: trait1Name,
+                isPositive: true,
+                isMirroredPair: true,
+                mirrorPosition: 0 // Left side
+            };
+            negativeItem = {
+                name: formatTraitName(trait2Name),
+                value: trait2Value,
+                rawValue: trait2Value,
+                originalTrait: trait2Name,
+                isPositive: false,
+                isMirroredPair: true,
+                mirrorPosition: 1 // Right side (mirrored)
+            };
+        } else {
+            positiveItem = {
+                name: formatTraitName(trait2Name),
+                value: trait2Value,
+                rawValue: trait2Value,
+                originalTrait: trait2Name,
+                isPositive: true,
+                isMirroredPair: true,
+                mirrorPosition: 0 // Left side
+            };
+            negativeItem = {
+                name: formatTraitName(trait1Name),
+                value: trait1Value,
+                rawValue: trait1Value,
+                originalTrait: trait1Name,
+                isPositive: false,
+                isMirroredPair: true,
+                mirrorPosition: 1 // Right side (mirrored)
+            };
+        }
+        
+        // Array order: [positive, negative] - left to right
+        const items = [positiveItem, negativeItem];
+        
+        categories.push({
+            name: formatTraitName(categoryName),
+            color: categoryColor,
+            startAngle: currentAngle,
+            endAngle: currentAngle + anglePerCategory,
+            items: items,
+            isHierarchical: true
+        });
+        
+        console.log(`  📁 ${categoryName}: [LEFT] ${positiveItem.originalTrait}=${positiveItem.value.toFixed(3)} (✅) | [RIGHT] ${negativeItem.originalTrait}=${negativeItem.value.toFixed(3)} (❌)`);
+        
+        currentAngle += anglePerCategory;
+    }
+    
+    console.log(`✅ Created ${categories.length} hierarchical categories`);
     return categories;
 }
 
