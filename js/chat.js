@@ -130,7 +130,7 @@ function initializeDynamicInterface() {
     // Show avatar instruction modal when interface loads
     setTimeout(() => {
         window.showInstructionModal('avatar');
-    }, 500);
+    }, 50);
 
     function initializeAvatarSelection() {
         const avatarGrid = $('.avatar-grid');
