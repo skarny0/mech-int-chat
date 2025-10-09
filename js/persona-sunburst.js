@@ -633,21 +633,31 @@ function transformHierarchicalData(hierarchicalData) {
     const positiveItems = [];
     const negativeItems = [];
     
-    // Calculate angles: distribute pairs evenly, then mirror each pair around 90°
+    // Calculate angles: distribute pairs evenly around the circle, then mirror each pair around 90°
     const totalPairs = traitPairs.length;
-    const anglePerPair = Math.PI / totalPairs; // Half circle divided by pairs (we'll use both halves)
+    const anglePerPair = (2 * Math.PI) / totalPairs; // Full circle divided by number of pairs
     
     const mirrorAxis = Math.PI / 2; // 90° vertical axis
     
     traitPairs.forEach((pair, index) => {
-        // Calculate the offset from 90° for this pair
-        // Start from the center and spread outward
-        const pairOffset = (index - (totalPairs - 1) / 2) * anglePerPair;
+        // Calculate base angle for this pair (distribute evenly around circle)
+        const baseAngle = index * anglePerPair;
         
-        // Positive trait: right side of 90° (clockwise from 90°)
-        const positiveAngle = mirrorAxis + pairOffset;
-        // Negative trait: left side of 90° (counter-clockwise from 90°), mirrored
-        const negativeAngle = mirrorAxis - pairOffset;
+        // Calculate offset from the 90° mirror axis
+        let offsetFromMirror = baseAngle - mirrorAxis;
+        
+        // Normalize offset to be within -π to π
+        if (offsetFromMirror > Math.PI) {
+            offsetFromMirror -= 2 * Math.PI;
+        } else if (offsetFromMirror < -Math.PI) {
+            offsetFromMirror += 2 * Math.PI;
+        }
+        
+        // Mirror the angle around 90°
+        // Positive trait: same side as base angle
+        // Negative trait: mirrored to opposite side of 90°
+        const positiveAngle = mirrorAxis + Math.abs(offsetFromMirror);
+        const negativeAngle = mirrorAxis - Math.abs(offsetFromMirror);
         
         positiveItems.push({
             name: pair.positive.name,
@@ -671,7 +681,7 @@ function transformHierarchicalData(hierarchicalData) {
             pairIndex: index
         });
         
-        console.log(`  🔄 Mirrored pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}°`);
+        console.log(`  🔄 Pair ${index + 1} (base ${(baseAngle * 180 / Math.PI).toFixed(1)}°): ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}°`);
     });
     
     // Sort items by angle
