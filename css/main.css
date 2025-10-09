@@ -86,6 +86,22 @@
     width: 100%;
 }
 
+/* Visualization Explanation Modal - Positioned on left side */
+#visualizationExplanationModal {
+    justify-content: flex-start;
+    padding-left: 15%;
+}
+
+#visualizationExplanationModal .instruction-modal-overlay {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+}
+
+#visualizationExplanationModal .instruction-modal-content {
+    max-width: 420px;
+    margin-left: 0;
+}
+
 /* Avatar Selection Interface Styles */
 .avatar-selection-interface {
     padding: 2rem;

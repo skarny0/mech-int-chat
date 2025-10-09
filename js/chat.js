@@ -496,6 +496,9 @@ function initializeDynamicInterface() {
             $('#initialPlaceholder').hide();
             $('#personaVisualization').show();
             
+            // Show visualization explanation modal
+            showVisualizationExplanation();
+            
             // Call persona check
             checkPersona(systemPrompt);
         });
@@ -521,8 +524,26 @@ function initializeDynamicInterface() {
             $('#initialPlaceholder').hide();
             $('#personaVisualization').show();
             
+            // Show visualization explanation modal
+            showVisualizationExplanation();
+            
             // Generate test persona
             testPersonaWithMockData();
+        });
+
+        // Visualization Help button - show explanation modal
+        // Use event delegation since the button is loaded asynchronously
+        $(document).on('click', '#visualizationHelpBtn', function() {
+            // Remove focus from button to return to default state
+            $(this).blur();
+            
+            // Show the visualization explanation modal
+            showVisualizationExplanation();
+        });
+
+        // Dismiss visualization explanation modal
+        $(document).on('click', '#dismissVisualizationExplanation', function() {
+            dismissVisualizationExplanation();
         });
 
         // Toggle Layout button - switch between opposite and mirrored layouts
@@ -1664,4 +1685,16 @@ window.dismissInstructionModal = function(type) {
     sessionStorage.setItem('instructionsShown', JSON.stringify(instructionsShown));
     
     console.log(`✅ Instruction modal '${type}' dismissed and marked as shown`);
+};
+
+// Show visualization explanation modal
+window.showVisualizationExplanation = function() {
+    $('#visualizationExplanationModal').fadeIn(600);
+    console.log('📊 Showing visualization explanation modal');
+};
+
+// Dismiss visualization explanation modal
+window.dismissVisualizationExplanation = function() {
+    $('#visualizationExplanationModal').fadeOut(400);
+    console.log('✅ Visualization explanation modal dismissed');
 };
