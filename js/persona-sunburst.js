@@ -115,15 +115,18 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .attr('transform', `translate(${width / 2},${height * 0.42})`);
 
     // Define ring radii with better proportions
-    const innerRadius = radius * 0.25;
-    const middleRadius = radius * 0.50;
-    const maxOuterRadius = radius * 0.98;
+    // Smaller inner circles give bars more room to grow and show activation differences
+    const innerRadius = radius * 0.18;
+    const middleRadius = radius * 0.35;
+    const maxOuterRadius = radius * 0.80; // Maximum extent to keep within view
 
-    // Add tooltip div
+    // Add tooltip div - positioned in top-right corner
     const tooltip = d3.select('body').append('div')
         .attr('class', 'persona-sunburst-tooltip')
         .style('opacity', 0)
-        .style('position', 'absolute')
+        .style('position', 'fixed')
+        .style('top', '20px')
+        .style('right', '20px')
         .style('background-color', 'rgba(0, 0, 0, 0.9)')
         .style('color', 'white')
         .style('padding', '12px 16px')
@@ -133,7 +136,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         .style('font-family', 'system-ui, -apple-system, sans-serif')
         .style('line-height', '1.6')
         .style('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.3)')
-        .style('z-index', '10000');
+        .style('z-index', '10000')
+        .style('max-width', '250px');
 
     // Draw category arcs (inner ring)
     categories.forEach((category, catIndex) => {
@@ -169,9 +173,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
                 <strong>${category.name}</strong><br/>
                 Average: ${avgValue.toFixed(2)}<br/>
                 Items: ${category.items.length}
-            `)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 28) + 'px');
+            `);
         })
         .on('mouseleave', function() {
             d3.select(this)
@@ -352,14 +354,20 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     console.log(`  ${item.name}: value=${item.value.toFixed(3)}, multiplier=${growthMultiplier}x, extension=${extension.toFixed(1)}px`);
 
     // Determine fill color based on activation value
-    // Higher activation = darker shade, lower activation = lighter shade
+    // Higher activation = darker/more saturated, lower activation = lighter/less saturated
     // If baseColor provided (for mirrored traits), use it as base; otherwise use category color
     const baseColorToUse = baseColor ? baseColor : category.color;
     
-    // Scale the brightness inversely with value: 0 = very light, 1 = full color
-    // Use value to determine darkness: higher value = darker (less brightening)
-    const brightnessAdjustment = (1 - item.value) * 0.8; // 0.8 max lightening for low values
-    const fillColor = d3.color(baseColorToUse).brighter(brightnessAdjustment);
+    // Convert to HSL for better color control
+    const baseHSL = d3.hsl(baseColorToUse);
+    
+    // Adjust lightness based on value: higher value = much darker, lower value = much lighter
+    // More extreme range for dramatic color differences
+    const minLightness = 0.85; // Very light (almost white) at 0% activation
+    const maxLightness = 0.35; // Very dark at 100% activation
+    const lightness = minLightness - (item.value * (minLightness - maxLightness));
+    
+    const fillColor = d3.hsl(baseHSL.h, baseHSL.s, lightness);
     
     // Item arc
     const itemArc = g.append('path')
@@ -375,6 +383,12 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
         .style('opacity', 0.9)
         .style('cursor', 'pointer');
 
+    // Store reference for sister trait highlighting
+    itemArc.attr('data-trait-name', item.name);
+    if (item.oppositeTrait) {
+        itemArc.attr('data-opposite-trait', item.oppositeTrait);
+    }
+    
     // Add hover effects to items with enhanced visual feedback
     itemArc.on('mouseenter', function(event) {
         d3.select(this)
@@ -383,6 +397,19 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .style('opacity', 1)
             .attr('stroke-width', 4)
             .style('filter', 'brightness(1.1)');
+        
+        // Highlight the opposite trait if it exists
+        if (item.oppositeTrait) {
+            g.selectAll('path[data-trait-name]')
+                .filter(function() {
+                    return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
+                })
+                .transition()
+                .duration(200)
+                .attr('stroke', '#FFD700')
+                .attr('stroke-width', 4)
+                .style('opacity', 1);
+        }
         
         tooltip.transition()
             .duration(200)
@@ -396,9 +423,7 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
         tooltip.html(`
             <strong style="font-size: 16px;">${item.name}</strong><br/>
             <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
-        `)
-            .style('left', (event.pageX + 10) + 'px')
-            .style('top', (event.pageY - 28) + 'px');
+        `);
     })
     .on('mouseleave', function() {
         d3.select(this)
@@ -407,6 +432,19 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .style('opacity', 0.9)
             .attr('stroke-width', 2)
             .style('filter', 'none');
+        
+        // Reset opposite trait highlighting
+        if (item.oppositeTrait) {
+            g.selectAll('path[data-trait-name]')
+                .filter(function() {
+                    return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
+                })
+                .transition()
+                .duration(200)
+                .attr('stroke', 'white')
+                .attr('stroke-width', 2)
+                .style('opacity', 0.9);
+        }
         
         tooltip.transition()
             .duration(200)
@@ -460,11 +498,11 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .style('fill', '#333')
             .text(item.name);
         
-        // Add activation value in grey (appended to the same text element)
+        // Add activation value in smaller font
         textElement.append('tspan')
-            .style('font-size', `${Math.max(9, radius * 0.025)}px`)
-            .style('font-weight', '400')
-            .style('fill', '#999')
+            .style('font-size', `${Math.max(8, radius * 0.022)}px`)
+            .style('font-weight', '500')
+            .style('fill', '#222')
             .text(` ${(item.value * 100).toFixed(0)}%`);
         
         // Add hover effects to label group that mirror the arc hover effects
@@ -475,6 +513,19 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 .style('opacity', 1)
                 .attr('stroke-width', 4)
                 .style('filter', 'brightness(1.1)');
+            
+            // Highlight the opposite trait if it exists
+            if (item.oppositeTrait) {
+                g.selectAll('path[data-trait-name]')
+                    .filter(function() {
+                        return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
+                    })
+                    .transition()
+                    .duration(200)
+                    .attr('stroke', '#FFD700')
+                    .attr('stroke-width', 4)
+                    .style('opacity', 1);
+            }
             
             // Show tooltip
             tooltip.transition()
@@ -489,9 +540,7 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             tooltip.html(`
                 <strong style="font-size: 16px;">${item.name}</strong><br/>
                 <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
-            `)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 28) + 'px');
+            `);
         })
         .on('mouseleave', function() {
             // Reset the arc
@@ -500,6 +549,19 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 .style('opacity', 0.9)
                 .attr('stroke-width', 2)
                 .style('filter', 'none');
+            
+            // Reset opposite trait highlighting
+            if (item.oppositeTrait) {
+                g.selectAll('path[data-trait-name]')
+                    .filter(function() {
+                        return d3.select(this).attr('data-trait-name') === item.oppositeTrait;
+                    })
+                    .transition()
+                    .duration(200)
+                    .attr('stroke', 'white')
+                    .attr('stroke-width', 2)
+                    .style('opacity', 0.9);
+            }
             
             // Hide tooltip
             tooltip.transition()
