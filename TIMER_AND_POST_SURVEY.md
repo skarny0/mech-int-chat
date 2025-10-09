@@ -145,7 +145,7 @@ Follow the same steps without the `debugTimer` parameter. Timer will run for 10 
 ### Change Timer Duration
 In `js/chat.js`, modify line 61:
 ```javascript
-window.timerDuration = debugTimer ? 10 : 600; // Change 600 to desired seconds
+window.timerDuration = debugTimer ? 60 : 600; // Change 600 to desired seconds
 ```
 
 ### Change Prolific Redirect URL
