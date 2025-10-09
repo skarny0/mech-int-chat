@@ -260,7 +260,7 @@ function initializeDynamicInterface() {
         }
 
         // Character counter functionality
-        const MIN_CHAR_LENGTH = 200;
+        const MIN_CHAR_LENGTH = 100;
         const shortenPrompt = urlParams.get('shortenPrompt') === 'true';
         
         const updateCharacterCounter = function() {
@@ -280,7 +280,7 @@ function initializeDynamicInterface() {
         // Update counter text if bypass is enabled
         if (shortenPrompt) {
             $('#characterCounter').html('<span id="charCount">0</span> characters (minimum bypassed)');
-            console.log('⏭️ Shortened prompt mode: Bypassing 200 character minimum');
+            console.log('⏭️ Shortened prompt mode: Bypassing 100 character minimum');
         }
         
         // Initialize character counter on page load

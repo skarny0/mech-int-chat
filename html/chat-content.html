@@ -24,8 +24,8 @@
             <img id="selectedAvatarImage" src="" alt="Selected Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-md);" />
         </div>
         <div class="config-header" style="margin-bottom: 1rem;">
-            <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Configure Your AI Assistant</h3>
-            <p class="config-description" style="font-size: 0.85rem;">Customize your AI assistant's personality and behavior</p>
+            <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Configure Your AI Companion</h3>
+            <p class="config-description" style="font-size: 0.85rem;">Customize your AI assistant's personality and behavior so that it can support you or anyone through difficult times.</p>
         </div>
 
         <div class="config-form">
@@ -41,7 +41,7 @@
                         style="padding: 0.75rem; font-size: 0.875rem; font-family: 'Courier New', monospace;"></textarea>
                     <!-- Character Counter -->
                     <div id="characterCounter" style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-                        <span id="charCount">0</span> / 200 characters minimum
+                        <span id="charCount">0</span> / 100 characters minimum
                     </div>
                 </div>
                 <!-- Submit Prompt Button -->
@@ -745,12 +745,14 @@
         <h4>Part 2: System Prompt Configuration</h4>
         <p>Recall that your goal is to design an emotional-support chatbot companion.</p>
         <p>Using the system prompt section (left side), write instructions that define how your AI should behave and what personality it should have.</p>
+        <p>You will be able to refine the system prompt to your liking throughout the experiment.</p>
+        <p>Feel free to write long system prompts to create your ideal character.</p>
         <p><strong>Examples:</strong></p>
         <ul>
             <li>"You are a kind and empathetic listener who knows how to mirror people's emotions."</li>
             <li>"You like to give tough-love and don't give in too deeply to fantasies."</li>
         </ul>
-        <p>Write at least 200 characters, then click "Submit Prompt".</p>
+        <p>Write at least 100 characters, then click "Submit Prompt".</p>
         <button class="btn btn-primary" onclick="window.dismissInstructionModal('prompt')">Got it!</button>
     </div>
 </div>
