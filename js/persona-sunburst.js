@@ -351,9 +351,15 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     
     console.log(`  ${item.name}: value=${item.value.toFixed(3)}, multiplier=${growthMultiplier}x, extension=${extension.toFixed(1)}px`);
 
-    // Determine fill color
-    // If baseColor provided (for mirrored traits), use it; otherwise use category color
-    const fillColor = baseColor ? baseColor : d3.color(category.color).brighter(index * 0.15);
+    // Determine fill color based on activation value
+    // Higher activation = darker shade, lower activation = lighter shade
+    // If baseColor provided (for mirrored traits), use it as base; otherwise use category color
+    const baseColorToUse = baseColor ? baseColor : category.color;
+    
+    // Scale the brightness inversely with value: 0 = very light, 1 = full color
+    // Use value to determine darkness: higher value = darker (less brightening)
+    const brightnessAdjustment = (1 - item.value) * 0.8; // 0.8 max lightening for low values
+    const fillColor = d3.color(baseColorToUse).brighter(brightnessAdjustment);
     
     // Item arc
     const itemArc = g.append('path')
@@ -382,12 +388,14 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .duration(200)
             .style('opacity', 1);
         
-        const originalTraitInfo = item.originalTrait ? 
-            `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
+        // Show activation percentage and opposite trait
+        const activationPercent = (item.value * 100).toFixed(0);
+        const oppositeTraitInfo = item.oppositeTrait ? 
+            `<br/><span style="opacity: 0.8;">Opposite trait: ${item.oppositeTrait}</span>` : '';
         
         tooltip.html(`
             <strong style="font-size: 16px;">${item.name}</strong><br/>
-            <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
+            <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
         `)
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 28) + 'px');
@@ -412,13 +420,9 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     if (config.showLabels) {
         const midAngle = (itemStartAngle + itemEndAngle) / 2;
         
-        // Calculate desired label position slightly beyond the segment
-        const desiredLabelRadius = outerRadius + (radius * 0.08);
-        
-        // Cap the label radius to prevent labels from going outside the view
-        // Maximum safe radius is about 85% of the available radius to leave margin for text
-        const maxLabelRadius = radius * 0.85;
-        const labelRadius = Math.min(desiredLabelRadius, maxLabelRadius);
+        // Position labels at a fixed distance from center (just beyond the middle ring)
+        // This keeps them from extending too far out and exiting the container
+        const labelRadius = middleRadius + (radius * 0.08);
         
         const labelX = Math.sin(midAngle) * labelRadius;
         const labelY = -Math.cos(midAngle) * labelRadius;
@@ -477,12 +481,14 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 .duration(200)
                 .style('opacity', 1);
             
-            const originalTraitInfo = item.originalTrait ? 
-                `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
+            // Show activation percentage and opposite trait
+            const activationPercent = (item.value * 100).toFixed(0);
+            const oppositeTraitInfo = item.oppositeTrait ? 
+                `<br/><span style="opacity: 0.8;">Opposite trait: ${item.oppositeTrait}</span>` : '';
             
             tooltip.html(`
                 <strong style="font-size: 16px;">${item.name}</strong><br/>
-                <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
+                <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
             `)
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
@@ -555,7 +561,7 @@ function transformToCategories(personaData) {
 
     // First, filter to keep only dominant traits from each pair
     console.log('🔄 Filtering dominant traits from:', personaData);
-    const filteredData = filterDominantTraits(personaData);
+    const { filteredData, oppositeTraits } = filterDominantTraits(personaData);
     console.log('✅ Filtered dominant traits:', filteredData);
     console.log('✅ Number of filtered traits:', Object.keys(filteredData).length);
     
@@ -589,7 +595,8 @@ function transformToCategories(personaData) {
             name: effectiveTrait.name,
             value: effectiveTrait.absValue, // Use raw value directly (0-1 range)
             rawValue: value,
-            originalTrait: key
+            originalTrait: key,
+            oppositeTrait: oppositeTraits[key] ? formatTraitName(oppositeTraits[key]) : null
         });
     }
 
@@ -711,6 +718,7 @@ function transformHierarchicalData(hierarchicalData) {
             value: pair.positive.value,
             rawValue: pair.positive.value,
             originalTrait: pair.positive.originalTrait,
+            oppositeTrait: pair.negative.name,  // Store opposite trait
             category: pair.category,
             isPositive: true,
             pairIndex: index,
@@ -722,6 +730,7 @@ function transformHierarchicalData(hierarchicalData) {
             value: pair.negative.value,
             rawValue: pair.negative.value,
             originalTrait: pair.negative.originalTrait,
+            oppositeTrait: pair.positive.name,  // Store opposite trait
             category: pair.category,
             isPositive: false,
             pairIndex: index,
@@ -871,7 +880,7 @@ function classifyTrait(traitName) {
  * Filters trait pairs to keep only the dominant trait from each pair
  * Dynamically detects pairs and filters - works with any traits the API returns
  * @param {Object} personaData - Raw API data with trait pairs
- * @returns {Object} - Filtered data with only dominant traits
+ * @returns {Object} - Object with filteredData (dominant traits) and oppositeTraits (mapping)
  */
 function filterDominantTraits(personaData) {
     // First, dynamically detect trait pairs from the data
@@ -880,6 +889,7 @@ function filterDominantTraits(personaData) {
     
     const processed = new Set();
     const result = {};
+    const oppositeTraits = {}; // Map to store opposite trait names
     
     for (const [traitName, value] of Object.entries(personaData)) {
         const traitKey = traitName.toLowerCase();
@@ -898,9 +908,11 @@ function filterDominantTraits(personaData) {
             
             if (value >= oppositeValue) {
                 result[traitName] = value;
+                oppositeTraits[traitName] = oppositeTrait; // Store opposite
                 console.log(`  ✓ Keeping ${traitName} (${value.toFixed(3)}) over ${oppositeTrait} (${oppositeValue.toFixed(3)})`);
             } else {
                 result[oppositeTrait] = oppositeValue;
+                oppositeTraits[oppositeTrait] = traitName; // Store opposite
                 console.log(`  ✓ Keeping ${oppositeTrait} (${oppositeValue.toFixed(3)}) over ${traitName} (${value.toFixed(3)})`);
             }
             
@@ -915,7 +927,7 @@ function filterDominantTraits(personaData) {
         }
     }
     
-    return result;
+    return { filteredData: result, oppositeTraits };
 }
 
 /**
