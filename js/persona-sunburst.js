@@ -421,31 +421,47 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
         const labelX = Math.sin(midAngle) * labelRadius;
         const labelY = -Math.cos(midAngle) * labelRadius;
         
-        // Calculate rotation: 90 degrees relative to the radial direction
-        // Start with the angle in degrees
+        // Calculate rotation and text anchor based on which side of the circle
+        // Left side (0 to π): last letter faces bar (text reads outward, anchor at end)
+        // Right side (π to 2π): first letter faces bar (text reads outward, anchor at start)
         let rotation = (midAngle * 180 / Math.PI);
+        let textAnchor;
         
-        // Add 90 degrees for the rotation
-        rotation += 90;
-        
-        // Flip text on bottom half so it's always readable
-        if (midAngle > Math.PI && midAngle < (2 * Math.PI)) {
-            rotation += 180;
+        if (midAngle < Math.PI) {
+            // Left side: rotate 90° clockwise from radial, anchor at end
+            rotation += 90;
+            textAnchor = 'end';
+        } else {
+            // Right side: rotate 90° counter-clockwise from radial, anchor at start
+            rotation -= 90;
+            textAnchor = 'start';
         }
         
-        // Add the label text (no percentage value)
-        const label = g.append('text')
-            .attr('x', labelX)
-            .attr('y', labelY)
-            .attr('text-anchor', 'middle')
+        // Create text element with trait name and activation value
+        const labelGroup = g.append('g')
+            .attr('transform', `translate(${labelX}, ${labelY}) rotate(${rotation})`);
+        
+        const textElement = labelGroup.append('text')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('text-anchor', textAnchor)
             .attr('dominant-baseline', 'middle')
-            .attr('transform', `rotate(${rotation}, ${labelX}, ${labelY})`)
+            .style('pointer-events', 'none')
+            .style('user-select', 'none');
+        
+        // Add trait name in black
+        textElement.append('tspan')
             .style('font-size', `${Math.max(10, radius * 0.028)}px`)
             .style('font-weight', '500')
             .style('fill', '#333')
-            .style('pointer-events', 'none')
-            .style('user-select', 'none')
             .text(item.name);
+        
+        // Add activation value in grey (appended to the same text element)
+        textElement.append('tspan')
+            .style('font-size', `${Math.max(9, radius * 0.025)}px`)
+            .style('font-weight', '400')
+            .style('fill', '#999')
+            .text(` ${(item.value * 100).toFixed(0)}%`);
     }
 }
 

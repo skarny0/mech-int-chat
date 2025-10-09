@@ -263,57 +263,92 @@
             }
         };
         
-        // Mostly positive traits - dominant positive traits
+        // Mostly positive traits - dominant positive traits (hierarchical format)
         const positiveTraitsData = {
-            empathetic: 0.85,
-            unempathetic: 0.15,
-            encouraging: 0.92,
-            discouraging: 0.08,
-            social: 0.78,
-            antisocial: 0.22,
-            honest: 0.88,
-            sycophantic: 0.12,
-            funny: 0.65,
-            serious: 0.35,
-            accurate: 0.91,
-            hallucinatory: 0.09,
-            respectful: 0.94,
-            toxic: 0.06
+            empathy: {
+                empathetic: 0.85,
+                unempathetic: 0.15
+            },
+            encouraging: {
+                encouraging: 0.92,
+                discouraging: 0.08
+            },
+            sociality: {
+                social: 0.78,
+                antisocial: 0.22
+            },
+            sycophancy: {
+                honest: 0.88,
+                sycophantic: 0.12
+            },
+            funniness: {
+                funny: 0.65,
+                serious: 0.35
+            },
+            hallucination: {
+                factual: 0.91,
+                hallucinatory: 0.09
+            },
+            toxicity: {
+                respectful: 0.94,
+                toxic: 0.06
+            }
         };
         
-        // Mostly negative traits - dominant negative traits
+        // Mostly negative traits - dominant negative traits (hierarchical format)
         const negativeTraitsData = {
-            toxic: 0.95,
-            respectful: 0.05,
-            sycophantic: 0.88,
-            honest: 0.12,
-            hallucinatory: 0.75,
-            accurate: 0.25,
-            unempathetic: 0.82,
-            empathetic: 0.18,
-            discouraging: 0.71,
-            encouraging: 0.29,
-            antisocial: 0.65,
-            social: 0.35
+            toxicity: {
+                toxic: 0.95,
+                respectful: 0.05
+            },
+            sycophancy: {
+                sycophantic: 0.88,
+                honest: 0.12
+            },
+            hallucination: {
+                hallucinatory: 0.75,
+                factual: 0.25
+            },
+            empathy: {
+                unempathetic: 0.82,
+                empathetic: 0.18
+            },
+            encouraging: {
+                discouraging: 0.71,
+                encouraging: 0.29
+            },
+            sociality: {
+                antisocial: 0.65,
+                social: 0.35
+            }
         };
         
-        // Mixed traits - balanced positive and negative traits
+        // Mixed traits - balanced positive and negative traits (hierarchical format)
         const mixedPolarityData = {
-            // Some positive traits dominant
-            empathetic: 0.80,
-            unempathetic: 0.20,
-            encouraging: 0.72,
-            discouraging: 0.28,
-            social: 0.60,
-            antisocial: 0.40,
-            
-            // Some negative traits dominant
-            toxic: 0.55,
-            respectful: 0.45,
-            sycophantic: 0.68,
-            honest: 0.32,
-            hallucinatory: 0.52,
-            accurate: 0.48
+            empathy: {
+                empathetic: 0.80,
+                unempathetic: 0.20
+            },
+            encouraging: {
+                encouraging: 0.72,
+                discouraging: 0.28
+            },
+            sociality: {
+                social: 0.60,
+                antisocial: 0.40
+            },
+            toxicity: {
+                toxic: 0.55,
+                respectful: 0.45
+            },
+            sycophancy: {
+                sycophantic: 0.68,
+                honest: 0.32
+            },
+            hallucination: {
+                hallucinatory: 0.52,
+                factual: 0.48
+            }
         };
         
         // Custom categories data (bypasses automatic polarity)
@@ -360,11 +395,19 @@
             display.textContent = JSON.stringify(data, null, 2);
             
             // Log transformations to console
-            console.log('\n=== Trait Transformations ===');
-            if (!data.categories) {
-                for (const [trait, value] of Object.entries(data)) {
-                    const effective = getEffectiveTrait(trait, value);
-                    console.log(`${trait}: ${value.toFixed(3)} → ${effective.name} (${effective.isPositive ? 'POSITIVE' : 'NEGATIVE'})`);
+            console.log('\n=== Data Structure ===');
+            if (data.categories) {
+                console.log('Custom categories format');
+            } else {
+                // Check if hierarchical
+                const firstValue = Object.values(data)[0];
+                if (firstValue && typeof firstValue === 'object') {
+                    console.log('Hierarchical format detected');
+                    for (const [category, traits] of Object.entries(data)) {
+                        console.log(`${category}:`, traits);
+                    }
+                } else {
+                    console.log('Flat format detected');
                 }
             }
         }
