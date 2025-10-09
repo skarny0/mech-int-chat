@@ -428,13 +428,15 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .duration(200)
             .style('opacity', 1);
         
-        // Show activation percentage and opposite trait
+        // Show activation percentage, definition, and opposite trait
         const activationPercent = (item.value * 100).toFixed(0);
+        const definition = getTraitDefinition(item.name);
         const oppositeTraitInfo = item.oppositeTrait ? 
             `<br/><span style="opacity: 0.8;">Opposite trait: ${item.oppositeTrait}</span>` : '';
         
         tooltip.html(`
             <strong style="font-size: 16px;">${item.name}</strong><br/>
+            <span style="opacity: 0.7; font-size: 13px; font-style: italic;">${definition}</span><br/>
             <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
         `);
     })
@@ -540,13 +542,15 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
                 .duration(200)
                 .style('opacity', 1);
             
-            // Show activation percentage and opposite trait
+            // Show activation percentage, definition, and opposite trait
             const activationPercent = (item.value * 100).toFixed(0);
+            const definition = getTraitDefinition(item.name);
             const oppositeTraitInfo = item.oppositeTrait ? 
                 `<br/><span style="opacity: 0.8;">Opposite trait: ${item.oppositeTrait}</span>` : '';
             
             tooltip.html(`
                 <strong style="font-size: 16px;">${item.name}</strong><br/>
+                <span style="opacity: 0.7; font-size: 13px; font-style: italic;">${definition}</span><br/>
                 <span style="opacity: 0.9;">Activation: ${activationPercent}%</span>${oppositeTraitInfo}
             `);
         })
@@ -1215,6 +1219,70 @@ function formatTraitName(name) {
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+}
+
+/**
+ * Gets a short definition for a trait
+ * @param {string} traitName - Trait name (formatted or raw)
+ * @returns {string} - Short definition
+ */
+function getTraitDefinition(traitName) {
+    const trait = traitName.toLowerCase().replace(/\s+/g, '');
+    
+    const definitions = {
+        'empathetic': 'Understanding and sharing the feelings of others',
+        'unempathetic': 'Lacking understanding or concern for others\' feelings',
+        'empathy': 'Understanding and sharing the feelings of others',
+        
+        'warm': 'Friendly, kind, and affectionate in interactions',
+        'cold': 'Distant, unfriendly, or emotionally detached',
+        'warmth': 'Friendly, kind, and affectionate in interactions',
+        
+        'supportive': 'Providing encouragement and help to others',
+        'unsupportive': 'Lacking encouragement or help for others',
+        'supportiveness': 'Providing encouragement and help to others',
+        
+        'encouraging': 'Inspiring confidence and hope in others',
+        'discouraging': 'Causing loss of confidence or hope',
+        
+        'social': 'Enjoying and seeking interaction with others',
+        'unsocial': 'Avoiding or disinterested in social interaction',
+        'sociality': 'Enjoying and seeking interaction with others',
+        
+        'humorous': 'Using wit and jokes to entertain',
+        'humorless': 'Lacking in humor or playfulness',
+        'humor': 'Using wit and jokes to entertain',
+        
+        'toxic': 'Harmful, offensive, or disrespectful behavior',
+        'respectful': 'Showing consideration and courtesy',
+        'toxicity': 'Harmful, offensive, or disrespectful behavior',
+        
+        'sycophantic': 'Excessive flattery to gain favor',
+        'genuine': 'Authentic and sincere in interactions',
+        'sycophancy': 'Excessive flattery to gain favor',
+        
+        'deceptive': 'Deliberately misleading or dishonest',
+        'honest': 'Truthful and straightforward',
+        'deceptiveness': 'Deliberately misleading or dishonest',
+        
+        'hallucinatory': 'Generating false information presented as fact',
+        'factual': 'Providing accurate and verifiable information',
+        'hallucination': 'Generating false information presented as fact',
+        
+        'casual': 'Relaxed and informal in approach',
+        'formal': 'Following proper conventions and structure',
+        
+        'serious': 'Thoughtful and earnest in manner',
+        'playful': 'Light-hearted and fun-loving',
+        
+        'outgoing': 'Friendly and socially confident',
+        'reserved': 'Restrained and quiet in manner',
+        
+        'creative': 'Showing imagination and originality',
+        'conventional': 'Following traditional approaches'
+    };
+    
+    return definitions[trait] || 'A personality characteristic';
 }
 
 /**

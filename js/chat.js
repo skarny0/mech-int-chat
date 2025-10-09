@@ -537,8 +537,8 @@ function initializeDynamicInterface() {
             // Remove focus from button to return to default state
             $(this).blur();
             
-            // Show the visualization explanation modal
-            showVisualizationExplanation();
+            // Show the visualization explanation modal (force show)
+            showVisualizationExplanation(true);
         });
 
         // Dismiss visualization explanation modal
@@ -1688,9 +1688,22 @@ window.dismissInstructionModal = function(type) {
 };
 
 // Show visualization explanation modal
-window.showVisualizationExplanation = function() {
+window.showVisualizationExplanation = function(forceShow = false) {
+    // Check if already shown (unless forced via ? button)
+    const hasShown = sessionStorage.getItem('visualizationExplanationShown');
+    
+    if (hasShown && !forceShow) {
+        console.log('⏭️ Visualization explanation already shown, skipping');
+        return;
+    }
+    
     $('#visualizationExplanationModal').fadeIn(600);
     console.log('📊 Showing visualization explanation modal');
+    
+    // Mark as shown
+    if (!hasShown) {
+        sessionStorage.setItem('visualizationExplanationShown', 'true');
+    }
 };
 
 // Dismiss visualization explanation modal
