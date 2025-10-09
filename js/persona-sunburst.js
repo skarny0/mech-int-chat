@@ -414,52 +414,38 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
         console.log('Clicked:', item.name, 'Value:', item.value);
     });
     
-    // Add perpendicular label for this trait (if enabled)
+    // Add label for this trait (if enabled)
     if (config.showLabels) {
         const midAngle = (itemStartAngle + itemEndAngle) / 2;
         const labelRadius = outerRadius + (radius * 0.08); // Position label slightly beyond the segment
         const labelX = Math.sin(midAngle) * labelRadius;
         const labelY = -Math.cos(midAngle) * labelRadius;
         
-        // Calculate rotation for perpendicular label
-        // Convert angle to degrees and adjust so text is perpendicular to radius
+        // Calculate rotation: 90 degrees relative to the radial direction
+        // Start with the angle in degrees
         let rotation = (midAngle * 180 / Math.PI);
         
-        // Flip text on left side so it's always readable
-        if (midAngle > Math.PI / 2 && midAngle < (3 * Math.PI / 2)) {
+        // Add 90 degrees for the rotation
+        rotation += 90;
+        
+        // Flip text on bottom half so it's always readable
+        if (midAngle > Math.PI && midAngle < (2 * Math.PI)) {
             rotation += 180;
         }
         
-        // Add the label text
+        // Add the label text (no percentage value)
         const label = g.append('text')
             .attr('x', labelX)
             .attr('y', labelY)
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'middle')
             .attr('transform', `rotate(${rotation}, ${labelX}, ${labelY})`)
-            .style('font-size', `${Math.max(9, radius * 0.025)}px`)
+            .style('font-size', `${Math.max(10, radius * 0.028)}px`)
             .style('font-weight', '500')
             .style('fill', '#333')
             .style('pointer-events', 'none')
             .style('user-select', 'none')
             .text(item.name);
-        
-        // Add percentage value next to label
-        if (config.showPercentages && item.value > 0) {
-            const percentText = `${(item.value * 100).toFixed(0)}%`;
-            g.append('text')
-                .attr('x', labelX)
-                .attr('y', labelY + (radius * 0.035))
-                .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'middle')
-                .attr('transform', `rotate(${rotation}, ${labelX}, ${labelY + (radius * 0.035)})`)
-                .style('font-size', `${Math.max(7, radius * 0.02)}px`)
-                .style('font-weight', '400')
-                .style('fill', '#666')
-                .style('pointer-events', 'none')
-                .style('user-select', 'none')
-                .text(percentText);
-        }
     }
 }
 
@@ -591,18 +577,18 @@ function isHierarchicalFormat(data) {
 }
 
 /**
- * Transforms hierarchical data into mirrored categories structure
+ * Transforms hierarchical data into two super-categories: Positive and Negative
+ * All positive traits on one side, all negative traits on the other
  * @param {Object} hierarchicalData - Data in format { category: { trait1: val1, trait2: val2 } }
- * @returns {Array} - Array of category objects with mirrored items
+ * @returns {Array} - Array with 2 super-categories (Positive and Negative)
  */
 function transformHierarchicalData(hierarchicalData) {
     console.log('🔄 Transforming hierarchical data...');
     
-    const categories = [];
-    let currentAngle = 0;
-    const totalCategories = Object.keys(hierarchicalData).length;
-    const anglePerCategory = (2 * Math.PI) / totalCategories;
+    const positiveItems = [];
+    const negativeItems = [];
     
+    // Separate all traits into positive and negative arrays
     for (const [categoryName, traits] of Object.entries(hierarchicalData)) {
         const traitEntries = Object.entries(traits);
         
@@ -618,78 +604,71 @@ function transformHierarchicalData(hierarchicalData) {
         const trait1IsPositive = classifyTrait(trait1Name);
         const trait2IsPositive = classifyTrait(trait2Name);
         
-        // Determine category color based on dominant trait type
-        let categoryColor;
-        if (trait1Value > trait2Value) {
-            categoryColor = trait1IsPositive ? '#4CAF50' : '#F44336';
-        } else if (trait2Value > trait1Value) {
-            categoryColor = trait2IsPositive ? '#4CAF50' : '#F44336';
-        } else {
-            categoryColor = '#9E9E9E'; // Gray for equal values
-        }
-        
-        // Create items array with positive trait first, negative trait second
-        // This ensures positive is always on the left side, negative on the right side
-        let positiveItem, negativeItem;
-        
+        // Add to respective arrays
         if (trait1IsPositive) {
-            positiveItem = {
+            positiveItems.push({
                 name: formatTraitName(trait1Name),
                 value: trait1Value,
                 rawValue: trait1Value,
                 originalTrait: trait1Name,
-                isPositive: true,
-                isMirroredPair: true,
-                mirrorPosition: 0 // Left side
-            };
-            negativeItem = {
-                name: formatTraitName(trait2Name),
-                value: trait2Value,
-                rawValue: trait2Value,
-                originalTrait: trait2Name,
-                isPositive: false,
-                isMirroredPair: true,
-                mirrorPosition: 1 // Right side (mirrored)
-            };
+                category: formatTraitName(categoryName),
+                isPositive: true
+            });
         } else {
-            positiveItem = {
-                name: formatTraitName(trait2Name),
-                value: trait2Value,
-                rawValue: trait2Value,
-                originalTrait: trait2Name,
-                isPositive: true,
-                isMirroredPair: true,
-                mirrorPosition: 0 // Left side
-            };
-            negativeItem = {
+            negativeItems.push({
                 name: formatTraitName(trait1Name),
                 value: trait1Value,
                 rawValue: trait1Value,
                 originalTrait: trait1Name,
-                isPositive: false,
-                isMirroredPair: true,
-                mirrorPosition: 1 // Right side (mirrored)
-            };
+                category: formatTraitName(categoryName),
+                isPositive: false
+            });
         }
         
-        // Array order: [positive, negative] - left to right
-        const items = [positiveItem, negativeItem];
+        if (trait2IsPositive) {
+            positiveItems.push({
+                name: formatTraitName(trait2Name),
+                value: trait2Value,
+                rawValue: trait2Value,
+                originalTrait: trait2Name,
+                category: formatTraitName(categoryName),
+                isPositive: true
+            });
+        } else {
+            negativeItems.push({
+                name: formatTraitName(trait2Name),
+                value: trait2Value,
+                rawValue: trait2Value,
+                originalTrait: trait2Name,
+                category: formatTraitName(categoryName),
+                isPositive: false
+            });
+        }
         
-        categories.push({
-            name: formatTraitName(categoryName),
-            color: categoryColor,
-            startAngle: currentAngle,
-            endAngle: currentAngle + anglePerCategory,
-            items: items,
-            isHierarchical: true
-        });
-        
-        console.log(`  📁 ${categoryName}: [LEFT] ${positiveItem.originalTrait}=${positiveItem.value.toFixed(3)} (✅) | [RIGHT] ${negativeItem.originalTrait}=${negativeItem.value.toFixed(3)} (❌)`);
-        
-        currentAngle += anglePerCategory;
+        console.log(`  📁 ${categoryName}: ${trait1Name}=${trait1Value.toFixed(3)} (${trait1IsPositive ? '✅' : '❌'}), ${trait2Name}=${trait2Value.toFixed(3)} (${trait2IsPositive ? '✅' : '❌'})`);
     }
     
-    console.log(`✅ Created ${categories.length} hierarchical categories`);
+    // Create two super-categories: one for all positive, one for all negative
+    const categories = [
+        {
+            name: 'Positive Traits',
+            color: '#4CAF50', // Green
+            startAngle: 0,
+            endAngle: Math.PI, // First half (top half)
+            items: positiveItems,
+            isHierarchical: false
+        },
+        {
+            name: 'Negative Traits',
+            color: '#F44336', // Red
+            startAngle: Math.PI,
+            endAngle: 2 * Math.PI, // Second half (bottom half)
+            items: negativeItems,
+            isHierarchical: false
+        }
+    ];
+    
+    console.log(`✅ Created 2 super-categories: ${positiveItems.length} positive traits, ${negativeItems.length} negative traits`);
     return categories;
 }
 

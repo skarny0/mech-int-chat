@@ -1033,39 +1033,52 @@ function testPersonaWithMockData() {
     
     // Simulate API delay
     setTimeout(() => {
-        // Generate random mock data matching REAL API format (0-1 range with trait pairs)
-        // Each pair should sum to 1.0, matching the Modal API response format
+        // Generate random mock data matching NEW HIERARCHICAL API format
+        // Format: { category: { trait1: value, trait2: value } }
+        // Values are independent (don't need to sum to 1.0)
         const mockData = {
-            // Trait pairs - values sum to 1.0
-            empathetic: Math.random(),
-            unempathetic: 0, // Will be calculated
-            encouraging: Math.random(),
-            discouraging: 0,
-            social: Math.random(),
-            antisocial: 0,
-            casual: Math.random(),
-            formal: 0,
-            honest: Math.random(),
-            sycophantic: 0,
-            funny: Math.random(),
-            serious: 0,
-            accurate: Math.random(),
-            hallucinatory: 0,
-            respectful: Math.random(),
-            toxic: 0
+            empathy: {
+                empathetic: Math.random() * 0.5,      // Random 0-0.5
+                unempathetic: Math.random() * 0.3     // Random 0-0.3
+            },
+            encouraging: {
+                encouraging: Math.random() * 0.4,
+                discouraging: Math.random() * 0.6
+            },
+            sociality: {
+                social: Math.random() * 0.5,
+                antisocial: Math.random() * 0.2
+            },
+            formality: {
+                formal: Math.random() * 0.3,
+                casual: Math.random() * 0.5
+            },
+            sycophancy: {
+                sycophantic: Math.random() * 0.4,
+                honest: Math.random() * 0.3
+            },
+            funniness: {
+                funny: Math.random() * 0.4,
+                serious: Math.random() * 0.5
+            },
+            hallucination: {
+                hallucinatory: Math.random() * 0.3,
+                factual: Math.random() * 0.6
+            },
+            toxicity: {
+                toxic: Math.random() * 0.2,
+                respectful: Math.random() * 0.7
+            }
         };
         
-        // Calculate complementary values so each pair sums to 1.0
-        mockData.unempathetic = 1 - mockData.empathetic;
-        mockData.discouraging = 1 - mockData.encouraging;
-        mockData.antisocial = 1 - mockData.social;
-        mockData.formal = 1 - mockData.casual;
-        mockData.sycophantic = 1 - mockData.honest;
-        mockData.serious = 1 - mockData.funny;
-        mockData.hallucinatory = 1 - mockData.accurate;
-        mockData.toxic = 1 - mockData.respectful;
+        console.log('🧪 Mock Persona Data (NEW HIERARCHICAL format):', mockData);
+        console.log('📊 Categories:', Object.keys(mockData).length);
         
-        console.log('🧪 Mock Persona Data (API format with trait pairs 0-1):', mockData);
+        // Log each category's traits
+        for (const [category, traits] of Object.entries(mockData)) {
+            console.log(`  📁 ${category}:`, traits);
+        }
+        
         renderPersonaChart(mockData);
     }, 800); // Simulate network delay
 }

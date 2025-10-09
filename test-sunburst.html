@@ -170,10 +170,10 @@
         <h1>🌞 Persona Vector Sunburst Visualization Test</h1>
         
         <div class="description">
-            <p>Interactive test page for the D3.js two-ring sunburst visualization with <strong>trait pair filtering</strong>.</p>
-            <p><strong>Green Ring:</strong> Positive Traits • <strong>Red Ring:</strong> Negative Traits</p>
-            <p><strong>API Format:</strong> Trait pairs sum to 1.0 (e.g., empathetic: 0.8, unempathetic: 0.2)</p>
-            <p>Only the dominant trait (higher value) from each pair is displayed.</p>
+            <p>Interactive test page for the D3.js sunburst visualization with <strong>hierarchical data format</strong>.</p>
+            <p><strong>Top Half:</strong> All Positive Traits (Green) • <strong>Bottom Half:</strong> All Negative Traits (Red)</p>
+            <p><strong>New API Format:</strong> Hierarchical categories with trait pairs</p>
+            <p>Example: <code>{ empathy: { empathetic: 0.8, unempathetic: 0.2 } }</code></p>
         </div>
         
         <div class="test-buttons">
@@ -226,25 +226,41 @@
     <script>
         // Test data sets matching API format
         
-        // Real API data format - trait pairs where values sum to 1.0
-        // This example includes the "factual" trait that wasn't in the original predefined list
+        // Real API data format - NEW HIERARCHICAL format
+        // Format: { category: { trait1: value, trait2: value } }
         const realAPIData = {
-            empathetic: 0.8033,
-            unempathetic: 0.1967,
-            encouraging: 0.6718,
-            discouraging: 0.3282,
-            social: 0.6984,
-            antisocial: 0.3016,
-            formal: 0.0481,
-            casual: 0.9519,
-            sycophantic: 0.7576,
-            honest: 0.2424,
-            funny: 0.7985,
-            serious: 0.2015,
-            hallucinatory: 0.0173,
-            factual: 0.9827,  // New trait pair detected dynamically!
-            toxic: 0.1048,
-            respectful: 0.8952
+            empathy: {
+                empathetic: 0.8033,
+                unempathetic: 0.1967
+            },
+            encouraging: {
+                encouraging: 0.6718,
+                discouraging: 0.3282
+            },
+            sociality: {
+                social: 0.6984,
+                antisocial: 0.3016
+            },
+            formality: {
+                formal: 0.0481,
+                casual: 0.9519
+            },
+            sycophancy: {
+                sycophantic: 0.7576,
+                honest: 0.2424
+            },
+            funniness: {
+                funny: 0.7985,
+                serious: 0.2015
+            },
+            hallucination: {
+                hallucinatory: 0.0173,
+                factual: 0.9827
+            },
+            toxicity: {
+                toxic: 0.1048,
+                respectful: 0.8952
+            }
         };
         
         // Mostly positive traits - dominant positive traits
@@ -414,36 +430,44 @@
         }
         
         function testRandomize() {
-            // Generate random trait pairs where values sum to 1.0
-            // Now includes more possible trait pairs to test dynamic detection
-            const randomData = {};
-            const traitPairs = [
-                ['empathetic', 'unempathetic'],
-                ['encouraging', 'discouraging'],
-                ['social', 'antisocial'],
-                ['honest', 'sycophantic'],
-                ['funny', 'serious'],
-                ['factual', 'hallucinatory'],
-                ['respectful', 'toxic'],
-                ['casual', 'formal'],
-                ['warm', 'cold'],
-                ['creative', 'conventional']
+            // Generate random hierarchical data
+            const categories = [
+                'empathy',
+                'encouraging', 
+                'sociality',
+                'formality',
+                'sycophancy',
+                'funniness',
+                'hallucination',
+                'toxicity'
             ];
             
-            // Randomly select 4-8 trait pairs to test dynamic detection
-            const numPairs = 4 + Math.floor(Math.random() * 5);
-            const selectedPairs = traitPairs.sort(() => Math.random() - 0.5).slice(0, numPairs);
+            const traitPairs = {
+                empathy: ['empathetic', 'unempathetic'],
+                encouraging: ['encouraging', 'discouraging'],
+                sociality: ['social', 'antisocial'],
+                formality: ['formal', 'casual'],
+                sycophancy: ['sycophantic', 'honest'],
+                funniness: ['funny', 'serious'],
+                hallucination: ['hallucinatory', 'factual'],
+                toxicity: ['toxic', 'respectful']
+            };
             
-            selectedPairs.forEach(([trait1, trait2]) => {
-                // Random value between 0 and 1 for first trait
-                const value1 = Math.random();
-                const value2 = 1 - value1; // Complement to sum to 1.0
-                randomData[trait1] = Math.round(value1 * 1000) / 1000;
-                randomData[trait2] = Math.round(value2 * 1000) / 1000;
+            // Randomly select 5-8 categories
+            const numCategories = 5 + Math.floor(Math.random() * 4);
+            const selectedCategories = categories.sort(() => Math.random() - 0.5).slice(0, numCategories);
+            
+            const randomData = {};
+            selectedCategories.forEach(category => {
+                const [trait1, trait2] = traitPairs[category];
+                randomData[category] = {
+                    [trait1]: Math.round(Math.random() * 700) / 1000, // 0-0.7 range
+                    [trait2]: Math.round(Math.random() * 700) / 1000
+                };
             });
             
-            console.log('🎲 Generated random data with', numPairs, 'trait pairs');
-            console.log('Pairs will be auto-detected from data (not predefined)');
+            console.log('🎲 Generated random hierarchical data with', numCategories, 'categories');
+            console.log('Data:', randomData);
             
             currentData = randomData;
             createPersonaSunburst(randomData, 'sunburstContainer', {
