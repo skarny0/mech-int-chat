@@ -432,7 +432,7 @@ function initializeDynamicInterface() {
                         </div>
                         <div class="message-content">
                             <div class="message-text">
-                                Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
+                                Hi there!
                             </div>
                         </div>
                     </div>
@@ -840,7 +840,7 @@ function initializeDynamicInterface() {
                 </div>
                 <div class="message-content">
                     <div class="message-text">
-                        Welcome to the MIT Media Lab Chat Study! I'm here to help you with your research questions. How can I assist you today?
+                       Hi there!
                     </div>
                 </div>
             </div>
