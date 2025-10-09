@@ -629,36 +629,18 @@ function transformHierarchicalData(hierarchicalData) {
         console.log(`  📁 ${categoryName}: ${positiveTrait.name}=${positiveTrait.value.toFixed(3)} (✅) ↔ ${negativeTrait.name}=${negativeTrait.value.toFixed(3)} (❌)`);
     }
     
-    // Separate positive and negative items but track their pair relationships
+    // Separate positive and negative items for clean grouping
     const positiveItems = [];
     const negativeItems = [];
     
-    // Calculate angles: distribute pairs evenly around the circle, then mirror each pair around 90°
-    const totalPairs = traitPairs.length;
-    const anglePerPair = (2 * Math.PI) / totalPairs; // Full circle divided by number of pairs
+    // Simple approach: Each pair gets the same relative position in its respective half
+    // Positive traits: right half (0° to 180°), centered around 90°
+    // Negative traits: left half (180° to 360°), centered around 270° 
+    // This creates natural mirroring around the vertical 90°/270° axis
     
-    const mirrorAxis = Math.PI / 2; // 90° vertical axis
+    const totalPairs = traitPairs.length;
     
     traitPairs.forEach((pair, index) => {
-        // Calculate base angle for this pair (distribute evenly around circle)
-        const baseAngle = index * anglePerPair;
-        
-        // Calculate offset from the 90° mirror axis
-        let offsetFromMirror = baseAngle - mirrorAxis;
-        
-        // Normalize offset to be within -π to π
-        if (offsetFromMirror > Math.PI) {
-            offsetFromMirror -= 2 * Math.PI;
-        } else if (offsetFromMirror < -Math.PI) {
-            offsetFromMirror += 2 * Math.PI;
-        }
-        
-        // Mirror the angle around 90°
-        // Positive trait: same side as base angle
-        // Negative trait: mirrored to opposite side of 90°
-        const positiveAngle = mirrorAxis + Math.abs(offsetFromMirror);
-        const negativeAngle = mirrorAxis - Math.abs(offsetFromMirror);
-        
         positiveItems.push({
             name: pair.positive.name,
             value: pair.positive.value,
@@ -666,7 +648,6 @@ function transformHierarchicalData(hierarchicalData) {
             originalTrait: pair.positive.originalTrait,
             category: pair.category,
             isPositive: true,
-            angle: positiveAngle,
             pairIndex: index
         });
         
@@ -677,59 +658,34 @@ function transformHierarchicalData(hierarchicalData) {
             originalTrait: pair.negative.originalTrait,
             category: pair.category,
             isPositive: false,
-            angle: negativeAngle,
             pairIndex: index
         });
         
-        console.log(`  🔄 Pair ${index + 1} (base ${(baseAngle * 180 / Math.PI).toFixed(1)}°): ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}°`);
+        console.log(`  📁 Pair ${index + 1}: ${pair.positive.name} (✅) ↔ ${pair.negative.name} (❌)`);
     });
     
-    // Sort items by angle
-    positiveItems.sort((a, b) => a.angle - b.angle);
-    negativeItems.sort((a, b) => a.angle - b.angle);
-    
-    // Calculate angle ranges for positive and negative groups
-    const positiveAngles = positiveItems.map(item => item.angle);
-    const negativeAngles = negativeItems.map(item => item.angle);
-    
-    const positiveStart = Math.min(...positiveAngles) - anglePerPair / 2;
-    const positiveEnd = Math.max(...positiveAngles) + anglePerPair / 2;
-    const negativeStart = Math.min(...negativeAngles) - anglePerPair / 2;
-    const negativeEnd = Math.max(...negativeAngles) + anglePerPair / 2;
-    
-    // Create two super-categories with mirrored items
+    // Create two super-categories: right half (0° to 180°) and left half (180° to 360°)
+    // Split at 90° means the vertical axis - right side is positive, left side is negative
     const categories = [
         {
             name: 'Positive Traits',
             color: '#4CAF50', // Green
-            startAngle: positiveStart,
-            endAngle: positiveEnd,
-            items: positiveItems.map(item => ({
-                name: item.name,
-                value: item.value,
-                rawValue: item.rawValue,
-                originalTrait: item.originalTrait,
-                isPositive: true
-            })),
+            startAngle: 0,
+            endAngle: Math.PI, // 0° to 180° (right half)
+            items: positiveItems,
             isHierarchical: false
         },
         {
             name: 'Negative Traits',
-            color: '#F44336', // Red
-            startAngle: negativeStart,
-            endAngle: negativeEnd,
-            items: negativeItems.map(item => ({
-                name: item.name,
-                value: item.value,
-                rawValue: item.rawValue,
-                originalTrait: item.originalTrait,
-                isPositive: false
-            })),
+            color: '#F44336', // Red  
+            startAngle: Math.PI,
+            endAngle: 2 * Math.PI, // 180° to 360° (left half)
+            items: negativeItems,
             isHierarchical: false
         }
     ];
     
-    console.log(`✅ Created 2 super-categories with ${positiveItems.length} positive traits (${(positiveStart * 180 / Math.PI).toFixed(1)}° to ${(positiveEnd * 180 / Math.PI).toFixed(1)}°) and ${negativeItems.length} negative traits (${(negativeStart * 180 / Math.PI).toFixed(1)}° to ${(negativeEnd * 180 / Math.PI).toFixed(1)}°)`);
+    console.log(`✅ Created 2 super-categories: Positive (0° to 180°, ${positiveItems.length} traits) and Negative (180° to 360°, ${negativeItems.length} traits)`);
     return categories;
 }
 
