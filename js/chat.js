@@ -36,9 +36,9 @@ console.log("✅ LocalStorage cleared for fresh experience on every reload");
 // Write a simple test case to the database
 let studyId;
 if (DEBUG){
-    studyId = 'pilot-oct9-session2-debug';
+    studyId = 'pilot-oct9-session3-debug';
 } else {
-    studyId = 'pilot-oct9-session2';
+    studyId = 'pilot-oct9-session3';
 }
 
 const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
