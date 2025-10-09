@@ -197,6 +197,12 @@
             </button>
         </div>
         
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <button id="layoutToggle" class="btn btn-primary" onclick="toggleLayout()" style="background: #9C27B0;">
+                Toggle Layout: <span id="layoutMode">Opposite (π apart)</span>
+            </button>
+        </div>
+        
         <div id="sunburstContainer"></div>
         
         <div class="info-box">
@@ -390,6 +396,23 @@
         };
         
         let currentData = realAPIData;
+        let useOppositeLayout = true; // Track current layout mode
+        
+        function toggleLayout() {
+            useOppositeLayout = !useOppositeLayout;
+            const modeText = useOppositeLayout ? 'Opposite (π apart)' : 'Mirrored (90° axis)';
+            document.getElementById('layoutMode').textContent = modeText;
+            
+            // Redraw with current data and new layout
+            createPersonaSunburst(currentData, 'sunburstContainer', {
+                width: 900,
+                height: 900,
+                centerLabel: 'Toggle',
+                centerSubLabel: 'Test',
+                animate: true,
+                oppositeLayout: useOppositeLayout
+            });
+        }
         
         function displayData(data) {
             const display = document.getElementById('dataDisplay');
@@ -420,7 +443,8 @@
                 height: 900,
                 centerLabel: 'API',
                 centerSubLabel: 'Response',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(realAPIData);
         }
@@ -432,7 +456,8 @@
                 height: 900,
                 centerLabel: 'Positive',
                 centerSubLabel: 'Profile',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(positiveTraitsData);
         }
@@ -444,7 +469,8 @@
                 height: 900,
                 centerLabel: 'Negative',
                 centerSubLabel: 'Profile',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(negativeTraitsData);
         }
@@ -456,7 +482,8 @@
                 height: 900,
                 centerLabel: 'Mixed',
                 centerSubLabel: 'Profile',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(mixedPolarityData);
         }
@@ -468,7 +495,8 @@
                 height: 900,
                 centerLabel: 'Custom',
                 centerSubLabel: 'Persona',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(customCategoriesData);
         }
@@ -521,7 +549,8 @@
                 height: 900,
                 centerLabel: 'Random',
                 centerSubLabel: 'Profile',
-                animate: true
+                animate: true,
+                oppositeLayout: useOppositeLayout
             });
             displayData(randomData);
         }

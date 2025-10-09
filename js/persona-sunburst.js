@@ -64,6 +64,7 @@
  * @param {boolean} [options.showPercentages=true] - Whether to show percentages in labels
  * @param {number} [options.growthMultiplier=1.25] - Multiplier for bar extension (1.25 = bars grow 1.25x faster)
  * @param {boolean} [options.showLabels=true] - Whether to show perpendicular labels
+ * @param {boolean} [options.oppositeLayout=true] - true = opposite traits π radians apart, false = mirrored along vertical
  * @returns {Function} Cleanup function to remove tooltip
  */
 function createPersonaSunburst(personaData, containerId, options = {}) {
@@ -82,7 +83,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         animate: options.animate !== false,
         showPercentages: options.showPercentages !== false,
         growthMultiplier: options.growthMultiplier !== undefined ? options.growthMultiplier : 1.25,
-        showLabels: options.showLabels !== false
+        showLabels: options.showLabels !== false,
+        oppositeLayout: options.oppositeLayout !== false // true = π radians apart, false = mirrored along vertical
     };
 
     // Clear any existing SVG in the container
@@ -91,7 +93,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 
     // Transform data into categories structure
     console.log('🔄 About to transform data to categories...');
-    const categories = transformToCategories(personaData);
+    const categories = transformToCategories(personaData, config);
     console.log('✅ Transformed categories:', categories);
 
     // Set up dimensions
@@ -568,15 +570,16 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
 /**
  * Transforms persona vector data into categories structure for two-ring sunburst
  * @param {Object} personaData - Object with categorized persona ratings or flat ratings
+ * @param {Object} config - Configuration object with layout options
  * @returns {Array} - Array of category objects with items
  */
-function transformToCategories(personaData) {
+function transformToCategories(personaData, config = {}) {
     console.log('🔍 transformToCategories called with:', personaData);
     
     // Check if data is in new hierarchical format (categories with sub-traits)
     if (isHierarchicalFormat(personaData)) {
         console.log('✅ Data is in hierarchical format (categories with sub-traits)');
-        return transformHierarchicalData(personaData);
+        return transformHierarchicalData(personaData, config);
     }
     
     // Check if data is already in categories format
@@ -697,10 +700,12 @@ function isHierarchicalFormat(data) {
  * Transforms hierarchical data into two super-categories: Positive and Negative
  * All positive traits on one side, all negative traits on the other
  * @param {Object} hierarchicalData - Data in format { category: { trait1: val1, trait2: val2 } }
+ * @param {Object} config - Configuration object with layout options
  * @returns {Array} - Array with 2 super-categories (Positive and Negative)
  */
-function transformHierarchicalData(hierarchicalData) {
+function transformHierarchicalData(hierarchicalData, config = {}) {
     console.log('🔄 Transforming hierarchical data...');
+    const useOppositeLayout = config.oppositeLayout !== false; // default true
     
     const traitPairs = [];
     
@@ -738,31 +743,29 @@ function transformHierarchicalData(hierarchicalData) {
         console.log(`  📁 ${categoryName}: ${positiveTrait.name}=${positiveTrait.value.toFixed(3)} (✅) ↔ ${negativeTrait.name}=${negativeTrait.value.toFixed(3)} (❌)`);
     }
     
-    // Separate positive and negative items with mirrored positioning
+    // Separate positive and negative items with configurable positioning
     const positiveItems = [];
     const negativeItems = [];
     
-    // Opposite traits positioned π radians (180°) apart:
-    // - Positive traits: right semicircle (0° to 180°), evenly distributed
-    // - Negative traits: left semicircle (180° to 360°), each exactly opposite its pair
-    //
-    // Example with 8 pairs:
-    //   - Positive at ~11°, ~34°, ~56°, ~79°, ~101°, ~124°, ~146°, ~169°
-    //   - Negative at ~191°, ~214°, ~236°, ~259°, ~281°, ~304°, ~326°, ~349°
-    
     const totalPairs = traitPairs.length;
     
-    // Distribute positive traits evenly across right semicircle (0° to 180°)
-    // Each negative trait is positioned exactly π radians (180°) opposite its positive pair
-    const angleStep = Math.PI / totalPairs;
-    
-    traitPairs.forEach((pair, index) => {
-        // Positive trait: evenly distributed on right side (0° to 180°)
-        // Center each trait in its angular slice
-        const positiveAngle = angleStep * (index + 0.5);
+    if (useOppositeLayout) {
+        // OPPOSITE LAYOUT: Traits positioned π radians (180°) apart
+        // - Positive traits: right semicircle (0° to 180°), evenly distributed
+        // - Negative traits: left semicircle (180° to 360°), each exactly opposite its pair
+        //
+        // Example with 8 pairs:
+        //   - Positive at ~11°, ~34°, ~56°, ~79°, ~101°, ~124°, ~146°, ~169°
+        //   - Negative at ~191°, ~214°, ~236°, ~259°, ~281°, ~304°, ~326°, ~349°
         
-        // Negative trait: exactly π radians opposite (180° away)
-        const negativeAngle = positiveAngle + Math.PI;
+        const angleStep = Math.PI / totalPairs;
+        
+        traitPairs.forEach((pair, index) => {
+            // Positive trait: evenly distributed on right side (0° to 180°)
+            const positiveAngle = angleStep * (index + 0.5);
+            
+            // Negative trait: exactly π radians opposite (180° away)
+            const negativeAngle = positiveAngle + Math.PI;
         
         positiveItems.push({
             name: pair.positive.name,
@@ -788,8 +791,57 @@ function transformHierarchicalData(hierarchicalData) {
             angle: negativeAngle
         });
         
-        console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
-    });
+            console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
+        });
+    } else {
+        // MIRRORED LAYOUT: Traits mirrored along 90° vertical axis
+        // - Positive traits: right side of vertical (mirrored from 90°)
+        // - Negative traits: left side of vertical (mirrored from 90°)
+        //
+        // Example: if pair has 15° offset:
+        //   - Positive at 90° - 15° = 75° (right side)
+        //   - Negative at 90° + 15° = 105° (left side)
+        
+        const mirrorAxis = Math.PI / 2; // 90° vertical axis
+        const maxOffset = Math.PI / 2; // Maximum 90° offset from vertical
+        const offsetStep = maxOffset / (totalPairs + 1);
+        
+        traitPairs.forEach((pair, index) => {
+            const offset = offsetStep * (index + 1);
+            
+            // Positive trait: right side of 90° (clockwise, so subtract)
+            const positiveAngle = mirrorAxis - offset;
+            
+            // Negative trait: left side of 90° (counter-clockwise, so add)
+            const negativeAngle = mirrorAxis + offset;
+            
+            positiveItems.push({
+                name: pair.positive.name,
+                value: pair.positive.value,
+                rawValue: pair.positive.value,
+                originalTrait: pair.positive.originalTrait,
+                oppositeTrait: pair.negative.name,
+                category: pair.category,
+                isPositive: true,
+                pairIndex: index,
+                angle: positiveAngle
+            });
+            
+            negativeItems.push({
+                name: pair.negative.name,
+                value: pair.negative.value,
+                rawValue: pair.negative.value,
+                originalTrait: pair.negative.originalTrait,
+                oppositeTrait: pair.positive.name,
+                category: pair.category,
+                isPositive: false,
+                pairIndex: index,
+                angle: negativeAngle
+            });
+            
+            console.log(`  🔄 Pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (offset: ${(offset * 180 / Math.PI).toFixed(1)}°)`);
+        });
+    }
     
     // Sort items by angle for proper rendering order
     positiveItems.sort((a, b) => a.angle - b.angle);
@@ -820,7 +872,10 @@ function transformHierarchicalData(hierarchicalData) {
         }
     ];
     
-    console.log(`✅ Created 2 super-categories with opposite pairs π radians apart: ${positiveItems.length} positive traits (right semicircle, 0-180°) and ${negativeItems.length} negative traits (left semicircle, 180-360°)`);
+    const layoutDescription = useOppositeLayout 
+        ? 'opposite pairs π radians apart'
+        : 'pairs mirrored along 90° vertical axis';
+    console.log(`✅ Created 2 super-categories with ${layoutDescription}: ${positiveItems.length} positive traits (right side) and ${negativeItems.length} negative traits (left side)`);
     return categories;
 }
 

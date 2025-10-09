@@ -49,6 +49,14 @@ if (typeof window.messageIdCounter === 'undefined') {
 if (typeof window.conversationHistory === 'undefined') {
     window.conversationHistory = []; // Store conversation history for API calls
 }
+// Track sunburst layout mode
+if (typeof window.sunburstOppositeLayout === 'undefined') {
+    window.sunburstOppositeLayout = true; // Default: opposite (π radians apart)
+}
+// Store current persona data for redrawing
+if (typeof window.currentPersonaData === 'undefined') {
+    window.currentPersonaData = null;
+}
 if (typeof window.lastSystemPrompt === 'undefined') {
     window.lastSystemPrompt = null; // Track the last system prompt used
 }
@@ -517,6 +525,33 @@ function initializeDynamicInterface() {
             testPersonaWithMockData();
         });
 
+        // Toggle Layout button - switch between opposite and mirrored layouts
+        // Use event delegation since the button is loaded asynchronously
+        $(document).on('click', '#toggleLayoutBtn', function() {
+            // Remove focus from button to return to default state
+            $(this).blur();
+            
+            // Toggle the layout mode
+            window.sunburstOppositeLayout = !window.sunburstOppositeLayout;
+            
+            // Update button text
+            const modeText = window.sunburstOppositeLayout ? 'Opposite' : 'Mirrored';
+            $('#layoutModeText').text(modeText);
+            
+            console.log(`🔄 Layout toggled to: ${modeText} mode`);
+            
+            // Redraw the sunburst if we have persona data
+            if (window.currentPersonaData && typeof createPersonaSunburst === 'function') {
+                createPersonaSunburst(window.currentPersonaData, 'personaChartSunburst', {
+                    width: 380,
+                    height: 380,
+                    innerRadius: 45,
+                    animate: true,
+                    oppositeLayout: window.sunburstOppositeLayout
+                });
+            }
+        });
+
         // Helper function to show/hide persona sections
         window.showPersonaVisualization = function() {
             $('#personaVisualization').show();
@@ -965,11 +1000,14 @@ function renderPersonaChart(personaData) {
             
             if (typeof createPersonaSunburst === 'function') {
                 console.log('✅ Calling createPersonaSunburst with personaData:', personaData);
+                // Store persona data for toggling
+                window.currentPersonaData = personaData;
                 createPersonaSunburst(personaData, 'personaChartSunburst', {
                     width: 380,
                     height: 380,
                     innerRadius: 45,
-                    animate: true
+                    animate: true,
+                    oppositeLayout: window.sunburstOppositeLayout
                 });
             } else {
                 console.error('createPersonaSunburst function not found. Falling back to bar chart.');
