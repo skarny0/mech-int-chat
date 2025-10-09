@@ -113,9 +113,9 @@ function initializeDynamicInterface() {
     const skipSurvey = urlParams.get('skipSurvey') === 'true';
     
     if (debugMode && !skipSurvey) {
-        // In debug mode (but not skipSurvey), clear instruction state so modals show again
-        sessionStorage.removeItem('instructionsShown');
-        console.log('🐛 Debug mode: Cleared instruction modal state');
+        // In debug mode (but not skipSurvey), clear all modal states so they show again
+        sessionStorage.clear();
+        console.log('🐛 Debug mode: Cleared all sessionStorage (modals will show fresh)');
     }
     
     // Initialize avatar selection first
@@ -497,7 +497,7 @@ function initializeDynamicInterface() {
             $('#personaVisualization').show();
             
             // Show visualization explanation modal
-            showVisualizationExplanation();
+            window.showVisualizationExplanation();
             
             // Call persona check
             checkPersona(systemPrompt);
@@ -525,7 +525,7 @@ function initializeDynamicInterface() {
             $('#personaVisualization').show();
             
             // Show visualization explanation modal
-            showVisualizationExplanation();
+            window.showVisualizationExplanation();
             
             // Generate test persona
             testPersonaWithMockData();
@@ -538,12 +538,17 @@ function initializeDynamicInterface() {
             $(this).blur();
             
             // Show the visualization explanation modal (force show)
-            showVisualizationExplanation(true);
+            window.showVisualizationExplanation(true);
         });
 
         // Dismiss visualization explanation modal
         $(document).on('click', '#dismissVisualizationExplanation', function() {
-            dismissVisualizationExplanation();
+            window.dismissVisualizationExplanation();
+        });
+
+        // Dismiss prompt refinement modal
+        $(document).on('click', '#dismissPromptRefinement', function() {
+            window.dismissPromptRefinementModal();
         });
 
         // Toggle Layout button - switch between opposite and mirrored layouts
@@ -780,6 +785,11 @@ function initializeDynamicInterface() {
         
         // Show chat instruction modal
         window.showInstructionModal('chat');
+        
+        // Show prompt refinement reminder modal (after a 15 second delay so users have time to start chatting)
+        setTimeout(() => {
+            window.showPromptRefinementModal();
+        }, 15000);
         
         // Update initial message avatar with selected avatar
         const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
@@ -1710,4 +1720,27 @@ window.showVisualizationExplanation = function(forceShow = false) {
 window.dismissVisualizationExplanation = function() {
     $('#visualizationExplanationModal').fadeOut(400);
     console.log('✅ Visualization explanation modal dismissed');
+};
+
+// Show prompt refinement reminder modal
+window.showPromptRefinementModal = function() {
+    // Check if already shown
+    const hasShown = sessionStorage.getItem('promptRefinementShown');
+    
+    if (hasShown) {
+        console.log('⏭️ Prompt refinement reminder already shown, skipping');
+        return;
+    }
+    
+    $('#promptRefinementModal').fadeIn(600);
+    console.log('💡 Showing prompt refinement reminder modal');
+    
+    // Mark as shown
+    sessionStorage.setItem('promptRefinementShown', 'true');
+};
+
+// Dismiss prompt refinement modal
+window.dismissPromptRefinementModal = function() {
+    $('#promptRefinementModal').fadeOut(400);
+    console.log('✅ Prompt refinement modal dismissed');
 };

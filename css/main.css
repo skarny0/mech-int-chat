@@ -102,6 +102,24 @@
     margin-left: 0;
 }
 
+/* Prompt Refinement Modal - Positioned near top-left (above Back to Config button) */
+#promptRefinementModal {
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 2rem;
+    padding-top: 5rem;
+}
+
+#promptRefinementModal .instruction-modal-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+#promptRefinementModal .instruction-modal-content {
+    max-width: 450px;
+    margin-left: 0;
+}
+
 /* Avatar Selection Interface Styles */
 .avatar-selection-interface {
     padding: 2rem;
