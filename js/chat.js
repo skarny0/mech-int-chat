@@ -1033,50 +1033,53 @@ function testPersonaWithMockData() {
     
     // Simulate API delay
     setTimeout(() => {
-        // Generate random mock data matching NEW HIERARCHICAL API format
-        // Format: { category: { trait1: value, trait2: value } }
-        // Values are independent (don't need to sum to 1.0)
+        // HARDCODED test data matching EXACT API format
+        // Format: { category: { trait1: value [0,1], trait2: 0 } }
+        // One trait has a value, the opposite is always 0
         const mockData = {
             empathy: {
-                empathetic: Math.random() * 0.5,      // Random 0-0.5
-                unempathetic: Math.random() * 0.3     // Random 0-0.3
+                empathetic: 0.82,      // High empathy
+                unempathetic: 0
             },
             encouraging: {
-                encouraging: Math.random() * 0.4,
-                discouraging: Math.random() * 0.6
+                encouraging: 0.75,     // Quite encouraging
+                discouraging: 0
             },
             sociality: {
-                social: Math.random() * 0.5,
-                antisocial: Math.random() * 0.2
+                social: 0.68,          // Moderately social
+                antisocial: 0
             },
             formality: {
-                formal: Math.random() * 0.3,
-                casual: Math.random() * 0.5
+                formal: 0,             // Very casual (opposite trait active)
+                casual: 0.85
             },
             sycophancy: {
-                sycophantic: Math.random() * 0.4,
-                honest: Math.random() * 0.3
+                sycophantic: 0,        // Mostly honest (opposite trait active)
+                honest: 0.65
             },
             funniness: {
-                funny: Math.random() * 0.4,
-                serious: Math.random() * 0.5
+                funny: 0.78,           // Quite funny
+                serious: 0
             },
             hallucination: {
-                hallucinatory: Math.random() * 0.3,
-                factual: Math.random() * 0.6
+                hallucinatory: 0,      // Very factual/accurate (opposite trait active)
+                factual: 0.88
             },
             toxicity: {
-                toxic: Math.random() * 0.2,
-                respectful: Math.random() * 0.7
+                toxic: 0,              // Very respectful (opposite trait active)
+                respectful: 0.92
             }
         };
         
-        console.log('🧪 Mock Persona Data (NEW HIERARCHICAL format):', mockData);
+        console.log('🧪 Hardcoded Test Persona Data (NEW HIERARCHICAL format):', mockData);
         console.log('📊 Categories:', Object.keys(mockData).length);
         
-        // Log each category's traits
+        // Log each category's traits with formatted values
         for (const [category, traits] of Object.entries(mockData)) {
-            console.log(`  📁 ${category}:`, traits);
+            const traitEntries = Object.entries(traits);
+            const trait1 = `${traitEntries[0][0]}: ${(traitEntries[0][1] * 100).toFixed(0)}%`;
+            const trait2 = `${traitEntries[1][0]}: ${(traitEntries[1][1] * 100).toFixed(0)}%`;
+            console.log(`  📁 ${category}: ${trait1} | ${trait2}`);
         }
         
         renderPersonaChart(mockData);

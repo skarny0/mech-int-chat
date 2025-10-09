@@ -3,18 +3,22 @@
 //
 // DATA FORMATS SUPPORTED:
 //
-// 1. API Format (trait pairs with complementary values that sum to 1.0):
+// 1. API Format (hierarchical with trait pairs where one trait is active, other is 0):
 //    {
-//      empathetic: 0.803,     // Trait value (0-1 range)
-//      unempathetic: 0.197,   // Opposite trait (empathetic + unempathetic = 1.0)
-//      encouraging: 0.672,    // Trait value
-//      discouraging: 0.328,   // Opposite trait (encouraging + discouraging = 1.0)
-//      social: 0.698,         // Trait value
-//      antisocial: 0.302,     // Opposite trait (social + antisocial = 1.0)
-//      toxic: 0.105,          // Negative trait value
-//      respectful: 0.895      // Opposite trait (toxic + respectful = 1.0)
+//      empathy: {
+//        empathetic: 0.803,   // Active trait (0-1 range)
+//        unempathetic: 0      // Inactive trait (always 0)
+//      },
+//      encouraging: {
+//        encouraging: 0.672,  // Active trait
+//        discouraging: 0      // Inactive trait (always 0)
+//      },
+//      toxicity: {
+//        toxic: 0,            // Inactive trait (always 0)
+//        respectful: 0.895    // Active trait
+//      }
 //    }
-//    Note: Only the dominant trait (higher value) from each pair is displayed
+//    Note: Only the non-zero trait from each pair is displayed
 //
 // 2. Custom Categories Format:
 //    {
@@ -58,7 +62,7 @@
  * @param {string} [options.centerSubLabel='Vector'] - Sub-label in center
  * @param {boolean} [options.animate=true] - Whether to animate on load
  * @param {boolean} [options.showPercentages=true] - Whether to show percentages in labels
- * @param {number} [options.growthMultiplier=2.0] - Multiplier for bar extension (2.0 = bars grow 2x faster)
+ * @param {number} [options.growthMultiplier=1.25] - Multiplier for bar extension (1.25 = bars grow 1.25x faster)
  * @param {boolean} [options.showLabels=true] - Whether to show perpendicular labels
  * @returns {Function} Cleanup function to remove tooltip
  */
@@ -77,7 +81,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         centerSubLabel: options.centerSubLabel || 'Vector',
         animate: options.animate !== false,
         showPercentages: options.showPercentages !== false,
-        growthMultiplier: options.growthMultiplier !== undefined ? options.growthMultiplier : 2.0,
+        growthMultiplier: options.growthMultiplier !== undefined ? options.growthMultiplier : 1.25,
         showLabels: options.showLabels !== false
     };
 
@@ -341,7 +345,7 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     
     // Use raw values with a growth multiplier to make bars extend further
     // No transformation, just amplify the extension
-    const growthMultiplier = config.growthMultiplier || 2.0; // Default 2x growth
+    const growthMultiplier = config.growthMultiplier || 1.25; // Default 1.25x growth
     const extension = item.value * growthMultiplier * (maxOuterRadius - middleRadius);
     const outerRadius = middleRadius + extension;
     
@@ -407,38 +411,42 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     // Add label for this trait (if enabled)
     if (config.showLabels) {
         const midAngle = (itemStartAngle + itemEndAngle) / 2;
-        const labelRadius = outerRadius + (radius * 0.08); // Position label slightly beyond the segment
+        
+        // Calculate desired label position slightly beyond the segment
+        const desiredLabelRadius = outerRadius + (radius * 0.08);
+        
+        // Cap the label radius to prevent labels from going outside the view
+        // Maximum safe radius is about 85% of the available radius to leave margin for text
+        const maxLabelRadius = radius * 0.85;
+        const labelRadius = Math.min(desiredLabelRadius, maxLabelRadius);
+        
         const labelX = Math.sin(midAngle) * labelRadius;
         const labelY = -Math.cos(midAngle) * labelRadius;
         
-        // Calculate rotation to keep text readable (never upside down)
-        // Convert angle to degrees
-        let rotation = (midAngle * 180 / Math.PI);
-        let textAnchor;
+        // Calculate rotation to keep text radially oriented (pointing outward from center like spokes)
+        // Convert angle to degrees and adjust so text reads outward from center
+        let rotation = (midAngle * 180 / Math.PI) - 90;
+        let textAnchor = 'start';
         
         // Check if label would be upside down (left half of circle: 90° to 270°)
+        // After the -90 adjustment, check if the adjusted rotation makes text upside down
         if (rotation > 90 && rotation < 270) {
             // Flip the text 180° to keep it readable
             rotation += 180;
-            // Also flip the perpendicular offset
-            textAnchor = 'start';
-        } else {
             textAnchor = 'end';
         }
         
-        // Apply perpendicular rotation (90° from radial)
-        rotation += 90;
-        
         // Create text element with trait name and activation value
         const labelGroup = g.append('g')
-            .attr('transform', `translate(${labelX}, ${labelY}) rotate(${rotation})`);
+            .attr('transform', `translate(${labelX}, ${labelY}) rotate(${rotation})`)
+            .style('cursor', 'pointer')
+            .style('pointer-events', 'all'); // Enable pointer events for hover
         
         const textElement = labelGroup.append('text')
             .attr('x', 0)
             .attr('y', 0)
             .attr('text-anchor', textAnchor)
             .attr('dominant-baseline', 'middle')
-            .style('pointer-events', 'none')
             .style('user-select', 'none');
         
         // Add trait name in black
@@ -454,6 +462,44 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .style('font-weight', '400')
             .style('fill', '#999')
             .text(` ${(item.value * 100).toFixed(0)}%`);
+        
+        // Add hover effects to label group that mirror the arc hover effects
+        labelGroup.on('mouseenter', function(event) {
+            // Trigger the arc hover effect
+            itemArc.transition()
+                .duration(200)
+                .style('opacity', 1)
+                .attr('stroke-width', 4)
+                .style('filter', 'brightness(1.1)');
+            
+            // Show tooltip
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', 1);
+            
+            const originalTraitInfo = item.originalTrait ? 
+                `<br/>Original: ${formatTraitName(item.originalTrait)}` : '';
+            
+            tooltip.html(`
+                <strong style="font-size: 16px;">${item.name}</strong><br/>
+                <span style="opacity: 0.9;">Category: ${category.name}</span>${originalTraitInfo}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseleave', function() {
+            // Reset the arc
+            itemArc.transition()
+                .duration(200)
+                .style('opacity', 0.9)
+                .attr('stroke-width', 2)
+                .style('filter', 'none');
+            
+            // Hide tooltip
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', 0);
+        });
     }
 }
 

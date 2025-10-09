@@ -172,8 +172,8 @@
         <div class="description">
             <p>Interactive test page for the D3.js sunburst visualization with <strong>hierarchical data format</strong>.</p>
             <p><strong>Top Half:</strong> All Positive Traits (Green) • <strong>Bottom Half:</strong> All Negative Traits (Red)</p>
-            <p><strong>New API Format:</strong> Hierarchical categories with trait pairs</p>
-            <p>Example: <code>{ empathy: { empathetic: 0.8, unempathetic: 0.2 } }</code></p>
+            <p><strong>Exact API Format:</strong> One trait has value [0,1], opposite is 0</p>
+            <p>Example: <code>{ empathy: { empathetic: 0.8, unempathetic: 0 } }</code></p>
         </div>
         
         <div class="test-buttons">
@@ -200,20 +200,20 @@
         <div id="sunburstContainer"></div>
         
         <div class="info-box">
-            <h3>🔄 How Trait Pair Filtering Works</h3>
+            <h3>🔄 How Trait Pair Processing Works</h3>
             <ul>
-                <li><strong>API Format:</strong> Returns trait pairs where values sum to 1.0
-                    <br>• Example: <span class="code">{empathetic: 0.8, unempathetic: 0.2}</span>
+                <li><strong>API Format:</strong> Returns trait pairs where one has value [0,1], other is 0
+                    <br>• Example: <span class="code">{empathetic: 0.8, unempathetic: 0}</span>
                 </li>
-                <li><strong>Filtering Logic:</strong> Only the dominant trait (higher value) is displayed
-                    <br>• <span class="code">empathetic: 0.8</span> vs <span class="code">unempathetic: 0.2</span> → shows <span class="positive-label">Empathetic (0.8)</span>
-                    <br>• <span class="code">toxic: 0.7</span> vs <span class="code">respectful: 0.3</span> → shows <span class="negative-label">Toxic (0.7)</span>
+                <li><strong>Display Logic:</strong> Only the non-zero trait is displayed
+                    <br>• <span class="code">empathetic: 0.8</span> and <span class="code">unempathetic: 0</span> → shows <span class="positive-label">Empathetic (0.8)</span>
+                    <br>• <span class="code">toxic: 0.7</span> and <span class="code">respectful: 0</span> → shows <span class="negative-label">Toxic (0.7)</span>
                 </li>
                 <li><strong>Categorization:</strong>
-                    <br>• <span class="positive-label">Positive traits</span> (empathetic, encouraging, honest, etc.) → Green ring
-                    <br>• <span class="negative-label">Negative traits</span> (toxic, sycophantic, hallucinatory, etc.) → Red ring
+                    <br>• <span class="positive-label">Positive traits</span> (empathetic, encouraging, honest, etc.) → Top half (Green)
+                    <br>• <span class="negative-label">Negative traits</span> (toxic, sycophantic, hallucinatory, etc.) → Bottom half (Red)
                 </li>
-                <li>Check the browser console to see all trait pairs and filtering!</li>
+                <li>Check the browser console to see all trait pairs and processing!</li>
             </ul>
         </div>
         
@@ -227,38 +227,39 @@
         // Test data sets matching API format
         
         // Real API data format - NEW HIERARCHICAL format
-        // Format: { category: { trait1: value, trait2: value } }
+        // Format: { category: { trait1: value [0,1], trait2: 0 } }
+        // One trait has a value, the opposite is always 0
         const realAPIData = {
             empathy: {
                 empathetic: 0.8033,
-                unempathetic: 0.1967
+                unempathetic: 0
             },
             encouraging: {
                 encouraging: 0.6718,
-                discouraging: 0.3282
+                discouraging: 0
             },
             sociality: {
                 social: 0.6984,
-                antisocial: 0.3016
+                antisocial: 0
             },
             formality: {
-                formal: 0.0481,
+                formal: 0,
                 casual: 0.9519
             },
             sycophancy: {
                 sycophantic: 0.7576,
-                honest: 0.2424
+                honest: 0
             },
             funniness: {
                 funny: 0.7985,
-                serious: 0.2015
+                serious: 0
             },
             hallucination: {
-                hallucinatory: 0.0173,
+                hallucinatory: 0,
                 factual: 0.9827
             },
             toxicity: {
-                toxic: 0.1048,
+                toxic: 0,
                 respectful: 0.8952
             }
         };
@@ -267,31 +268,31 @@
         const positiveTraitsData = {
             empathy: {
                 empathetic: 0.85,
-                unempathetic: 0.15
+                unempathetic: 0
             },
             encouraging: {
                 encouraging: 0.92,
-                discouraging: 0.08
+                discouraging: 0
             },
             sociality: {
                 social: 0.78,
-                antisocial: 0.22
+                antisocial: 0
             },
             sycophancy: {
                 honest: 0.88,
-                sycophantic: 0.12
+                sycophantic: 0
             },
             funniness: {
                 funny: 0.65,
-                serious: 0.35
+                serious: 0
             },
             hallucination: {
                 factual: 0.91,
-                hallucinatory: 0.09
+                hallucinatory: 0
             },
             toxicity: {
                 respectful: 0.94,
-                toxic: 0.06
+                toxic: 0
             }
         };
         
@@ -299,27 +300,27 @@
         const negativeTraitsData = {
             toxicity: {
                 toxic: 0.95,
-                respectful: 0.05
+                respectful: 0
             },
             sycophancy: {
                 sycophantic: 0.88,
-                honest: 0.12
+                honest: 0
             },
             hallucination: {
                 hallucinatory: 0.75,
-                factual: 0.25
+                factual: 0
             },
             empathy: {
                 unempathetic: 0.82,
-                empathetic: 0.18
+                empathetic: 0
             },
             encouraging: {
                 discouraging: 0.71,
-                encouraging: 0.29
+                encouraging: 0
             },
             sociality: {
                 antisocial: 0.65,
-                social: 0.35
+                social: 0
             }
         };
         
@@ -327,27 +328,27 @@
         const mixedPolarityData = {
             empathy: {
                 empathetic: 0.80,
-                unempathetic: 0.20
+                unempathetic: 0
             },
             encouraging: {
                 encouraging: 0.72,
-                discouraging: 0.28
+                discouraging: 0
             },
             sociality: {
                 social: 0.60,
-                antisocial: 0.40
+                antisocial: 0
             },
             toxicity: {
                 toxic: 0.55,
-                respectful: 0.45
+                respectful: 0
             },
             sycophancy: {
                 sycophantic: 0.68,
-                honest: 0.32
+                honest: 0
             },
             hallucination: {
                 hallucinatory: 0.52,
-                factual: 0.48
+                factual: 0
             }
         };
         
@@ -503,9 +504,11 @@
             const randomData = {};
             selectedCategories.forEach(category => {
                 const [trait1, trait2] = traitPairs[category];
+                // Randomly pick which trait gets the value (other gets 0)
+                const useFirstTrait = Math.random() > 0.5;
                 randomData[category] = {
-                    [trait1]: Math.round(Math.random() * 700) / 1000, // 0-0.7 range
-                    [trait2]: Math.round(Math.random() * 700) / 1000
+                    [trait1]: useFirstTrait ? Math.round(Math.random() * 1000) / 1000 : 0, // Random [0,1] or 0
+                    [trait2]: useFirstTrait ? 0 : Math.round(Math.random() * 1000) / 1000
                 };
             });
             
