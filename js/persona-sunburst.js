@@ -58,8 +58,7 @@
  * @param {string} [options.centerSubLabel='Vector'] - Sub-label in center
  * @param {boolean} [options.animate=true] - Whether to animate on load
  * @param {boolean} [options.showPercentages=true] - Whether to show percentages in labels
- * @param {number} [options.minExtension=0.3] - Minimum extension for non-zero values (0-1 range)
- * @param {boolean} [options.useSqrtScaling=true] - Whether to use square root scaling for values
+ * @param {number} [options.growthMultiplier=2.0] - Multiplier for bar extension (2.0 = bars grow 2x faster)
  * @param {boolean} [options.showLabels=true] - Whether to show perpendicular labels
  * @returns {Function} Cleanup function to remove tooltip
  */
@@ -78,8 +77,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         centerSubLabel: options.centerSubLabel || 'Vector',
         animate: options.animate !== false,
         showPercentages: options.showPercentages !== false,
-        minExtension: options.minExtension !== undefined ? options.minExtension : 0.3,
-        useSqrtScaling: options.useSqrtScaling !== false,
+        growthMultiplier: options.growthMultiplier !== undefined ? options.growthMultiplier : 2.0,
         showLabels: options.showLabels !== false
     };
 
@@ -341,21 +339,13 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
  */
 function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOuterRadius, radius, config, category, tooltip, index, baseColor) {
     
-    // Scale values to make activations more visible
-    let scaledValue = item.value;
-    if (scaledValue > 0) {
-        // Apply square root scaling if enabled (compresses high values, expands low values)
-        if (config.useSqrtScaling) {
-            scaledValue = Math.sqrt(scaledValue);
-        }
-        // Ensure minimum visibility for non-zero values
-        scaledValue = Math.max(scaledValue, config.minExtension);
-    }
-    
-    const extension = scaledValue * (maxOuterRadius - middleRadius);
+    // Use raw values with a growth multiplier to make bars extend further
+    // No transformation, just amplify the extension
+    const growthMultiplier = config.growthMultiplier || 2.0; // Default 2x growth
+    const extension = item.value * growthMultiplier * (maxOuterRadius - middleRadius);
     const outerRadius = middleRadius + extension;
     
-    console.log(`  ${item.name}: raw=${item.value.toFixed(3)}, scaled=${scaledValue.toFixed(3)}, extension=${extension.toFixed(1)}px`);
+    console.log(`  ${item.name}: value=${item.value.toFixed(3)}, multiplier=${growthMultiplier}x, extension=${extension.toFixed(1)}px`);
 
     // Determine fill color
     // If baseColor provided (for mirrored traits), use it; otherwise use category color
