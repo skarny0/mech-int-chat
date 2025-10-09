@@ -83,12 +83,9 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 
     // Clear any existing SVG in the container
     d3.select(`#${containerId}`).selectAll('*').remove();
-    console.log('🧹 Cleared existing sunburst content');
 
     // Transform data into categories structure
-    console.log('🔄 About to transform data to categories...');
     const categories = transformToCategories(personaData, config);
-    console.log('✅ Transformed categories:', categories);
 
     // Set up dimensions
     const width = config.width;
@@ -263,8 +260,6 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
         }
     });
 
-    console.log('🎯 About to render center circle and avatar');
-    
     // Center circle
     g.append('circle')
         .attr('r', innerRadius)
@@ -274,10 +269,8 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
 
     // Add avatar image in center if available
     const selectedAvatar = localStorage.getItem('selectedAvatar') || window.selectedAvatar;
-    console.log('🎭 Sunburst: Checking for avatar...', selectedAvatar);
     
     if (selectedAvatar) {
-        console.log('✅ Sunburst: Avatar found, rendering:', selectedAvatar);
         // Create a circular clipping path for the avatar (relative to g's coordinate system)
         const clipId = `avatar-clip-${containerId}`;
         svg.append('defs')
@@ -299,10 +292,7 @@ function createPersonaSunburst(personaData, containerId, options = {}) {
             .attr('preserveAspectRatio', 'xMidYMid slice')
             .style('pointer-events', 'none')
             .attr('transform', `translate(0, 0)`);
-        
-        console.log('✅ Sunburst: Avatar image added and centered at (0,0)');
     } else {
-        console.log('⚠️ Sunburst: No avatar found, using text fallback');
         // Fallback to text if no avatar is selected
         g.append('text')
             .attr('text-anchor', 'middle')
@@ -357,8 +347,6 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
     const growthMultiplier = config.growthMultiplier || 1.25; // Default 1.25x growth
     const extension = item.value * growthMultiplier * (maxOuterRadius - middleRadius);
     const outerRadius = middleRadius + extension;
-    
-    console.log(`  ${item.name}: value=${item.value.toFixed(3)}, multiplier=${growthMultiplier}x, extension=${extension.toFixed(1)}px`);
 
     // Determine fill color based on activation value
     // Higher activation = darker/more saturated, lower activation = lighter/less saturated
@@ -455,7 +443,7 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
             .style('opacity', 0);
     })
     .on('click', function() {
-        console.log('Clicked:', item.name, 'Value:', item.value);
+        // Click handler for future interactivity
     });
     
     // Add label for this trait (if enabled)
@@ -579,17 +567,13 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
  * @returns {Array} - Array of category objects with items
  */
 function transformToCategories(personaData, config = {}) {
-    console.log('🔍 transformToCategories called with:', personaData);
-    
     // Check if data is in new hierarchical format (categories with sub-traits)
     if (isHierarchicalFormat(personaData)) {
-        console.log('✅ Data is in hierarchical format (categories with sub-traits)');
         return transformHierarchicalData(personaData, config);
     }
     
     // Check if data is already in categories format
     if (personaData.categories && Array.isArray(personaData.categories)) {
-        console.log('✅ Data already in categories format');
         const categories = personaData.categories.map((cat, idx) => ({
             name: cat.name,
             color: cat.color || getDefaultColor(idx),
@@ -624,10 +608,7 @@ function transformToCategories(personaData, config = {}) {
     }
 
     // First, filter to keep only dominant traits from each pair
-    console.log('🔄 Filtering dominant traits from:', personaData);
     const { filteredData, oppositeTraits } = filterDominantTraits(personaData);
-    console.log('✅ Filtered dominant traits:', filteredData);
-    console.log('✅ Number of filtered traits:', Object.keys(filteredData).length);
     
     // Group traits by positive vs negative semantic valuation
     const categoryMap = new Map();
@@ -652,8 +633,6 @@ function transformToCategories(personaData, config = {}) {
         
         // Determine which category to place it in
         const categoryName = effectiveTrait.isPositive ? 'Positive Traits' : 'Negative Traits';
-        
-        console.log(`  ${effectiveTrait.name}: ${value.toFixed(3)} (${categoryName})`);
         
         categoryMap.get(categoryName).items.push({
             name: effectiveTrait.name,
@@ -709,7 +688,6 @@ function isHierarchicalFormat(data) {
  * @returns {Array} - Array with 2 or 3 super-categories (Positive, Negative, and optionally Neutral)
  */
 function transformHierarchicalData(hierarchicalData, config = {}) {
-    console.log('🔄 Transforming hierarchical data...');
     const useOppositeLayout = config.oppositeLayout === true; // default false (mirrored with neutral)
     
     const traitPairs = [];
@@ -751,8 +729,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
             trait2: trait2
         });
         
-        const classIcon = (c) => c === 'positive' ? '✅' : c === 'negative' ? '❌' : '⚪';
-        console.log(`  📁 ${categoryName}: ${trait1.name}=${trait1.value.toFixed(3)} (${classIcon(trait1Classification)}) ↔ ${trait2.name}=${trait2.value.toFixed(3)} (${classIcon(trait2Classification)})`);
     }
     
     // Separate positive, negative, and neutral items with configurable positioning
@@ -811,8 +787,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
             pairIndex: index,
             angle: negativeAngle
         });
-        
-            console.log(`  🔄 Pair ${index + 1}: ${positiveTrait.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${negativeTrait.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}° (180° apart)`);
         });
     } else {
         // MIRRORED LAYOUT: 3 categories - Positive (right), Negative (left), Neutral (bottom)
@@ -877,8 +851,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
                 
                 addItem(pair.trait1, pair.trait2, neutralItems, trait1Class, angle1);
                 addItem(pair.trait2, pair.trait1, neutralItems, trait2Class, angle2);
-                
-                console.log(`  ⚪ Neutral Pair ${neutralPairIndex + 1}: ${pair.trait1.name} at ${(angle1 * 180 / Math.PI + 90).toFixed(1)}° ↔ ${pair.trait2.name} at ${(angle2 * 180 / Math.PI + 90).toFixed(1)}° (mirrored across 270°)`);
             } else {
                 // Standard positive/negative pair
                 // Mirror axis at 0 radians (90° standard = top of circle)
@@ -913,8 +885,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
                     addItem(pair.trait2, pair.trait1, positiveItems, trait2Class, positiveAngle);
                     addItem(pair.trait1, pair.trait2, negativeItems, trait1Class, normalizedNegativeAngle);
                 }
-                
-                console.log(`  🔄 Pair ${pairNumber + 1}: positive at ${(positiveAngle * 180 / Math.PI + 90).toFixed(1)}° ↔ negative at ${(normalizedNegativeAngle * 180 / Math.PI + 90).toFixed(1)}° (standard, mirrored)`);
             }
         });
     }
@@ -953,8 +923,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
                 isHierarchical: false
             }
         ];
-        
-        console.log(`✅ Created 2 super-categories: ${positiveItems.length} positive traits and ${negativeItems.length} negative traits`);
     } else {
         // MIRRORED LAYOUT with NEUTRAL TRAITS: 3 categories (positive, negative, neutral)
         // Arc sizes are PROPORTIONAL to number of traits in each category
@@ -1010,11 +978,6 @@ function transformHierarchicalData(hierarchicalData, config = {}) {
                 isHierarchical: false
             }
         ];
-        
-        console.log(`✅ Created 3 super-categories (mirror mode, proportional sizing):`);
-        console.log(`   Neutral: ${neutralItems.length} traits (${(neutralArcSize * 180 / Math.PI).toFixed(1)}° arc, centered at 270°)`);
-        console.log(`   Positive: ${positiveItems.length} traits (${(positiveArcSize * 180 / Math.PI).toFixed(1)}° arc)`);
-        console.log(`   Negative: ${negativeItems.length} traits (${(negativeArcSize * 180 / Math.PI).toFixed(1)}° arc)`);
     }
     
     return categories;
@@ -1065,7 +1028,6 @@ function detectTraitPairs(personaData) {
                 traitPairs[trait2] = trait1;
                 processed.add(trait1);
                 processed.add(trait2);
-                console.log(`🔗 Detected trait pair: ${trait1} (${val1.toFixed(3)}) ↔ ${trait2} (${val2.toFixed(3)}) = ${sum.toFixed(3)}`);
                 break;
             }
         }
@@ -1147,7 +1109,6 @@ function classifyTrait(traitName) {
 function filterDominantTraits(personaData) {
     // First, dynamically detect trait pairs from the data
     const traitPairs = detectTraitPairs(personaData);
-    console.log('🔍 Detected trait pairs:', traitPairs);
     
     const processed = new Set();
     const result = {};
@@ -1171,11 +1132,9 @@ function filterDominantTraits(personaData) {
             if (value >= oppositeValue) {
                 result[traitName] = value;
                 oppositeTraits[traitName] = oppositeTrait; // Store opposite
-                console.log(`  ✓ Keeping ${traitName} (${value.toFixed(3)}) over ${oppositeTrait} (${oppositeValue.toFixed(3)})`);
             } else {
                 result[oppositeTrait] = oppositeValue;
                 oppositeTraits[oppositeTrait] = traitName; // Store opposite
-                console.log(`  ✓ Keeping ${oppositeTrait} (${oppositeValue.toFixed(3)}) over ${traitName} (${value.toFixed(3)})`);
             }
             
             // Mark both as processed
@@ -1185,7 +1144,6 @@ function filterDominantTraits(personaData) {
             // Not a paired trait, keep it as-is
             result[traitName] = value;
             processed.add(traitKey);
-            console.log(`  ℹ️ Non-paired trait: ${traitName} (${value.toFixed(3)})`);
         }
     }
     

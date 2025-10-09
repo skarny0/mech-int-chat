@@ -32,10 +32,6 @@ function useSunburstDisplay() {
 }
 
 $(document).ready(function() {
-    // Log the current sunburst display mode
-    console.log(`Persona Vector Display Mode: ${useSunburstDisplay() ? 'Sunburst' : 'Simple List'}`);
-    console.log('Toggle with URL parameter: ?sunburst=true or ?sunburst=false');
-    
     // Add button to trigger persona vector ratings request
     const personaVectorBtn = $('#personaVectorBtn'); // You'll need to add this button to your HTML
     

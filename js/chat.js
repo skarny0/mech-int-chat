@@ -1175,11 +1175,8 @@ async function autoSubmitPersonaCheck(systemPrompt) {
         if (response.ok) {
             const data = await response.json();
             
-            // IMPORTANT: Log persona vector response for control condition
-            console.log('=== PERSONA VECTOR (CONTROL) ===');
-            console.log('Condition: CONTROL (no visualization)');
-            console.log('Persona Vector:', data.content);
-            console.log('================================');
+            // Log raw persona vector response
+            console.log('Persona Vector API Response:', data);
             
             // Save persona vector to history log
             const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
@@ -1233,11 +1230,8 @@ async function checkPersona(systemPrompt) {
         if (response.ok) {
             const data = await response.json();
             
-            // IMPORTANT: Log persona vector response for experimental condition
-            console.log('=== PERSONA VECTOR (EXPERIMENTAL) ===');
-            console.log('Condition: EXPERIMENTAL (with visualization)');
-            console.log('Persona Vector:', data.content);
-            console.log('=====================================');
+            // Log raw persona vector response
+            console.log('Persona Vector API Response:', data);
             
             // Save persona vector to history log
             const personaLogPath = studyId + '/participantData/' + firebaseUserId + '/personaVectorLog/' + Date.now();
