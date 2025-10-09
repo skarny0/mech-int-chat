@@ -94,16 +94,16 @@ function getExperimentSettingsFromURL() {
             
             // Default assignment (random assignment commented out)
             // Uncomment the following lines to enable random 50/50 assignment:
-            // const randomCondition = Math.random() < 0.5 ? 0 : 1;
-            // sessionStorage.setItem('visualizationCondition', randomCondition.toString());
-            // sessionStorage.setItem('conditionAssignmentMethod', 'random');
-            // return randomCondition;
+            const randomCondition = Math.random() < 0.5 ? 0 : 1;
+            sessionStorage.setItem('visualizationCondition', randomCondition.toString());
+            sessionStorage.setItem('conditionAssignmentMethod', 'random');
+            return randomCondition;
             
             // Default to control (0) for now
-            const defaultCondition = 1;
-            sessionStorage.setItem('visualizationCondition', defaultCondition.toString());
-            sessionStorage.setItem('conditionAssignmentMethod', 'default');
-            return defaultCondition;
+            // const defaultCondition = 1;
+            // sessionStorage.setItem('visualizationCondition', defaultCondition.toString());
+            // sessionStorage.setItem('conditionAssignmentMethod', 'default');
+            // return defaultCondition;
         })(),
     };
     
