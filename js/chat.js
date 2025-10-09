@@ -18,9 +18,20 @@ import {
 
 console.log("Firebase UserId=" + firebaseUserId);
 
+// Clear sessionStorage on EVERY load to ensure fresh experience
+// But preserve firebaseUserId which is critical for data collection
+const preservedFirebaseUserId = sessionStorage.getItem('firebaseUserId');
+sessionStorage.clear();
+
 // Store firebaseUserId in sessionStorage for access by other pages (like complete.html)
-sessionStorage.setItem('firebaseUserId', firebaseUserId);
-console.log("✅ Firebase UserId stored in sessionStorage:", firebaseUserId);
+sessionStorage.setItem('firebaseUserId', preservedFirebaseUserId || firebaseUserId);
+console.log("✅ SessionStorage cleared for fresh experience, firebaseUserId preserved:", firebaseUserId);
+
+// Clear localStorage states that would prevent fresh experience on reload
+localStorage.removeItem('selectedAvatar');
+localStorage.removeItem('preTaskSurveyCompleted');
+localStorage.removeItem('preTaskSurveyData');
+console.log("✅ LocalStorage cleared for fresh experience on every reload");
 
 // Write a simple test case to the database
 let studyId;
@@ -140,16 +151,7 @@ function initializeDynamicInterface() {
         }
     }
     
-    if (debugMode && !skipSurvey) {
-        // In debug mode (but not skipSurvey), clear modal states so they show again
-        // BUT preserve firebaseUserId which is critical for data storage
-        const preservedFirebaseUserId = sessionStorage.getItem('firebaseUserId');
-        sessionStorage.clear();
-        if (preservedFirebaseUserId) {
-            sessionStorage.setItem('firebaseUserId', preservedFirebaseUserId);
-        }
-        console.log('🐛 Debug mode: Cleared sessionStorage (preserving firebaseUserId, modals will show fresh)');
-    }
+    // SessionStorage is already cleared at the top of this file for fresh experience on every load
     
     // Initialize avatar selection first
     initializeAvatarSelection();
@@ -169,41 +171,15 @@ function initializeDynamicInterface() {
         const avatarGrid = $('.avatar-grid');
         const confirmAvatarBtn = $('#confirmAvatarBtn');
         
-        // Check for debug mode - clear saved avatar to always show selection
-        const urlParams = new URLSearchParams(window.location.search);
-        const debugMode = urlParams.get('debug') === 'true';
-        const skipSurvey = urlParams.get('skipSurvey') === 'true';
-        
-        if (debugMode) {
-            console.log('🐛 Debug mode: Clearing saved avatar to show selection screen');
-            localStorage.removeItem('selectedAvatar');
-            console.log('🐛 Avatar cleared from localStorage');
-        }
+        // Use settings from global settings object
+        const skipSurvey = window.experimentSettings.skipSurvey;
         
         if (skipSurvey) {
             console.log('⏭️ Skip survey mode: Marking survey as completed');
             localStorage.setItem('preTaskSurveyCompleted', 'true');
         }
         
-        // Check if avatar was already selected
-        const savedAvatar = localStorage.getItem('selectedAvatar');
-        console.log('🔍 Checking for saved avatar:', savedAvatar ? `Found: ${savedAvatar}` : 'None found');
-        
-        if (savedAvatar) {
-            window.selectedAvatar = savedAvatar;
-            // Skip to system prompt interface
-            console.log('⏭️ Skipping avatar selection, going to system prompt interface');
-            $('#avatarSelectionInterface').hide();
-            $('#systemPromptInterface').show();
-            
-            // Display avatar in system prompt header
-            $('#selectedAvatarImage').attr('src', savedAvatar);
-            $('#selectedAvatarDisplay').show();
-            
-            console.log('✅ Avatar already selected:', savedAvatar);
-            return;
-        }
-        
+        // Avatar selection is always shown fresh on every load (localStorage cleared at top of file)
         console.log('🎭 Showing avatar selection interface');
         
         console.log('🎭 Initializing avatar selection with 12 avatars');
@@ -282,10 +258,7 @@ function initializeDynamicInterface() {
         // Initialize survey
         initializePreTaskSurvey();
 
-        // Clear survey completion on page load (for testing/fresh start)
-        localStorage.removeItem('preTaskSurveyCompleted');
-        localStorage.removeItem('preTaskSurveyData');
-        console.log('🔄 Survey data cleared on page load');
+        // LocalStorage already cleared at the top of this file for fresh experience
 
         // Always start with Check/Test Persona buttons hidden
         $('.persona-check-buttons').hide();
@@ -1459,8 +1432,8 @@ function disableInterfaceButtons() {
     $('#resetConfig').prop('disabled', true);
     $('#checkPersonaBtn').prop('disabled', true);
     $('#testPersonaBtn').prop('disabled', true);
-    // Keep Submit Prompt button enabled initially
-    $('#submitPromptBtn').prop('disabled', false);
+    // Submit Prompt button state is controlled by character counter
+    // Don't override it here - let updateCharacterCounter() handle it
     console.log('🔒 Interface buttons disabled until survey completion');
 }
 

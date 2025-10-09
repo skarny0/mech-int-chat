@@ -28,6 +28,9 @@
         <!-- Metadata and Configuration -->
         <script src="js/metadata.js"></script>
         
+        <!-- Settings Configuration - Must load BEFORE other scripts -->
+        <script src="js/settings.js"></script>
+        
         <!-- Unified Configuration for Local and Vercel Deployment -->
         <script src="js/config-unified.js"></script>
 
@@ -55,10 +58,9 @@
         -->
         <script>
             $(document).ready(function(){
-                // Check for URL parameters
-                const urlParams = new URLSearchParams(window.location.search);
-                const debugMode = urlParams.get('debug') === 'true';
-                const freshMode = urlParams.get('fresh') === 'true';
+                // Use settings from global settings object
+                const debugMode = window.experimentSettings.debug;
+                const freshMode = window.experimentSettings.fresh;
                 
                 // Fresh mode: Clear all storage to simulate a fresh participant
                 if (freshMode) {
