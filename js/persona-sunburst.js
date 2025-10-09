@@ -411,21 +411,23 @@ function drawItemArc(g, item, itemStartAngle, itemEndAngle, middleRadius, maxOut
         const labelX = Math.sin(midAngle) * labelRadius;
         const labelY = -Math.cos(midAngle) * labelRadius;
         
-        // Calculate rotation and text anchor based on which side of the circle
-        // Left side (0 to π): last letter faces bar (text reads outward, anchor at end)
-        // Right side (π to 2π): first letter faces bar (text reads outward, anchor at start)
+        // Calculate rotation to keep text readable (never upside down)
+        // Convert angle to degrees
         let rotation = (midAngle * 180 / Math.PI);
         let textAnchor;
         
-        if (midAngle < Math.PI) {
-            // Left side: rotate 90° clockwise from radial, anchor at end
-            rotation += 90;
-            textAnchor = 'end';
-        } else {
-            // Right side: rotate 90° counter-clockwise from radial, anchor at start
-            rotation -= 90;
+        // Check if label would be upside down (left half of circle: 90° to 270°)
+        if (rotation > 90 && rotation < 270) {
+            // Flip the text 180° to keep it readable
+            rotation += 180;
+            // Also flip the perpendicular offset
             textAnchor = 'start';
+        } else {
+            textAnchor = 'end';
         }
+        
+        // Apply perpendicular rotation (90° from radial)
+        rotation += 90;
         
         // Create text element with trait name and activation value
         const labelGroup = g.append('g')
@@ -591,10 +593,9 @@ function isHierarchicalFormat(data) {
 function transformHierarchicalData(hierarchicalData) {
     console.log('🔄 Transforming hierarchical data...');
     
-    const positiveItems = [];
-    const negativeItems = [];
+    const traitPairs = [];
     
-    // Separate all traits into positive and negative arrays
+    // Collect trait pairs with their complementary traits
     for (const [categoryName, traits] of Object.entries(hierarchicalData)) {
         const traitEntries = Object.entries(traits);
         
@@ -610,71 +611,115 @@ function transformHierarchicalData(hierarchicalData) {
         const trait1IsPositive = classifyTrait(trait1Name);
         const trait2IsPositive = classifyTrait(trait2Name);
         
-        // Add to respective arrays
-        if (trait1IsPositive) {
-            positiveItems.push({
-                name: formatTraitName(trait1Name),
-                value: trait1Value,
-                rawValue: trait1Value,
-                originalTrait: trait1Name,
-                category: formatTraitName(categoryName),
-                isPositive: true
-            });
-        } else {
-            negativeItems.push({
-                name: formatTraitName(trait1Name),
-                value: trait1Value,
-                rawValue: trait1Value,
-                originalTrait: trait1Name,
-                category: formatTraitName(categoryName),
-                isPositive: false
-            });
-        }
+        // Store as a pair
+        const positiveTrait = trait1IsPositive ? 
+            { name: formatTraitName(trait1Name), value: trait1Value, originalTrait: trait1Name } :
+            { name: formatTraitName(trait2Name), value: trait2Value, originalTrait: trait2Name };
         
-        if (trait2IsPositive) {
-            positiveItems.push({
-                name: formatTraitName(trait2Name),
-                value: trait2Value,
-                rawValue: trait2Value,
-                originalTrait: trait2Name,
-                category: formatTraitName(categoryName),
-                isPositive: true
-            });
-        } else {
-            negativeItems.push({
-                name: formatTraitName(trait2Name),
-                value: trait2Value,
-                rawValue: trait2Value,
-                originalTrait: trait2Name,
-                category: formatTraitName(categoryName),
-                isPositive: false
-            });
-        }
+        const negativeTrait = !trait1IsPositive ? 
+            { name: formatTraitName(trait1Name), value: trait1Value, originalTrait: trait1Name } :
+            { name: formatTraitName(trait2Name), value: trait2Value, originalTrait: trait2Name };
         
-        console.log(`  📁 ${categoryName}: ${trait1Name}=${trait1Value.toFixed(3)} (${trait1IsPositive ? '✅' : '❌'}), ${trait2Name}=${trait2Value.toFixed(3)} (${trait2IsPositive ? '✅' : '❌'})`);
+        traitPairs.push({
+            category: formatTraitName(categoryName),
+            positive: positiveTrait,
+            negative: negativeTrait
+        });
+        
+        console.log(`  📁 ${categoryName}: ${positiveTrait.name}=${positiveTrait.value.toFixed(3)} (✅) ↔ ${negativeTrait.name}=${negativeTrait.value.toFixed(3)} (❌)`);
     }
     
-    // Create two super-categories: one for all positive, one for all negative
+    // Separate positive and negative items but track their pair relationships
+    const positiveItems = [];
+    const negativeItems = [];
+    
+    // Calculate angles: distribute pairs evenly, then mirror each pair around 90°
+    const totalPairs = traitPairs.length;
+    const anglePerPair = Math.PI / totalPairs; // Half circle divided by pairs (we'll use both halves)
+    
+    const mirrorAxis = Math.PI / 2; // 90° vertical axis
+    
+    traitPairs.forEach((pair, index) => {
+        // Calculate the offset from 90° for this pair
+        // Start from the center and spread outward
+        const pairOffset = (index - (totalPairs - 1) / 2) * anglePerPair;
+        
+        // Positive trait: right side of 90° (clockwise from 90°)
+        const positiveAngle = mirrorAxis + pairOffset;
+        // Negative trait: left side of 90° (counter-clockwise from 90°), mirrored
+        const negativeAngle = mirrorAxis - pairOffset;
+        
+        positiveItems.push({
+            name: pair.positive.name,
+            value: pair.positive.value,
+            rawValue: pair.positive.value,
+            originalTrait: pair.positive.originalTrait,
+            category: pair.category,
+            isPositive: true,
+            angle: positiveAngle,
+            pairIndex: index
+        });
+        
+        negativeItems.push({
+            name: pair.negative.name,
+            value: pair.negative.value,
+            rawValue: pair.negative.value,
+            originalTrait: pair.negative.originalTrait,
+            category: pair.category,
+            isPositive: false,
+            angle: negativeAngle,
+            pairIndex: index
+        });
+        
+        console.log(`  🔄 Mirrored pair ${index + 1}: ${pair.positive.name} at ${(positiveAngle * 180 / Math.PI).toFixed(1)}° ↔ ${pair.negative.name} at ${(negativeAngle * 180 / Math.PI).toFixed(1)}°`);
+    });
+    
+    // Sort items by angle
+    positiveItems.sort((a, b) => a.angle - b.angle);
+    negativeItems.sort((a, b) => a.angle - b.angle);
+    
+    // Calculate angle ranges for positive and negative groups
+    const positiveAngles = positiveItems.map(item => item.angle);
+    const negativeAngles = negativeItems.map(item => item.angle);
+    
+    const positiveStart = Math.min(...positiveAngles) - anglePerPair / 2;
+    const positiveEnd = Math.max(...positiveAngles) + anglePerPair / 2;
+    const negativeStart = Math.min(...negativeAngles) - anglePerPair / 2;
+    const negativeEnd = Math.max(...negativeAngles) + anglePerPair / 2;
+    
+    // Create two super-categories with mirrored items
     const categories = [
         {
             name: 'Positive Traits',
             color: '#4CAF50', // Green
-            startAngle: 0,
-            endAngle: Math.PI, // First half (top half)
-            items: positiveItems,
+            startAngle: positiveStart,
+            endAngle: positiveEnd,
+            items: positiveItems.map(item => ({
+                name: item.name,
+                value: item.value,
+                rawValue: item.rawValue,
+                originalTrait: item.originalTrait,
+                isPositive: true
+            })),
             isHierarchical: false
         },
         {
             name: 'Negative Traits',
             color: '#F44336', // Red
-            startAngle: Math.PI,
-            endAngle: 2 * Math.PI, // Second half (bottom half)
-            items: negativeItems,
+            startAngle: negativeStart,
+            endAngle: negativeEnd,
+            items: negativeItems.map(item => ({
+                name: item.name,
+                value: item.value,
+                rawValue: item.rawValue,
+                originalTrait: item.originalTrait,
+                isPositive: false
+            })),
             isHierarchical: false
         }
     ];
     
-    console.log(`✅ Created 2 super-categories: ${positiveItems.length} positive traits, ${negativeItems.length} negative traits`);
+    console.log(`✅ Created 2 super-categories with ${positiveItems.length} positive traits (${(positiveStart * 180 / Math.PI).toFixed(1)}° to ${(positiveEnd * 180 / Math.PI).toFixed(1)}°) and ${negativeItems.length} negative traits (${(negativeStart * 180 / Math.PI).toFixed(1)}° to ${(negativeEnd * 180 / Math.PI).toFixed(1)}°)`);
     return categories;
 }
 
