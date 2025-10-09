@@ -21,9 +21,9 @@ console.log("Firebase UserId=" + firebaseUserId);
 // Write a simple test case to the database
 let studyId;
 if (DEBUG){
-    studyId = 'pilot-oct8-debug';
+    studyId = 'pilot-oct9-debug';
 } else {
-    studyId = 'pilot-oct8';
+    studyId = 'pilot-oct9';
 }
 
 const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
