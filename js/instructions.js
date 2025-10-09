@@ -92,8 +92,8 @@ $(document).ready(function() {
         $("#task-header").attr("hidden", false);
         $("#task-main-content").attr("hidden", false);
         
-        // Load Chat Interface
-        $('#task-main-content').load('html/chat-content.html');
+        // Load Chat Interface with cache-busting
+        $('#task-main-content').load('html/chat-content.html?v=' + Date.now());
         
         // Log completion
         console.log("User completed instructions and proceeded to main task at:", new Date().toISOString());

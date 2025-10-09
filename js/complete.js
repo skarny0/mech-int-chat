@@ -11,15 +11,22 @@ the end of the experiment.
     IMPORTS
 
         Import all FirebaseJS functionality.
-        Note: firebaseConfig must be globally defined in HTML before this script loads
+        Note: Firebase is already initialized in chat.js, we retrieve the userId
+        from sessionStorage to avoid re-initialization conflicts.
 ******************************************************************************/
-/// Importing functions and variables from the Firebase Psych library
+/// Importing functions from the Firebase Psych library
 import {
-    writeRealtimeDatabase,
-    firebaseUserId
+    writeRealtimeDatabase
 } from "./firebasepsych1.0.js";
 
+// Retrieve firebaseUserId from sessionStorage (set by chat.js during initialization)
+const firebaseUserId = sessionStorage.getItem('firebaseUserId') || 'uid-not-found';
+
 console.log("Database and firebaseuid: ", firebaseUserId);
+
+if (firebaseUserId === 'uid-not-found') {
+    console.warn('⚠️ Firebase UserId not found in sessionStorage. This may cause data saving issues.');
+}
 
 /******************************************************************************
     DEBUG
@@ -117,13 +124,14 @@ $(document).ready(function (){
         /*
             Submit user feedback.
         */
-        writeRealtimeDatabase(
-            COMPLETE_DB_PATH,
-            {
-                "feedbackTime": Date().toString(),
-                "feedbackText": $('#user-feedback-text').val()
-            }
-        );
+        const feedbackData = {
+            "feedbackTime": Date().toString(),
+            "feedbackText": $('#user-feedback-text').val()
+        };
+        
+        console.log('📝 Writing user feedback to Firebase:', COMPLETE_DB_PATH, feedbackData);
+        writeRealtimeDatabase(COMPLETE_DB_PATH, feedbackData);
+        console.log('✅ User feedback write initiated');
 
         replaceClass('#user-feedback-button', "btn-secondary", "btn-primary");
     };
@@ -139,12 +147,12 @@ $(document).ready(function (){
 
     // Write completion status to Firebase
     const completionPath = studyId + '/participantData/' + firebaseUserId + '/completion';
-    writeRealtimeDatabase(
-        completionPath,
-        {
-            completed: true,
-            timestamp: new Date().toISOString()
-        }
-    );
-    console.log("✅ Completion status saved to Firebase");
+    const completionData = {
+        completed: true,
+        timestamp: new Date().toISOString()
+    };
+    
+    console.log('📝 Writing completion status to Firebase:', completionPath, completionData);
+    writeRealtimeDatabase(completionPath, completionData);
+    console.log("✅ Completion status write initiated");
 });

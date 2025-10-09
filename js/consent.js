@@ -209,7 +209,7 @@ $(document).ready(function (){
         // Show Instructions (the full overview page)
         $("#instructions-header").attr("hidden", true);
         $("#instructions-main-content").attr("hidden", false);
-        $('#instructions-main-content').load("html/instructions.html");
+        $('#instructions-main-content').load("html/instructions.html?v=" + Date.now());
         
         // Log consent data
         CONSENT_DATA['consentTime'] = Date().toString();

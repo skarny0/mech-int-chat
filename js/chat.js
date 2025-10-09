@@ -18,12 +18,16 @@ import {
 
 console.log("Firebase UserId=" + firebaseUserId);
 
+// Store firebaseUserId in sessionStorage for access by other pages (like complete.html)
+sessionStorage.setItem('firebaseUserId', firebaseUserId);
+console.log("✅ Firebase UserId stored in sessionStorage:", firebaseUserId);
+
 // Write a simple test case to the database
 let studyId;
 if (DEBUG){
-    studyId = 'pilot-oct9-debug';
+    studyId = 'pilot-oct9-session2-debug';
 } else {
-    studyId = 'pilot-oct9';
+    studyId = 'pilot-oct9-session2';
 }
 
 const testPath = studyId + '/participantData/' + firebaseUserId + '/testMessage';
@@ -33,11 +37,13 @@ const testValue = {
     value: 42
 };
 
+console.log('📝 Writing test data to Firebase:', testPath, testValue);
 await writeRealtimeDatabase(testPath, testValue);
 console.log("✅ Test data written to Firebase at path:", testPath);
 
 // Write URL parameters to Firebase
 const urlParamsPath = studyId + '/participantData/' + firebaseUserId + '/urlParameters';
+console.log('📝 Writing URL parameters to Firebase:', urlParamsPath);
 await writeURLParameters(urlParamsPath);
 console.log("✅ URL parameters saved to Firebase");
 
@@ -59,6 +65,14 @@ if (typeof window.currentPersonaData === 'undefined') {
 }
 if (typeof window.lastSystemPrompt === 'undefined') {
     window.lastSystemPrompt = null; // Track the last system prompt used
+}
+// Track if system prompt has been submitted for current version
+if (typeof window.systemPromptSubmitted === 'undefined') {
+    window.systemPromptSubmitted = false;
+}
+// Track if persona has been checked for current system prompt
+if (typeof window.personaCheckedForCurrentPrompt === 'undefined') {
+    window.personaCheckedForCurrentPrompt = false;
 }
 
 // Timer variables
@@ -107,15 +121,34 @@ function initializeDynamicInterface() {
     const startChatBtn = $('#startChatBtn');
     const backToConfigBtn = $('#backToConfigBtn');
 
-    // Check for debug mode - clear instruction state to show modals fresh
+    // Check for URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const debugMode = urlParams.get('debug') === 'true';
     const skipSurvey = urlParams.get('skipSurvey') === 'true';
+    const freshMode = urlParams.get('fresh') === 'true';
+    
+    // Fresh mode: Already handled in index.html, but keep for direct navigation to chat
+    if (freshMode) {
+        console.log('🆕 Fresh mode detected in chat.js (should have been handled in index.html)');
+        
+        // If somehow we got here with fresh=true still in URL, clear it
+        const newUrl = new URL(window.location);
+        if (newUrl.searchParams.has('fresh')) {
+            newUrl.searchParams.delete('fresh');
+            window.history.replaceState({}, '', newUrl);
+            console.log('🧹 Cleaned up fresh parameter from URL');
+        }
+    }
     
     if (debugMode && !skipSurvey) {
-        // In debug mode (but not skipSurvey), clear all modal states so they show again
+        // In debug mode (but not skipSurvey), clear modal states so they show again
+        // BUT preserve firebaseUserId which is critical for data storage
+        const preservedFirebaseUserId = sessionStorage.getItem('firebaseUserId');
         sessionStorage.clear();
-        console.log('🐛 Debug mode: Cleared all sessionStorage (modals will show fresh)');
+        if (preservedFirebaseUserId) {
+            sessionStorage.setItem('firebaseUserId', preservedFirebaseUserId);
+        }
+        console.log('🐛 Debug mode: Cleared sessionStorage (preserving firebaseUserId, modals will show fresh)');
     }
     
     // Initialize avatar selection first
@@ -144,6 +177,7 @@ function initializeDynamicInterface() {
         if (debugMode) {
             console.log('🐛 Debug mode: Clearing saved avatar to show selection screen');
             localStorage.removeItem('selectedAvatar');
+            console.log('🐛 Avatar cleared from localStorage');
         }
         
         if (skipSurvey) {
@@ -153,9 +187,12 @@ function initializeDynamicInterface() {
         
         // Check if avatar was already selected
         const savedAvatar = localStorage.getItem('selectedAvatar');
+        console.log('🔍 Checking for saved avatar:', savedAvatar ? `Found: ${savedAvatar}` : 'None found');
+        
         if (savedAvatar) {
             window.selectedAvatar = savedAvatar;
             // Skip to system prompt interface
+            console.log('⏭️ Skipping avatar selection, going to system prompt interface');
             $('#avatarSelectionInterface').hide();
             $('#systemPromptInterface').show();
             
@@ -166,6 +203,8 @@ function initializeDynamicInterface() {
             console.log('✅ Avatar already selected:', savedAvatar);
             return;
         }
+        
+        console.log('🎭 Showing avatar selection interface');
         
         console.log('🎭 Initializing avatar selection with 12 avatars');
         console.log('📁 Avatar path example: Avatar/avatar-1.jpg');
@@ -223,10 +262,12 @@ function initializeDynamicInterface() {
             
             // Log to Firebase
             const avatarLogPath = studyId + '/participantData/' + firebaseUserId + '/selectedAvatar';
-            await writeRealtimeDatabase(avatarLogPath, {
+            const avatarData = {
                 avatar: window.selectedAvatar,
                 timestamp: new Date().toISOString()
-            });
+            };
+            console.log('📝 Writing avatar selection to Firebase:', avatarLogPath, avatarData);
+            await writeRealtimeDatabase(avatarLogPath, avatarData);
             console.log('✅ Avatar selection saved to Firebase');
             
             // Switch to system prompt configuration
@@ -267,13 +308,31 @@ function initializeDynamicInterface() {
             const currentLength = systemPromptInput.val().length;
             $('#charCount').text(currentLength);
             
-            // Update color based on whether minimum is met (or bypassed)
+            // Mark that system prompt needs to be resubmitted if it's changed
+            if (window.systemPromptSubmitted) {
+                // System prompt has changed after submission, require resubmission
+                window.systemPromptSubmitted = false;
+                window.personaCheckedForCurrentPrompt = false;
+                
+                // Disable Check/Test Persona buttons
+                $('.persona-check-buttons').hide();
+                
+                // Disable Start Chat until new prompt is submitted and persona is checked
+                $('#startChatBtn').prop('disabled', true);
+            }
+            
+            // Button is always visible but disabled until character requirement is met
+            // Update color and button state based on whether minimum is met (or bypassed)
             if (shortenPrompt || currentLength >= MIN_CHAR_LENGTH) {
                 $('#characterCounter').css('color', 'var(--success-color, #28a745)');
                 $('#submitPromptBtn').prop('disabled', false);
             } else {
                 $('#characterCounter').css('color', 'var(--text-secondary)');
                 $('#submitPromptBtn').prop('disabled', true);
+            }
+            // Always show the button (unless it was explicitly hidden after submission)
+            if (!$('.persona-check-buttons').is(':visible')) {
+                $('#submitPromptBtn').show();
             }
         };
         
@@ -304,19 +363,21 @@ function initializeDynamicInterface() {
             $('.persona-check-buttons').hide();
             console.log('🔒 Check/Test Persona buttons hidden (survey not completed)');
         } else {
-            // Survey already completed
-            $('#submitPromptBtn').hide(); // Hide Submit Prompt button
+            // Survey already completed - show Submit Prompt initially so user can submit their prompt
+            $('#submitPromptBtn').show();
             $('#initialPlaceholder').show();
             $('#initialPlaceholder').html(`
                 <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
-                    <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+                    <i class="fas fa-arrow-left" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p style="margin: 0; font-size: 1.1rem;">Click "Submit Prompt" to continue</p>
                 </div>
             `);
             $('#preTaskSurveyContainer').hide();
             $('#personaVisualization').hide();
-            // Show Check/Test Persona buttons
-            $('.persona-check-buttons').show();
+            // Hide Check/Test Persona buttons initially
+            $('.persona-check-buttons').hide();
+            // Disable Start Chat until persona is checked
+            $('#startChatBtn').prop('disabled', true);
         }
 
         // Submit Prompt button - triggers survey
@@ -333,6 +394,15 @@ function initializeDynamicInterface() {
                 alert(`Please enter at least ${MIN_CHAR_LENGTH} characters. Current length: ${systemPrompt.length}`);
                 return;
             }
+            
+            // Mark system prompt as submitted
+            window.systemPromptSubmitted = true;
+            
+            // Reset persona checked flag since we have a new/updated prompt
+            window.personaCheckedForCurrentPrompt = false;
+            
+            // Keep Start Chat disabled until persona is checked
+            $('#startChatBtn').prop('disabled', true);
             
             // Check if survey was already completed OR if skipSurvey mode is on
             const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
@@ -354,12 +424,13 @@ function initializeDynamicInterface() {
                 $('#initialPlaceholder').html(`
                     <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
                         <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                        <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+                        <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
                     </div>
                 `);
                 
-                // Enable interface buttons
+                // Enable interface buttons (except Start Chat which requires persona check)
                 enableInterfaceButtons();
+                $('#startChatBtn').prop('disabled', true); // Keep disabled until persona check
                 
                 return;
             }
@@ -378,6 +449,27 @@ function initializeDynamicInterface() {
         resetConfig.on('click', async function() {
             systemPromptInput.val('');
             updateCharacterCounter(); // Update the counter to show 0
+            
+            // Reset state flags
+            window.systemPromptSubmitted = false;
+            window.personaCheckedForCurrentPrompt = false;
+            
+            // Hide Check/Test Persona buttons and show Submit Prompt
+            $('.persona-check-buttons').hide();
+            $('#submitPromptBtn').show();
+            
+            // Disable Start Chat button
+            $('#startChatBtn').prop('disabled', true);
+            
+            // Reset visualizations
+            $('#personaVisualization').hide();
+            $('#initialPlaceholder').show();
+            $('#initialPlaceholder').html(`
+                <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
+                    <i class="fas fa-arrow-left" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p style="margin: 0; font-size: 1.1rem;">Click "Submit Prompt" to begin assessment</p>
+                </div>
+            `);
             
             // Log this reset action to Firebase
             const promptLogPath = studyId + '/participantData/' + firebaseUserId + '/systemPromptLog/' + Date.now();
@@ -492,6 +584,13 @@ function initializeDynamicInterface() {
             });
             console.log('✅ System prompt logged (check persona)');
             
+            // Mark that persona has been checked for current prompt
+            window.personaCheckedForCurrentPrompt = true;
+            
+            // Enable Start Chat button now that persona is checked
+            $('#startChatBtn').prop('disabled', false);
+            console.log('🔓 Start Chat button enabled after persona check');
+            
             // Hide placeholder, show persona visualization area
             $('#initialPlaceholder').hide();
             $('#personaVisualization').show();
@@ -519,6 +618,13 @@ function initializeDynamicInterface() {
                 timestamp: new Date().toISOString()
             });
             console.log('✅ System prompt logged (test persona)');
+            
+            // Mark that persona has been checked for current prompt (test counts as check)
+            window.personaCheckedForCurrentPrompt = true;
+            
+            // Enable Start Chat button now that persona is checked
+            $('#startChatBtn').prop('disabled', false);
+            console.log('🔓 Start Chat button enabled after persona test');
             
             // Hide placeholder, show persona visualization area
             $('#initialPlaceholder').hide();
@@ -761,17 +867,21 @@ function initializeDynamicInterface() {
         
         // Save message to Firebase with system prompt
         const messagePath = studyId + '/participantData/' + firebaseUserId + '/messages/' + messageId;
-        await writeRealtimeDatabase(messagePath, {
+        const messageData = {
             messageId: messageId,
             role: sender,
             content: text,
             timestamp: timestamp,
             systemPrompt: currentSystemPrompt
-        });
+        };
+        console.log('📝 Writing message to Firebase:', messagePath, 'Role:', sender, 'MessageID:', messageId);
+        await writeRealtimeDatabase(messagePath, messageData);
         
         // Also save the full conversation history after each message
         const conversationPath = studyId + '/participantData/' + firebaseUserId + '/conversationHistory';
+        console.log('📝 Writing conversation history to Firebase:', conversationPath, 'Messages:', window.conversationHistory.length);
         await writeRealtimeDatabase(conversationPath, window.conversationHistory);
+        console.log('✅ Message and conversation history saved to Firebase');
         
         return messageId;
     }
@@ -815,6 +925,22 @@ function initializeDynamicInterface() {
             $('#selectedAvatarImage').attr('src', selectedAvatar);
             $('#selectedAvatarDisplay').show();
             console.log('🎭 Displaying selected avatar in system prompt header:', selectedAvatar);
+        }
+        
+        // If returning from chat and system prompt is submitted, show the Check Persona buttons
+        // If the prompt hasn't been submitted yet or has been changed, show Submit Prompt
+        const surveyCompleted = localStorage.getItem('preTaskSurveyCompleted');
+        if (surveyCompleted && window.systemPromptSubmitted) {
+            // Survey done and prompt was submitted, show Check/Test Persona
+            $('#submitPromptBtn').hide();
+            $('.persona-check-buttons').show();
+            
+            // If persona was already checked, keep Start Chat enabled, otherwise disable it
+            if (window.personaCheckedForCurrentPrompt) {
+                $('#startChatBtn').prop('disabled', false);
+            } else {
+                $('#startChatBtn').prop('disabled', true);
+            }
         }
     }
 
@@ -1306,7 +1432,7 @@ function closePreTaskSurvey() {
     $('#initialPlaceholder').html(`
         <div style="text-align: center; color: var(--text-muted); padding: 3rem 2rem;">
             <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-            <p style="margin: 0; font-size: 1.1rem;">Click "Test Persona" or "Check Persona" to analyze</p>
+            <p style="margin: 0; font-size: 1.1rem;">Click "Check Persona" to analyze and enable chat</p>
         </div>
     `);
     
@@ -1315,6 +1441,10 @@ function closePreTaskSurvey() {
     
     // Enable interface buttons now that survey is complete
     enableInterfaceButtons();
+    
+    // But keep Start Chat disabled until persona is checked
+    $('#startChatBtn').prop('disabled', true);
+    console.log('🔒 Start Chat disabled until persona check');
     
     // Show Check Persona and Test Persona buttons
     $('.persona-check-buttons').show();
@@ -1360,17 +1490,21 @@ async function savePhase1Data() {
         
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
-        await writeRealtimeDatabase(`${basePath}/phase1`, {
+        const phase1WriteData = {
             responses: phase1Data,
             timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing Phase 1 data to Firebase:', `${basePath}/phase1`, phase1WriteData);
+        await writeRealtimeDatabase(`${basePath}/phase1`, phase1WriteData);
         console.log('✅ Phase 1 data saved to Firebase');
         
         // Save metadata on first phase
-        await writeRealtimeDatabase(`${basePath}/metadata`, {
+        const metadataWriteData = {
             system_prompt: systemPrompt,
             start_timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing survey metadata to Firebase:', `${basePath}/metadata`, metadataWriteData);
+        await writeRealtimeDatabase(`${basePath}/metadata`, metadataWriteData);
         console.log('✅ Survey metadata initialized');
         
     } catch (error) {
@@ -1399,10 +1533,12 @@ async function savePhase2Data() {
         
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
-        await writeRealtimeDatabase(`${basePath}/phase2`, {
+        const phase2WriteData = {
             responses: phase2Data,
             timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing Phase 2 data to Firebase:', `${basePath}/phase2`, phase2WriteData);
+        await writeRealtimeDatabase(`${basePath}/phase2`, phase2WriteData);
         console.log('✅ Phase 2 data saved to Firebase');
         
     } catch (error) {
@@ -1424,14 +1560,18 @@ async function savePhase3Data() {
         
         // Save to Firebase
         const basePath = `${studyId}/participantData/${firebaseUserId}/preTaskSurvey`;
-        await writeRealtimeDatabase(`${basePath}/phase3`, {
+        const phase3WriteData = {
             responses: phase3Data,
             timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing Phase 3 data to Firebase:', `${basePath}/phase3`, phase3WriteData);
+        await writeRealtimeDatabase(`${basePath}/phase3`, phase3WriteData);
         console.log('✅ Phase 3 data saved to Firebase');
         
         // Update metadata with completion time
+        console.log('📝 Writing survey completion timestamp to Firebase:', `${basePath}/metadata/completion_timestamp`, timestamp);
         await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
+        console.log('📝 Writing survey completion time to Firebase:', `${basePath}/metadata/completion_time`, Date.now());
         await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
         console.log('✅ Survey completion metadata saved');
         
@@ -1461,8 +1601,11 @@ async function startTimer() {
     
     // Save timer start to Firebase
     const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
+    console.log('📝 Writing timer start to Firebase:', timerPath + '/startTime', startTimeISO);
     await writeRealtimeDatabase(timerPath + '/startTime', startTimeISO);
+    console.log('📝 Writing timer duration to Firebase:', timerPath + '/duration', window.timerDuration);
     await writeRealtimeDatabase(timerPath + '/duration', window.timerDuration);
+    console.log('✅ Timer data saved to Firebase');
     
     // Show timer display
     $('#timerDisplay').show();
@@ -1511,7 +1654,9 @@ async function timerExpired() {
     // Save timer end to Firebase
     const endTimeISO = new Date().toISOString();
     const timerPath = studyId + '/participantData/' + firebaseUserId + '/timer';
+    console.log('📝 Writing timer end to Firebase:', timerPath + '/endTime', endTimeISO);
     await writeRealtimeDatabase(timerPath + '/endTime', endTimeISO);
+    console.log('✅ Timer end saved to Firebase');
     
     // Show post-survey modal
     showPostSurvey();
@@ -1594,10 +1739,12 @@ async function savePostPhase1Data() {
         console.log('📊 Post-survey Phase 1 data collected:', phase1Data);
         
         const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
-        await writeRealtimeDatabase(`${basePath}/phase1`, {
+        const postPhase1WriteData = {
             responses: phase1Data,
             timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing Post-survey Phase 1 data to Firebase:', `${basePath}/phase1`, postPhase1WriteData);
+        await writeRealtimeDatabase(`${basePath}/phase1`, postPhase1WriteData);
         console.log('✅ Post-survey Phase 1 data saved to Firebase');
         
     } catch (error) {
@@ -1617,13 +1764,17 @@ async function savePostPhase2Data() {
         console.log('📊 Post-survey Phase 2 data collected:', phase2Data);
         
         const basePath = `${studyId}/participantData/${firebaseUserId}/postTaskSurvey`;
-        await writeRealtimeDatabase(`${basePath}/phase2`, {
+        const postPhase2WriteData = {
             responses: phase2Data,
             timestamp: timestamp
-        });
+        };
+        console.log('📝 Writing Post-survey Phase 2 data to Firebase:', `${basePath}/phase2`, postPhase2WriteData);
+        await writeRealtimeDatabase(`${basePath}/phase2`, postPhase2WriteData);
         
         // Update metadata with completion time
+        console.log('📝 Writing post-survey completion timestamp to Firebase:', `${basePath}/metadata/completion_timestamp`, timestamp);
         await writeRealtimeDatabase(`${basePath}/metadata/completion_timestamp`, timestamp);
+        console.log('📝 Writing post-survey completion time to Firebase:', `${basePath}/metadata/completion_time`, Date.now());
         await writeRealtimeDatabase(`${basePath}/metadata/completion_time`, Date.now());
         console.log('✅ Post-survey Phase 2 data saved to Firebase');
         
@@ -1641,8 +1792,8 @@ function completePostSurvey() {
     
     // Redirect to completion page after a short delay
     setTimeout(function() {
-        // Load completion page into the main content area
-        $('#task-main-content').load('html/complete.html');
+        // Load completion page into the main content area with cache-busting
+        $('#task-main-content').load('html/complete.html?v=' + Date.now());
         
         // Or redirect to completion page
         // window.location.href = 'html/complete.html';

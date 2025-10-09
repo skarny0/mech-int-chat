@@ -837,9 +837,11 @@
 
 <!-- Chat Interface JavaScript -->
 <script>
-    // Load chat.js with cache-busting
-    const script = document.createElement('script');
-    script.src = '../js/chat.js?v=' + Date.now();
-    script.type = 'module';
-    document.body.appendChild(script);
+    // Load chat.js with cache-busting (wrapped in IIFE to avoid variable conflicts)
+    (function() {
+        var script = document.createElement('script');
+        script.src = '../js/chat.js?v=' + Date.now();
+        script.type = 'module';
+        document.body.appendChild(script);
+    })();
 </script>

@@ -4,7 +4,14 @@
         <!--
             Custom JavaScript - Consent Page Metadata and Functionality
         -->
-        <script src="js/consent.js" type="module">
+        <script>
+            // Load consent.js with cache-busting (wrapped in IIFE to avoid variable conflicts)
+            (function() {
+                var script = document.createElement('script');
+                script.src = 'js/consent.js?v=' + Date.now();
+                script.type = 'module';
+                document.head.appendChild(script);
+            })();
         </script>
     </head>
     <body>

@@ -55,26 +55,67 @@
         -->
         <script>
             $(document).ready(function(){
+                // Check for URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const debugMode = urlParams.get('debug') === 'true';
+                const freshMode = urlParams.get('fresh') === 'true';
+                
+                // Fresh mode: Clear all storage to simulate a fresh participant
+                if (freshMode) {
+                    console.log('🆕 Fresh mode: Clearing all experiment data at entry point');
+                    
+                    // Check if this is the first time we're seeing the fresh parameter
+                    const alreadyFreshed = sessionStorage.getItem('freshModeApplied');
+                    
+                    if (!alreadyFreshed) {
+                        // First time seeing fresh=true, need to clear and reload
+                        console.log('🧹 Clearing all localStorage and sessionStorage');
+                        
+                        // Clear all storage
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // Set a flag so we know we've already done the fresh clear
+                        sessionStorage.setItem('freshModeApplied', 'true');
+                        
+                        // Remove fresh parameter from URL and reload with cache-busting
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.delete('fresh');
+                        newUrl.searchParams.set('_t', Date.now());
+                        
+                        console.log('🔄 Reloading page with fresh cache...');
+                        window.location.href = newUrl.toString();
+                        return; // Stop execution, page will reload
+                    } else {
+                        // Second time through (after reload), clean up
+                        console.log('✅ Fresh mode applied successfully');
+                        sessionStorage.removeItem('freshModeApplied');
+                        
+                        // Remove the cache-busting parameter from URL
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.delete('_t');
+                        if (newUrl.search !== window.location.search) {
+                            window.history.replaceState({}, '', newUrl);
+                        }
+                    }
+                }
+                
                 // Pre-load models immediately when page loads
                 if (typeof preloadModels === 'function') {
                     preloadModels();
                 }
                 
-                // Check for debug flag in URL parameters
-                const urlParams = new URLSearchParams(window.location.search);
-                const debugMode = urlParams.get('debug') === 'true';
-                
                 if (debugMode){
                     // Debug mode - skip directly to avatar selection / chat interface
                     // console.log('🐛 Debug mode enabled - skipping to chat interface');
-                    $('#consent-main-content').load("html/consent.html");
+                    $('#consent-main-content').load("html/consent.html?v=" + Date.now());
                     // $("#consent-main-content").attr("hidden", true);
                     // $("#task-header").attr("hidden", false);
                     // $("#task-main-content").attr("hidden", false);
                     // $('#task-main-content').load('html/chat-content.html?v=' + Date.now());
                 } else{
                     // Production mode - start with consent
-                    $('#consent-main-content').load("html/consent.html");
+                    $('#consent-main-content').load("html/consent.html?v=" + Date.now());
                 }
 
                 // Function to hide consent and show chat interface

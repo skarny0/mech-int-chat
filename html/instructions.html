@@ -1,7 +1,15 @@
 <html>
     <head>
         <link rel="stylesheet" href="css/consent.css">
-        <script src="js/instructions.js" type="module"></script>
+        <script>
+            // Load instructions.js with cache-busting (wrapped in IIFE to avoid variable conflicts)
+            (function() {
+                var script = document.createElement('script');
+                script.src = 'js/instructions.js?v=' + Date.now();
+                script.type = 'module';
+                document.head.appendChild(script);
+            })();
+        </script>
         <style>
             .instruction-phase {
                 display: none;

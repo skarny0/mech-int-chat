@@ -6,19 +6,17 @@
     <title>Study Complete</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Firebase Configuration - Must be defined before firebasepsych1.0.js loads -->
+    <!-- Firebase Configuration - Skipped because it's already initialized in chat.js -->
+    <!-- The firebaseUserId is retrieved from sessionStorage in complete.js -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBnlqrGcIfgo59WCzure6azGQitEQaGhZg",
-            authDomain: "mech-chat-ee0c5.firebaseapp.com",
-            databaseURL: "https://mech-chat-ee0c5-default-rtdb.firebaseio.com",
-            projectId: "mech-chat-ee0c5",
-            storageBucket: "mech-chat-ee0c5.firebasestorage.app",
-            messagingSenderId: "1027129084043",
-            appId: "1:1027129084043:web:ece77d746e79110f98ec8e"
-        };
+        // Load complete.js with cache-busting (wrapped in IIFE to avoid variable conflicts)
+        (function() {
+            var script = document.createElement('script');
+            script.src = '../js/complete.js?v=' + Date.now();
+            script.type = 'module';
+            document.head.appendChild(script);
+        })();
     </script>
-    <script src="../js/complete.js" type="module"></script>
     <style>
         :root {
             --bg-primary: #ffffff;
