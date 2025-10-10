@@ -70,7 +70,7 @@ function getExperimentSettingsFromURL() {
          * 0 = Control condition (no visualization)
          * 1 = Experimental condition (with visualization)
          * URL: ?visualizationCondition=0 or ?visualizationCondition=1
-         * Default: 0 (control) - random assignment commented out for manual enabling
+         * Default: Random 50/50 assignment
          */
         visualizationCondition: (() => {
             const conditionParam = urlParams.get('visualizationCondition');
@@ -88,22 +88,16 @@ function getExperimentSettingsFromURL() {
             
             // Check if already assigned in this session
             const storedCondition = sessionStorage.getItem('visualizationCondition');
-            if (storedCondition !== null) {
+            const storedMethod = sessionStorage.getItem('conditionAssignmentMethod');
+            if (storedCondition !== null && storedMethod !== null) {
                 return parseInt(storedCondition, 10);
             }
             
-            // Default assignment (random assignment commented out)
-            // Uncomment the following lines to enable random 50/50 assignment:
+            // Random 50/50 assignment for new sessions
             const randomCondition = Math.random() < 0.5 ? 0 : 1;
             sessionStorage.setItem('visualizationCondition', randomCondition.toString());
             sessionStorage.setItem('conditionAssignmentMethod', 'random');
             return randomCondition;
-            
-            // Default to control (0) for now
-            // const defaultCondition = 1;
-            // sessionStorage.setItem('visualizationCondition', defaultCondition.toString());
-            // sessionStorage.setItem('conditionAssignmentMethod', 'default');
-            // return defaultCondition;
         })(),
     };
     
@@ -113,6 +107,7 @@ function getExperimentSettingsFromURL() {
 // ============================================
 // DEFAULT SETTINGS (without URL parameters)
 // ============================================
+// Note: visualizationCondition uses random assignment, not a fixed default
 
 let defaultSettings = {
     debug: false,
@@ -121,7 +116,7 @@ let defaultSettings = {
     skipSurvey: false,
     shortenPrompt: false,
     sunburst: false,
-    visualizationCondition: 0,
+    visualizationCondition: null, // Random assignment (0 or 1)
 };
 
 // ============================================
